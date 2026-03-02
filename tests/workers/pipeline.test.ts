@@ -7,6 +7,7 @@ import {
   serializeMetadataFrame,
   parseFrame,
   PROTOCOL_VERSION,
+  HEADER_SIZE,
   type Frame,
   type MetadataFrame,
 } from "@/protocol/frame";
@@ -43,16 +44,16 @@ describe("Encode/Decode Pipeline", () => {
       metadataHash: metaHash,
       sourceBlockCount: k,
       blockSize,
+      compressedSize: compressed.data.length,
+      compressionId: compressed.algorithm,
       symbolId: 0,
       payload: new Uint8Array(0),
       filename,
       fileSize: fileData.length,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
       sha256,
     };
     const metaBytes = serializeMetadataFrame(metadataFrame);
-    expect(metaBytes.length).toBeGreaterThan(14);
+    expect(metaBytes.length).toBeGreaterThan(HEADER_SIZE);
 
     // Data frames
     for (let i = 0; i < 3; i++) {
@@ -63,11 +64,13 @@ describe("Encode/Decode Pipeline", () => {
         metadataHash: metaHash,
         sourceBlockCount: k,
         blockSize,
+        compressedSize: compressed.data.length,
+        compressionId: compressed.algorithm,
         symbolId: i + 1,
         payload: symbolData,
       };
       const frameBytes = serializeFrame(frame);
-      expect(frameBytes.length).toBe(14 + symbolData.length);
+      expect(frameBytes.length).toBe(HEADER_SIZE + symbolData.length);
 
       // Render QR
       const bitmap = renderQR(frameBytes, "balanced");
@@ -99,12 +102,12 @@ describe("Encode/Decode Pipeline", () => {
       metadataHash: metaHash,
       sourceBlockCount: k,
       blockSize,
+      compressedSize: compressed.data.length,
+      compressionId: compressed.algorithm,
       symbolId: 0,
       payload: new Uint8Array(0),
       filename: "test.bin",
       fileSize: original.length,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
       sha256,
     };
     const metaFrameBytes = serializeMetadataFrame(metadataFrame);
@@ -119,7 +122,7 @@ describe("Encode/Decode Pipeline", () => {
 
     // Initialize decoder
     const decoder = await factory.createDecoder();
-    decoder.init(compressed.data.length, blockSize);
+    decoder.init(metaResult.frame.compressedSize, metaResult.frame.blockSize);
 
     // Send fountain symbols until decode completes
     // Use symbolId starting from 1 (0 is reserved for metadata frame)
@@ -133,6 +136,8 @@ describe("Encode/Decode Pipeline", () => {
         metadataHash: metaHash,
         sourceBlockCount: k,
         blockSize,
+        compressedSize: compressed.data.length,
+        compressionId: compressed.algorithm,
         symbolId: frameSymbolId,
         payload: symbolData,
       };

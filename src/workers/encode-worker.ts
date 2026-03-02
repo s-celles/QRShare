@@ -5,6 +5,7 @@ import {
   serializeFrame,
   serializeMetadataFrame,
   PROTOCOL_VERSION,
+  HEADER_SIZE,
   type MetadataFrame,
   type Frame,
 } from "@/protocol/frame";
@@ -49,8 +50,8 @@ async function startEncoding(
     const encoder = await factory.createEncoder();
 
     const maxPayload = getMaxPayloadBytes(preset);
-    // Reserve header bytes (14) from max payload
-    const blockSize = Math.max(1, maxPayload - 14);
+    // Reserve header bytes from max payload
+    const blockSize = Math.max(1, maxPayload - HEADER_SIZE);
 
     encoder.init(compressed.data, blockSize);
     const k = encoder.getSourceBlockCount();
@@ -64,37 +65,48 @@ async function startEncoding(
       sha256: toHex(sha256Full),
     });
 
-    // Step 4: Serialize and send metadata frame (symbolId=0)
+    // Step 4: Serialize metadata frame (symbolId=0) for periodic re-sends
+    // Metadata frame carries filename, fileSize, sha256 for UI display.
+    // Decoder-essential params (compressedSize, compressionId) are in EVERY frame header.
     const metadataFrame: MetadataFrame = {
       version: PROTOCOL_VERSION,
       flags: 0x00,
       metadataHash: metaHash,
       sourceBlockCount: k,
       blockSize,
+      compressedSize: compressed.data.length,
+      compressionId: compressed.algorithm,
       symbolId: 0,
       payload: new Uint8Array(0),
       filename,
       fileSize: fileData.length,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
       sha256: sha256Full,
     };
 
     const metaFrameBytes = serializeMetadataFrame(metadataFrame);
-    if (running) {
+
+    // Send metadata frame a few times at the start for filename/sha256 info
+    const INITIAL_META_REPEATS = 3;
+    let frameNumber = 0;
+    for (let i = 0; i < INITIAL_META_REPEATS && running; i++) {
       const buf = new ArrayBuffer(metaFrameBytes.byteLength);
       new Uint8Array(buf).set(metaFrameBytes);
-      post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber: 0 });
+      post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber });
+      frameNumber++;
+
+      const delay = Math.max(1, Math.round(1000 / currentFps));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     // Step 5: Generate fountain-coded frames indefinitely
-    // Re-send metadata frame every METADATA_INTERVAL data frames
+    // Every frame header contains compressedSize + compressionId,
+    // so the decoder can initialize from ANY data frame (like CAScad).
+    // Metadata frames are re-sent periodically for filename/sha256.
     const METADATA_INTERVAL = 30;
-    let frameNumber = 1;
     let symbolId = 0;
 
     while (running) {
-      // Periodically re-send metadata so receiver can join at any point
+      // Periodically re-send metadata for filename/sha256
       if (symbolId > 0 && symbolId % METADATA_INTERVAL === 0) {
         const buf = new ArrayBuffer(metaFrameBytes.byteLength);
         new Uint8Array(buf).set(metaFrameBytes);
@@ -114,6 +126,8 @@ async function startEncoding(
         metadataHash: metaHash,
         sourceBlockCount: k,
         blockSize,
+        compressedSize: compressed.data.length,
+        compressionId: compressed.algorithm,
         symbolId: symbolId + 1, // symbolId 0 is reserved for metadata
         payload: symbolData,
       };

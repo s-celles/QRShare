@@ -60,7 +60,7 @@ bun run package
 
 - **Preact + Signals** -- Lightweight reactive UI framework
 - **Web Workers** -- Encode and decode pipelines run off the main thread
-- **Binary Frame Protocol** -- 14-byte header with version, metadata hash, block count, symbol ID
+- **Binary Frame Protocol** -- 19-byte self-contained header with version, metadata hash, block count, compressed size, compression ID, symbol ID
 - **Compression** -- fflate (deflate) with automatic incompressible data detection
 - **QR Generation** -- lean-qr in byte mode with three quality presets
 - **QR Scanning** -- @undecaf/zbar-wasm for real-time decoding

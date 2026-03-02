@@ -13,6 +13,7 @@ let decoder: FountainDecoder | null = null;
 
 // State tracking
 let metadataReceived = false;
+let decoderReady = false;
 let expectedFilename = "";
 let expectedFileSize = 0;
 let expectedSha256 = new Uint8Array(0);
@@ -39,6 +40,22 @@ function arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   return true;
 }
 
+async function initDecoder(
+  compressedSize: number,
+  blockSize: number,
+  compId: CompressionAlgorithm,
+  metadataHash: Uint8Array,
+): Promise<void> {
+  compressionAlgorithm = compId;
+  expectedMetadataHash = new Uint8Array(metadataHash);
+  metadataHashHex = toHex(expectedMetadataHash);
+
+  const factory = await getCodecFactory();
+  decoder = await factory.createDecoder();
+  decoder.init(compressedSize, blockSize);
+  decoderReady = true;
+}
+
 async function processFrame(imageData: ImageData): Promise<void> {
   if (!running || !scanner) return;
 
@@ -60,24 +77,26 @@ async function processFrame(imageData: ImageData): Promise<void> {
       return;
     }
 
-    // Handle metadata frame
+    // Initialize decoder from ANY frame (data or metadata) — like CAScad.
+    // compressedSize and compressionId are in every frame header (v2 protocol).
+    if (!decoderReady && (parseResult.kind === "data" || parseResult.kind === "metadata")) {
+      const frame = parseResult.frame;
+      await initDecoder(
+        frame.compressedSize,
+        frame.blockSize,
+        frame.compressionId,
+        frame.metadataHash,
+      );
+      console.log("[decode-worker] Decoder initialized from", parseResult.kind, "frame");
+    }
+
+    // Handle metadata frame — extract filename, fileSize, sha256 for UI
     if (parseResult.kind === "metadata") {
       if (!metadataReceived) {
         metadataReceived = true;
         expectedFilename = parseResult.frame.filename;
         expectedFileSize = parseResult.frame.fileSize;
         expectedSha256 = new Uint8Array(parseResult.frame.sha256);
-        compressionAlgorithm = parseResult.frame.compressionId;
-        expectedMetadataHash = new Uint8Array(parseResult.frame.metadataHash);
-        metadataHashHex = toHex(expectedMetadataHash);
-
-        // Initialize fountain decoder with compressed size
-        const factory = await getCodecFactory();
-        decoder = await factory.createDecoder();
-        decoder.init(
-          parseResult.frame.compressedSize,
-          parseResult.frame.blockSize,
-        );
 
         post({
           type: "metadata",
@@ -88,8 +107,8 @@ async function processFrame(imageData: ImageData): Promise<void> {
       return;
     }
 
-    // Handle data frame
-    if (parseResult.kind === "data" && decoder && metadataReceived) {
+    // Handle data frame — decoder is always ready at this point
+    if (parseResult.kind === "data" && decoderReady && decoder) {
       // Validate metadata hash matches
       if (!arraysEqual(parseResult.frame.metadataHash, expectedMetadataHash)) {
         return; // Hash mismatch, ignore this frame
@@ -121,14 +140,16 @@ async function processFrame(imageData: ImageData): Promise<void> {
         // Decompress
         const fileData = decompress(compressedData, compressionAlgorithm);
 
-        // Verify SHA-256
+        // Verify SHA-256 if metadata was received
         const actualHash = await hashSha256(fileData);
-        const verified = arraysEqual(actualHash, expectedSha256);
+        const verified = metadataReceived
+          ? arraysEqual(actualHash, expectedSha256)
+          : false;
 
         post({
           type: "complete",
           file: fileData.buffer as ArrayBuffer,
-          filename: expectedFilename,
+          filename: expectedFilename || "download",
           sha256: toHex(actualHash),
           verified,
         });

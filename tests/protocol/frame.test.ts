@@ -11,11 +11,13 @@ import {
 
 describe("FrameProtocol", () => {
   const sampleFrame: Frame = {
-    version: 0x01,
+    version: PROTOCOL_VERSION,
     flags: 0x00,
     metadataHash: new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]),
     sourceBlockCount: 100,
     blockSize: 1024,
+    compressedSize: 50000,
+    compressionId: 0x01,
     symbolId: 42,
     payload: new Uint8Array([1, 2, 3, 4, 5]),
   };
@@ -26,11 +28,13 @@ describe("FrameProtocol", () => {
       const result = parseFrame(serialized);
       expect(result.kind).toBe("data");
       if (result.kind === "data") {
-        expect(result.frame.version).toBe(0x01);
+        expect(result.frame.version).toBe(PROTOCOL_VERSION);
         expect(result.frame.flags).toBe(0x00);
         expect(result.frame.metadataHash).toEqual(new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]));
         expect(result.frame.sourceBlockCount).toBe(100);
         expect(result.frame.blockSize).toBe(1024);
+        expect(result.frame.compressedSize).toBe(50000);
+        expect(result.frame.compressionId).toBe(0x01);
         expect(result.frame.symbolId).toBe(42);
         expect(result.frame.payload).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
       }
@@ -43,12 +47,14 @@ describe("FrameProtocol", () => {
 
     it("uses little-endian for multi-byte fields", () => {
       const frame: Frame = {
-        version: 0x01,
+        version: PROTOCOL_VERSION,
         flags: 0x00,
         metadataHash: new Uint8Array([0, 0, 0, 0]),
         sourceBlockCount: 0x0102, // 258
         blockSize: 0x0304, // 772
-        symbolId: 0x05060708,
+        compressedSize: 0x05060708,
+        compressionId: 0x00,
+        symbolId: 0x090A0B0C,
         payload: new Uint8Array([]),
       };
       const serialized = serializeFrame(frame);
@@ -58,27 +64,34 @@ describe("FrameProtocol", () => {
       // blockSize at offset 8: LE -> 0x04, 0x03
       expect(serialized[8]).toBe(0x04);
       expect(serialized[9]).toBe(0x03);
-      // symbolId at offset 10: LE -> 0x08, 0x07, 0x06, 0x05
+      // compressedSize at offset 10: LE -> 0x08, 0x07, 0x06, 0x05
       expect(serialized[10]).toBe(0x08);
       expect(serialized[11]).toBe(0x07);
       expect(serialized[12]).toBe(0x06);
       expect(serialized[13]).toBe(0x05);
+      // compressionId at offset 14
+      expect(serialized[14]).toBe(0x00);
+      // symbolId at offset 15: LE -> 0x0C, 0x0B, 0x0A, 0x09
+      expect(serialized[15]).toBe(0x0C);
+      expect(serialized[16]).toBe(0x0B);
+      expect(serialized[17]).toBe(0x0A);
+      expect(serialized[18]).toBe(0x09);
     });
   });
 
   describe("metadata frame", () => {
     const metadataFrame: MetadataFrame = {
-      version: 0x01,
+      version: PROTOCOL_VERSION,
       flags: 0x00,
       metadataHash: new Uint8Array([0x11, 0x22, 0x33, 0x44]),
       sourceBlockCount: 50,
       blockSize: 512,
+      compressedSize: 10000,
+      compressionId: 0x01,
       symbolId: 0,
       payload: new Uint8Array([]),
       filename: "test.txt",
       fileSize: 12345,
-      compressedSize: 10000,
-      compressionId: 0x01,
       sha256: new Uint8Array(32).fill(0xAB),
     };
 
@@ -129,11 +142,11 @@ describe("FrameProtocol", () => {
     });
   });
 
-  it("PROTOCOL_VERSION is 0x01", () => {
-    expect(PROTOCOL_VERSION).toBe(0x01);
+  it("PROTOCOL_VERSION is 0x02", () => {
+    expect(PROTOCOL_VERSION).toBe(0x02);
   });
 
-  it("HEADER_SIZE is 14 bytes", () => {
-    expect(HEADER_SIZE).toBe(14);
+  it("HEADER_SIZE is 19 bytes", () => {
+    expect(HEADER_SIZE).toBe(19);
   });
 });

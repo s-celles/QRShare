@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrate WebRTC signaling from PeerJS to Trystero (Nostr relays) for decentralized, NAT-friendly peer discovery
 - Replace Peer ID with short 6-character Room ID for simpler QR codes
 - Room ID used as password for SDP encryption
+- QR frame protocol v2: embed `compressedSize` and `compressionId` in every frame header (19-byte header) so the decoder can initialize from any data frame, inspired by CAScad's self-contained fountain frame design
+- Metadata frames now only carry filename, fileSize, and sha256 (for UI display and integrity verification); they are no longer required for decoder initialization
 
 ### Removed
 

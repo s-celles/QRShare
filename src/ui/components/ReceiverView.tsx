@@ -127,7 +127,7 @@ export function ReceiverView() {
     const canvas = canvasRef.current;
     if (!video || !canvas || !workerRef.current) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const tick = () => {

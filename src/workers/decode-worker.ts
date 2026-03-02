@@ -45,6 +45,7 @@ async function processFrame(imageData: ImageData): Promise<void> {
   try {
     const scanResult = await scanner.scan(imageData);
     if (!scanResult) return;
+    console.log("[decode-worker] QR detected, data length:", scanResult.data.length);
 
     const parseResult = parseFrame(scanResult.data);
 
@@ -154,9 +155,12 @@ self.onmessage = async (event: MessageEvent<DecodeWorkerInput>) => {
     case "frame":
       if (!scanner) {
         try {
+          console.log("[decode-worker] Initializing scanner...");
           await initScanner();
           running = true;
+          console.log("[decode-worker] Scanner ready");
         } catch (err) {
+          console.error("[decode-worker] Scanner init failed:", err);
           post({ type: "error", message: `Scanner init failed: ${err instanceof Error ? err.message : String(err)}` });
           return;
         }

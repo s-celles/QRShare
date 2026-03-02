@@ -65,11 +65,6 @@ export function ReceiverView() {
       });
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
       const worker = new Worker(
         new URL("../../workers/decode-worker.ts", import.meta.url),
         { type: "module" },
@@ -106,7 +101,17 @@ export function ReceiverView() {
         }
       };
 
+      // Set scanning true first so the video element renders in the DOM
       isScanning.value = true;
+
+      // Wait a frame for Preact to render the video element
+      await new Promise((r) => requestAnimationFrame(r));
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
       captureFrames();
     } catch (err) {
       cameraError.value =

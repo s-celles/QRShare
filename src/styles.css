@@ -289,10 +289,11 @@ section > button:hover {
 
 .qr-image {
   max-width: 100%;
-  width: 320px;
+  width: 480px;
   height: auto;
   image-rendering: pixelated;
-  border: 4px solid var(--fg);
+  background: #fff;
+  padding: 8px;
   border-radius: 4px;
 }
 

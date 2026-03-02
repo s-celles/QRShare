@@ -88,5 +88,5 @@ export function renderQRToDataURL(
   preset: EncodingPreset,
 ): string {
   const bitmap = renderQR(data, preset);
-  return bitmap.toDataURL({ type: "image/png", scale: 1 });
+  return bitmap.toDataURL({ type: "image/png", scale: 8 });
 }

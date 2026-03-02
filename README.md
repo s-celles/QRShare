@@ -50,10 +50,10 @@ bun run package
 
 ### WebRTC Mode (P2P)
 
-1. **Receiver** generates a peer ID displayed as a QR code
-2. **Sender** scans or enters the peer ID to establish a WebRTC connection
+1. **Receiver** creates a room and displays its 6-character Room ID as a QR code
+2. **Sender** scans or enters the Room ID to join the room and establish a WebRTC connection
 3. Both devices display a 4-digit confirmation code to verify the connection
-4. File is transferred in 64 KB chunks over a DataChannel with backpressure control
+4. File is transferred over a WebRTC DataChannel with automatic chunking
 5. SHA-256 verification confirms file integrity
 
 ## Architecture
@@ -64,7 +64,7 @@ bun run package
 - **Compression** -- fflate (deflate) with automatic incompressible data detection
 - **QR Generation** -- lean-qr in byte mode with three quality presets
 - **QR Scanning** -- @undecaf/zbar-wasm for real-time decoding
-- **WebRTC** -- PeerJS for signaling, chunked binary transfer over DataChannel
+- **WebRTC** -- Trystero (Nostr relays) for decentralized signaling, binary transfer over DataChannel
 
 ## Encoding Presets
 
@@ -82,7 +82,7 @@ bun run package
 - **QR Scanning**: [@undecaf/zbar-wasm](https://github.com/niclas-nickleby/zbar-wasm)
 - **Fountain Codes**: [wirehair-wasm](https://github.com/nicktomlin/wirehair-wasm) + pure-JS LT fallback
 - **Compression**: [fflate](https://github.com/101arrowz/fflate)
-- **WebRTC**: [PeerJS](https://peerjs.com)
+- **WebRTC**: [Trystero](https://github.com/dmotz/trystero) (Nostr strategy)
 - **Language**: TypeScript (strict mode)
 
 ## License

@@ -1,28 +1,27 @@
 import { signal } from "@preact/signals";
-import Peer from "peerjs";
-import type { DataConnection } from "peerjs";
+import { joinRoom, selfId } from "trystero/nostr";
+import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
 import {
-  type PeerConfig,
+  type RoomConfig,
   type TransferMetadata,
   type TransferProgress,
   type ConnectionState,
-  DEFAULT_PEER_CONFIG,
-  CHUNK_SIZE,
-  BACKPRESSURE_HIGH,
+  DEFAULT_ROOM_CONFIG,
+  ROOM_ID_LENGTH,
 } from "./types";
-
-function buildIceServers(config: PeerConfig): Array<{ urls: string; username?: string; credential?: string }> {
-  const servers: Array<{ urls: string; username?: string; credential?: string }> = config.stunServers.map((url) => ({ urls: url }));
-  for (const turn of config.turnServers) {
-    servers.push({ urls: turn.urls, username: turn.username, credential: turn.credential });
-  }
-  return servers;
-}
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function generateRoomId(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const values = crypto.getRandomValues(new Uint8Array(ROOM_ID_LENGTH));
+  return Array.from(values)
+    .map((v) => chars[v % chars.length])
     .join("");
 }
 
@@ -31,184 +30,120 @@ export class WebRTCService {
   readonly confirmationCode = signal("");
   readonly error = signal<string | null>(null);
 
-  private peer: Peer | null = null;
-  private conn: DataConnection | null = null;
-  private peerId = "";
+  private room: Room | null = null;
+  private remotePeerId = "";
   private onFileReceivedCb:
     | ((metadata: TransferMetadata, data: Uint8Array) => void)
     | null = null;
   private onProgressCb: ((p: TransferProgress) => void) | null = null;
 
   async createReceiver(
-    config: PeerConfig = DEFAULT_PEER_CONFIG,
-  ): Promise<{ peerId: string }> {
-    this.peerId = crypto.randomUUID();
+    config: RoomConfig = DEFAULT_ROOM_CONFIG,
+  ): Promise<{ roomId: string }> {
+    const roomId = generateRoomId();
     this.state.value = "waiting";
 
-    return new Promise<{ peerId: string }>((resolve, reject) => {
-      const iceServers = buildIceServers(config);
-      console.log("[webrtc] ICE servers:", iceServers.map((s) => s.urls));
+    this.room = joinRoom(
+      { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
+      roomId,
+    );
 
-      this.peer = new Peer(this.peerId, {
-        host: config.host,
-        port: config.port,
-        path: config.path,
-        secure: config.secure,
-        config: { iceServers },
-      });
+    console.log("[webrtc] Receiver joined room:", roomId, "selfId:", selfId);
 
-      this.peer.on("open", (id) => {
-        console.log("[webrtc] Receiver peer open:", id);
-        resolve({ peerId: this.peerId });
-      });
+    // Set up file receiving via makeAction
+    const [, getFile, onFileProgress] = this.room.makeAction<ArrayBuffer>("file");
+    const [, getMetadata] = this.room.makeAction<string>("metadata");
 
-      this.peer.on("connection", (conn) => {
-        console.log("[webrtc] Incoming connection from:", conn.peer);
-        this.conn = conn;
-        this.state.value = "connecting";
-        this.setupReceiverConnection(conn);
-      });
+    let metadata: TransferMetadata | null = null;
+    let startTime = 0;
 
-      this.peer.on("error", (err) => {
-        console.error("[webrtc] Peer error:", err.type, err.message);
-        this.state.value = "error";
-        this.error.value = `Signaling error: ${err.message}. Try QR mode as an alternative.`;
-        reject(err);
-      });
+    getMetadata((raw) => {
+      const meta = JSON.parse(raw) as TransferMetadata;
+      console.log("[webrtc] Received file metadata:", meta);
+      metadata = meta;
+      startTime = Date.now();
+      this.state.value = "transferring";
     });
+
+    onFileProgress((percent, _peerId) => {
+      if (metadata && this.onProgressCb) {
+        const elapsed = Date.now() - startTime;
+        const bytesSent = Math.round(percent * metadata.fileSize);
+        this.onProgressCb({
+          bytesSent,
+          totalBytes: metadata.fileSize,
+          speedBytesPerSec: elapsed > 0 ? (bytesSent / elapsed) * 1000 : 0,
+          elapsedMs: elapsed,
+        });
+      }
+    });
+
+    getFile((data, _peerId) => {
+      console.log("[webrtc] Received file data, size:", (data as ArrayBuffer).byteLength);
+      if (metadata && this.onFileReceivedCb) {
+        this.state.value = "complete";
+        this.onFileReceivedCb(metadata, new Uint8Array(data as ArrayBuffer));
+      }
+    });
+
+    this.room.onPeerJoin((peerId) => {
+      console.log("[webrtc] Peer joined:", peerId);
+      this.remotePeerId = peerId;
+      this.state.value = "confirming";
+      this.deriveConfirmationCode();
+    });
+
+    this.room.onPeerLeave((peerId) => {
+      console.log("[webrtc] Peer left:", peerId);
+      if (this.state.value !== "complete") {
+        this.state.value = "error";
+        this.error.value = "Peer disconnected";
+      }
+    });
+
+    return { roomId };
   }
 
-  async connectToReceiver(
-    peerId: string,
-    config: PeerConfig = DEFAULT_PEER_CONFIG,
+  async connectToRoom(
+    roomId: string,
+    config: RoomConfig = DEFAULT_ROOM_CONFIG,
   ): Promise<void> {
-    this.peerId = crypto.randomUUID();
     this.state.value = "connecting";
 
     return new Promise<void>((resolve, reject) => {
-      const iceServers = buildIceServers(config);
+      try {
+        this.room = joinRoom(
+          { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
+          roomId,
+        );
 
-      this.peer = new Peer(this.peerId, {
-        host: config.host,
-        port: config.port,
-        path: config.path,
-        secure: config.secure,
-        config: { iceServers },
-      });
+        console.log("[webrtc] Sender joined room:", roomId, "selfId:", selfId);
 
-      this.peer.on("open", (id) => {
-        console.log("[webrtc] Sender peer open:", id, "connecting to:", peerId);
-        const conn = this.peer!.connect(peerId, { reliable: true });
-        this.conn = conn;
-
-        conn.on("open", () => {
-          console.log("[webrtc] Data channel open (sender side)");
+        this.room.onPeerJoin((peerId) => {
+          console.log("[webrtc] Connected to peer:", peerId);
+          this.remotePeerId = peerId;
           this.state.value = "confirming";
           this.deriveConfirmationCode();
           resolve();
         });
 
-        conn.on("iceStateChanged", (state: string) => {
-          console.log("[webrtc] ICE state (sender):", state);
+        this.room.onPeerLeave((peerId) => {
+          console.log("[webrtc] Peer left:", peerId);
+          if (this.state.value !== "complete") {
+            this.state.value = "error";
+            this.error.value = "Peer disconnected";
+          }
         });
-
-        conn.on("error", (err) => {
-          console.error("[webrtc] Connection error:", err.message);
-          this.state.value = "error";
-          this.error.value = err.message;
-          reject(err);
-        });
-      });
-
-      this.peer.on("error", (err) => {
-        console.error("[webrtc] Peer error:", err.type, err.message);
+      } catch (err) {
         this.state.value = "error";
-        this.error.value = `Signaling error: ${err.message}. Try QR mode as an alternative.`;
+        this.error.value = err instanceof Error ? err.message : String(err);
         reject(err);
-      });
-    });
-  }
-
-  private setupReceiverConnection(conn: DataConnection): void {
-    console.log("[webrtc] Setting up receiver connection, conn.open:", conn.open);
-
-    conn.on("open", () => {
-      console.log("[webrtc] Data channel open (receiver side)");
-      this.state.value = "confirming";
-      this.deriveConfirmationCode();
-    });
-
-    conn.on("iceStateChanged", (state: string) => {
-      console.log("[webrtc] ICE state (receiver):", state);
-    });
-
-    let metadata: TransferMetadata | null = null;
-    const chunks: ArrayBuffer[] = [];
-    let receivedBytes = 0;
-    const startTime = Date.now();
-
-    conn.on("data", (data: unknown) => {
-      if (!metadata && typeof data === "string") {
-        metadata = JSON.parse(data) as TransferMetadata;
-        this.state.value = "transferring";
-        return;
-      }
-
-      // PeerJS binary serialization may deliver as ArrayBuffer, Uint8Array, or Blob
-      let chunk: ArrayBuffer | null = null;
-      if (data instanceof ArrayBuffer) {
-        chunk = data;
-      } else if (data instanceof Uint8Array) {
-        chunk = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
-      }
-
-      if (metadata && chunk) {
-        chunks.push(chunk);
-        receivedBytes += chunk.byteLength;
-
-        if (this.onProgressCb) {
-          const elapsed = Date.now() - startTime;
-          this.onProgressCb({
-            bytesSent: receivedBytes,
-            totalBytes: metadata.fileSize,
-            speedBytesPerSec:
-              elapsed > 0 ? (receivedBytes / elapsed) * 1000 : 0,
-            elapsedMs: elapsed,
-          });
-        }
-
-        if (receivedBytes >= metadata.fileSize) {
-          const result = new Uint8Array(receivedBytes);
-          let offset = 0;
-          for (const chunk of chunks) {
-            result.set(new Uint8Array(chunk), offset);
-            offset += chunk.byteLength;
-          }
-
-          this.state.value = "complete";
-          if (this.onFileReceivedCb) {
-            this.onFileReceivedCb(metadata, result);
-          }
-        }
-      }
-    });
-
-    conn.on("error", (err) => {
-      this.state.value = "error";
-      this.error.value = err.message;
-    });
-
-    conn.on("close", () => {
-      if (this.state.value !== "complete") {
-        this.state.value = "error";
-        this.error.value = "Connection closed during transfer";
       }
     });
   }
 
   private deriveConfirmationCode(): void {
-    // Derive 4-digit code from peer IDs — sort to ensure same order on both sides
-    const ids = [this.peerId, this.conn?.peer || ""].sort();
+    const ids = [selfId, this.remotePeerId].sort();
     const combined = `${ids[0]}:${ids[1]}`;
     const encoder = new TextEncoder();
     const bytes = encoder.encode(combined);
@@ -230,7 +165,7 @@ export class WebRTCService {
     file: File,
     onProgress: (p: TransferProgress) => void,
   ): Promise<void> {
-    if (!this.conn) throw new Error("Not connected");
+    if (!this.room) throw new Error("Not connected");
 
     this.state.value = "transferring";
 
@@ -238,45 +173,33 @@ export class WebRTCService {
     const fileData = new Uint8Array(buffer);
     const sha256 = await hashSha256(fileData);
 
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const metadata: TransferMetadata = {
       filename: file.name,
       fileSize: file.size,
       mimeType: file.type || "application/octet-stream",
       sha256: toHex(sha256),
-      totalChunks,
     };
 
-    // Send metadata as JSON
-    this.conn.send(JSON.stringify(metadata));
+    const [sendMetadata] = this.room.makeAction<string>("metadata");
+    const [sendFile] = this.room.makeAction<ArrayBuffer>("file");
+
+    // Send metadata first as JSON string
+    await sendMetadata(JSON.stringify(metadata));
+    console.log("[webrtc] Sent metadata:", metadata);
 
     const startTime = Date.now();
-    let sentBytes = 0;
 
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
-      const chunk = buffer.slice(start, end);
-
-      // Backpressure: wait if buffer is too full
-      while (
-        this.conn.dataChannel &&
-        this.conn.dataChannel.bufferedAmount > BACKPRESSURE_HIGH
-      ) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      }
-
-      this.conn.send(chunk);
-      sentBytes += chunk.byteLength;
-
+    // Send file with progress tracking
+    await sendFile(buffer, null, null, (percent, _peerId) => {
       const elapsed = Date.now() - startTime;
+      const bytesSent = Math.round(percent * file.size);
       onProgress({
-        bytesSent: sentBytes,
+        bytesSent,
         totalBytes: file.size,
-        speedBytesPerSec: elapsed > 0 ? (sentBytes / elapsed) * 1000 : 0,
+        speedBytesPerSec: elapsed > 0 ? (bytesSent / elapsed) * 1000 : 0,
         elapsedMs: elapsed,
       });
-    }
+    });
 
     this.state.value = "complete";
   }
@@ -292,13 +215,9 @@ export class WebRTCService {
   }
 
   disconnect(): void {
-    if (this.conn) {
-      this.conn.close();
-      this.conn = null;
-    }
-    if (this.peer) {
-      this.peer.destroy();
-      this.peer = null;
+    if (this.room) {
+      this.room.leave();
+      this.room = null;
     }
     this.state.value = "idle";
     this.confirmationCode.value = "";

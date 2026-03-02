@@ -27,7 +27,7 @@ describe("project scaffolding", () => {
     expect(pkg.dependencies["@preact/signals"]).toBeDefined();
     expect(pkg.dependencies["lean-qr"]).toBeDefined();
     expect(pkg.dependencies["fflate"]).toBeDefined();
-    expect(pkg.dependencies["peerjs"]).toBeDefined();
+    expect(pkg.dependencies["trystero"]).toBeDefined();
   });
 
   it("has tsconfig.json with strict mode", async () => {

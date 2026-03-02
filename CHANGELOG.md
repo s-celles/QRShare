@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Migrate WebRTC signaling from PeerJS to Trystero (Nostr relays) for decentralized, NAT-friendly peer discovery
+- Replace Peer ID with short 6-character Room ID for simpler QR codes
+- Room ID used as password for SDP encryption
+
+### Removed
+
+- PeerJS Server settings (host/port/path/secure) from Settings page
+- TURN Server settings (url/username/credential) from Settings page
+- Manual STUN/TURN configuration (handled automatically by Trystero)
+
 ## [0.1.0] - 2026-03-02
 
 ### Added

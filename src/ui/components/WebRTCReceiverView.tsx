@@ -9,8 +9,8 @@ import type { TransferMetadata, TransferProgress } from "@/webrtc/types";
 
 const shareService = new ShareService();
 
-const peerIdQR = signal<string | null>(null);
-const peerId = signal("");
+const roomIdQR = signal<string | null>(null);
+const roomId = signal("");
 const progress = signal<TransferProgress | null>(null);
 const metadata = signal<TransferMetadata | null>(null);
 const downloadUrl = signal<string | null>(null);
@@ -31,8 +31,8 @@ export function WebRTCReceiverView() {
   const cleanup = useCallback(() => {
     serviceRef.current?.disconnect();
     if (downloadUrl.value) URL.revokeObjectURL(downloadUrl.value);
-    peerIdQR.value = null;
-    peerId.value = "";
+    roomIdQR.value = null;
+    roomId.value = "";
     progress.value = null;
     metadata.value = null;
     downloadUrl.value = null;
@@ -68,13 +68,13 @@ export function WebRTCReceiverView() {
       error.value = null;
       console.log("[webrtc-receiver] Creating receiver...");
       const result = await svc.createReceiver();
-      console.log("[webrtc-receiver] Peer registered, ID:", result.peerId);
-      peerId.value = result.peerId;
+      console.log("[webrtc-receiver] Room created, ID:", result.roomId);
+      roomId.value = result.roomId;
       isWaiting.value = true;
 
-      // Render peer ID as QR code
-      const peerIdBytes = new TextEncoder().encode(result.peerId);
-      peerIdQR.value = renderQRToDataURL(peerIdBytes, "balanced");
+      // Render room ID as QR code
+      const roomIdBytes = new TextEncoder().encode(result.roomId);
+      roomIdQR.value = renderQRToDataURL(roomIdBytes, "balanced");
     } catch (err) {
       console.error("[webrtc-receiver] Error:", err);
       error.value = err instanceof Error ? err.message : String(err);
@@ -125,19 +125,19 @@ export function WebRTCReceiverView() {
       {isWaiting.value && state === "waiting" && (
         <div class="webrtc-waiting">
           <h3>Waiting for Sender</h3>
-          {peerIdQR.value && (
+          {roomIdQR.value && (
             <div class="qr-display">
               <img
-                src={peerIdQR.value}
-                alt="Peer ID QR code"
+                src={roomIdQR.value}
+                alt="Room ID QR code"
                 class="qr-image"
               />
             </div>
           )}
           <p class="peer-id-text">
-            Peer ID: <code>{peerId.value}</code>
+            Room ID: <code>{roomId.value}</code>
           </p>
-          <p>Show this QR code to the sender or share the Peer ID.</p>
+          <p>Show this QR code to the sender or share the Room ID.</p>
         </div>
       )}
 

@@ -11,7 +11,7 @@
 QRShare is designed as a **client-only** application with no server-side processing:
 
 - **QR Mode**: Fully air-gapped — data travels exclusively via optical screen-to-camera channel. No network requests are made.
-- **WebRTC Mode**: Peer-to-peer DataChannel with DTLS encryption. A signaling server (PeerJS Cloud by default) is used only for initial peer discovery, not for data relay.
+- **WebRTC Mode**: Peer-to-peer DataChannel with DTLS encryption. Signaling is handled via decentralized Nostr relays (Trystero) for peer discovery, not for data relay. Session descriptions are encrypted using the Room ID as a password.
 - **No persistent storage**: QRShare does not store files, credentials, or personal data on any server or in browser storage.
 - **Integrity verification**: All transfers are verified via SHA-256 checksums.
 

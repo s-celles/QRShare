@@ -1,28 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import {
-  DEFAULT_PEER_CONFIG,
-  CHUNK_SIZE,
-  BACKPRESSURE_HIGH,
-  BACKPRESSURE_LOW,
+  DEFAULT_ROOM_CONFIG,
+  ROOM_ID_LENGTH,
 } from "@/webrtc/types";
 
 describe("WebRTC types", () => {
-  it("has sensible default peer config", () => {
-    expect(DEFAULT_PEER_CONFIG.host).toBe("0.peerjs.com");
-    expect(DEFAULT_PEER_CONFIG.port).toBe(443);
-    expect(DEFAULT_PEER_CONFIG.secure).toBe(true);
-    expect(DEFAULT_PEER_CONFIG.stunServers).toContain(
-      "stun:stun.l.google.com:19302",
-    );
+  it("has sensible default room config", () => {
+    expect(DEFAULT_ROOM_CONFIG.appId).toBe("qrshare-webrtc-v1");
+    expect(DEFAULT_ROOM_CONFIG.relayRedundancy).toBe(3);
   });
 
-  it("chunk size is 64 KB", () => {
-    expect(CHUNK_SIZE).toBe(64 * 1024);
-  });
-
-  it("backpressure thresholds are correct", () => {
-    expect(BACKPRESSURE_HIGH).toBe(1024 * 1024);
-    expect(BACKPRESSURE_LOW).toBe(256 * 1024);
-    expect(BACKPRESSURE_HIGH).toBeGreaterThan(BACKPRESSURE_LOW);
+  it("room ID length is 6", () => {
+    expect(ROOM_ID_LENGTH).toBe(6);
   });
 });

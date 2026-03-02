@@ -6,7 +6,7 @@ import type { TransferProgress } from "@/webrtc/types";
 
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
-const peerIdInput = signal("");
+const roomIdInput = signal("");
 const isConnected = signal(false);
 const isSending = signal(false);
 const isComplete = signal(false);
@@ -80,7 +80,7 @@ export function WebRTCSenderView() {
           if (symbols.length > 0) {
             const text = symbols[0].decode();
             if (text) {
-              peerIdInput.value = text;
+              roomIdInput.value = text;
               stopScanning();
               doConnect(text);
               return;
@@ -104,8 +104,8 @@ export function WebRTCSenderView() {
 
     try {
       error.value = null;
-      console.log("[webrtc-sender] Connecting to peer:", id.trim());
-      await svc.connectToReceiver(id.trim());
+      console.log("[webrtc-sender] Connecting to room:", id.trim());
+      await svc.connectToRoom(id.trim());
       console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
       isConnected.value = true;
     } catch (err) {
@@ -115,7 +115,7 @@ export function WebRTCSenderView() {
   }, []);
 
   const handleConnect = useCallback(() => {
-    doConnect(peerIdInput.value);
+    doConnect(roomIdInput.value);
   }, [doConnect]);
 
   const handleFile = useCallback(async (file: File) => {
@@ -149,7 +149,7 @@ export function WebRTCSenderView() {
     isComplete.value = false;
     progress.value = null;
     error.value = null;
-    peerIdInput.value = "";
+    roomIdInput.value = "";
     navigate("/");
   }, []);
 
@@ -188,19 +188,19 @@ export function WebRTCSenderView() {
             </>
           ) : (
             <>
-              <p>Scan the receiver's QR code or enter their Peer ID:</p>
+              <p>Scan the receiver's QR code or enter their Room ID:</p>
               <button onClick={startScanning} class="start-btn" style={{ marginBottom: "1rem" }} aria-label="Scan QR code">
                 Scan QR Code
               </button>
               <div class="peer-id-input">
                 <input
                   type="text"
-                  value={peerIdInput.value}
+                  value={roomIdInput.value}
                   onInput={(e) => {
-                    peerIdInput.value = (e.target as HTMLInputElement).value;
+                    roomIdInput.value = (e.target as HTMLInputElement).value;
                   }}
-                  placeholder="Peer ID"
-                  aria-label="Receiver Peer ID"
+                  placeholder="Room ID"
+                  aria-label="Receiver Room ID"
                 />
                 <button onClick={handleConnect} class="start-btn" aria-label="Connect to receiver">
                   Connect

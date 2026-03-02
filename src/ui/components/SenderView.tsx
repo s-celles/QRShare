@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
-import type { EncodingPreset } from "@/qr/renderer";
+import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -60,10 +60,12 @@ export function SenderView() {
               fileSize.value = msg.fileSize;
               sha256.value = msg.sha256;
               break;
-            case "frame":
-              currentFrame.value = msg.dataUrl;
+            case "frame": {
+              const bytes = new Uint8Array(msg.frameBytes);
+              currentFrame.value = renderQRToDataURL(bytes, preset.value);
               frameNumber.value = msg.frameNumber;
               break;
+            }
             case "error":
               error.value = msg.message;
               isEncoding.value = false;

@@ -8,7 +8,7 @@ import {
   type MetadataFrame,
   type Frame,
 } from "@/protocol/frame";
-import { getMaxPayloadBytes, getPresetConfig, renderQRToDataURL } from "@/qr/renderer";
+import { getMaxPayloadBytes, getPresetConfig } from "@/qr/renderer";
 import type { EncodingPreset } from "@/qr/renderer";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "./types";
 
@@ -78,9 +78,10 @@ async function startEncoding(
     };
 
     const metaFrameBytes = serializeMetadataFrame(metadataFrame);
-    const metaDataUrl = renderQRToDataURL(metaFrameBytes, preset);
     if (running) {
-      post({ type: "frame", dataUrl: metaDataUrl, symbolId: 0, frameNumber: 0 });
+      const buf = new ArrayBuffer(metaFrameBytes.byteLength);
+      new Uint8Array(buf).set(metaFrameBytes);
+      post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber: 0 });
     }
 
     // Step 5: Generate fountain-coded frames indefinitely
@@ -101,10 +102,11 @@ async function startEncoding(
       };
 
       const frameBytes = serializeFrame(frame);
-      const dataUrl = renderQRToDataURL(frameBytes, preset);
 
       if (!running) break;
-      post({ type: "frame", dataUrl, symbolId: symbolId + 1, frameNumber });
+      const buf = new ArrayBuffer(frameBytes.byteLength);
+      new Uint8Array(buf).set(frameBytes);
+      post({ type: "frame", frameBytes: buf, symbolId: symbolId + 1, frameNumber });
 
       frameNumber++;
       symbolId++;

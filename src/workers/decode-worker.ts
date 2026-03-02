@@ -153,8 +153,13 @@ self.onmessage = async (event: MessageEvent<DecodeWorkerInput>) => {
   switch (msg.type) {
     case "frame":
       if (!scanner) {
-        await initScanner();
-        running = true;
+        try {
+          await initScanner();
+          running = true;
+        } catch (err) {
+          post({ type: "error", message: `Scanner init failed: ${err instanceof Error ? err.message : String(err)}` });
+          return;
+        }
       }
       processFrame(msg.imageData);
       break;

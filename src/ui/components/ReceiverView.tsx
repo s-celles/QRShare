@@ -69,6 +69,11 @@ export function ReceiverView() {
       const worker = new Worker(workerUrl, { type: "module" });
       workerRef.current = worker;
 
+      worker.onerror = (e) => {
+        error.value = `Worker error: ${e.message || "failed to load"}`;
+        isScanning.value = false;
+      };
+
       worker.onmessage = (e: MessageEvent<DecodeWorkerOutput>) => {
         const msg = e.data;
         switch (msg.type) {
@@ -127,6 +132,12 @@ export function ReceiverView() {
 
     const tick = () => {
       if (!isScanning.value) return;
+
+      // Skip frames until video stream is producing real dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        animFrameRef.current = requestAnimationFrame(tick);
+        return;
+      }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;

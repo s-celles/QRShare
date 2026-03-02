@@ -8,7 +8,7 @@ export type EncodeWorkerInput =
 
 // Encode Worker -> Main thread messages
 export type EncodeWorkerOutput =
-  | { type: "metadata"; totalBlocks: number; fileSize: number; sha256: string }
+  | { type: "metadata"; totalBlocks: number; fileSize: number; sha256: string; filename: string }
   | { type: "frame"; frameBytes: ArrayBuffer; symbolId: number; frameNumber: number }
   | { type: "error"; message: string };
 

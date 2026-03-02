@@ -54,12 +54,24 @@ export function serializeFrame(frame: Frame): Uint8Array {
   return buf;
 }
 
-export function serializeMetadataFrame(frame: MetadataFrame): Uint8Array {
+/**
+ * Serialize a metadata frame. If targetPayloadSize is provided, the payload
+ * is zero-padded to that size so the resulting QR code has the same visual
+ * density as data frames.
+ */
+export function serializeMetadataFrame(
+  frame: MetadataFrame,
+  targetPayloadSize?: number,
+): Uint8Array {
   const encoder = new TextEncoder();
   const filenameBytes = encoder.encode(frame.filename);
   // Metadata payload: filenameLen(2B) + filename + fileSize(4B) + sha256(32B)
-  const metaPayloadSize = 2 + filenameBytes.length + 4 + 32;
-  const metaPayload = new Uint8Array(metaPayloadSize);
+  const metaContentSize = 2 + filenameBytes.length + 4 + 32;
+  const metaPayloadSize =
+    targetPayloadSize && targetPayloadSize > metaContentSize
+      ? targetPayloadSize
+      : metaContentSize;
+  const metaPayload = new Uint8Array(metaPayloadSize); // zero-filled
   const metaView = new DataView(metaPayload.buffer);
 
   let offset = 0;

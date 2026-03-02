@@ -3,9 +3,11 @@ import { compress } from "@/compression/compression";
 import { getCodecFactory } from "@/codec/factory";
 import {
   serializeFrame,
+  serializeMetadataFrame,
   PROTOCOL_VERSION,
   HEADER_SIZE,
   type Frame,
+  type MetadataFrame,
 } from "@/protocol/frame";
 import { getMaxPayloadBytes, getPresetConfig } from "@/qr/renderer";
 import type { EncodingPreset } from "@/qr/renderer";
@@ -64,14 +66,46 @@ async function startEncoding(
       filename,
     });
 
-    // Step 4: Generate fountain-coded data frames indefinitely.
+    // Step 4: Build a metadata frame padded to blockSize so it generates
+    // the same QR version/density as data frames (no visual flicker).
+    const metadataFrame: MetadataFrame = {
+      version: PROTOCOL_VERSION,
+      flags: 0x00,
+      metadataHash: metaHash,
+      sourceBlockCount: k,
+      blockSize,
+      compressedSize: compressed.data.length,
+      compressionId: compressed.algorithm,
+      symbolId: 0,
+      payload: new Uint8Array(0),
+      filename,
+      fileSize: fileData.length,
+      sha256: sha256Full,
+    };
+    const metaFrameBytes = serializeMetadataFrame(metadataFrame, blockSize);
+
+    // Step 5: Generate frames indefinitely.
     // Every frame header contains compressedSize + compressionId,
-    // so the decoder initializes from ANY data frame (like CAScad).
-    // No separate metadata QR frames needed — all frames look identical.
+    // so the decoder initializes from ANY frame (like CAScad).
+    // Metadata frames (padded to same size) are interleaved periodically
+    // so the receiver learns filename, fileSize, and sha256.
+    const METADATA_INTERVAL = 30;
     let frameNumber = 0;
     let symbolId = 0;
 
     while (running) {
+      // Periodically send a padded metadata frame for filename/sha256
+      if (symbolId % METADATA_INTERVAL === 0) {
+        const buf = new ArrayBuffer(metaFrameBytes.byteLength);
+        new Uint8Array(buf).set(metaFrameBytes);
+        post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber });
+        frameNumber++;
+
+        const delay = Math.max(1, Math.round(1000 / currentFps));
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        if (!running) break;
+      }
+
       const symbolData = encoder.encode(symbolId);
 
       const frame: Frame = {

@@ -66,7 +66,9 @@ export function WebRTCReceiverView() {
 
     try {
       error.value = null;
+      console.log("[webrtc-receiver] Creating receiver...");
       const result = await svc.createReceiver();
+      console.log("[webrtc-receiver] Peer registered, ID:", result.peerId);
       peerId.value = result.peerId;
       isWaiting.value = true;
 
@@ -74,6 +76,7 @@ export function WebRTCReceiverView() {
       const peerIdBytes = new TextEncoder().encode(result.peerId);
       peerIdQR.value = renderQRToDataURL(peerIdBytes, "balanced");
     } catch (err) {
+      console.error("[webrtc-receiver] Error:", err);
       error.value = err instanceof Error ? err.message : String(err);
     }
   }, []);

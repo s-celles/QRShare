@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_NAME = "qrshare-v2";
+const CACHE_NAME = "qrshare-v3";
 
 const PRECACHE_URLS = [
   "./",

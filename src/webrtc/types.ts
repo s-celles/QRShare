@@ -1,10 +1,16 @@
+export interface TurnServerConfig {
+  urls: string;
+  username: string;
+  credential: string;
+}
+
 export interface PeerConfig {
   host: string;
   port: number;
   path: string;
   secure: boolean;
   stunServers: string[];
-  turnServer?: { urls: string; username: string; credential: string };
+  turnServers: TurnServerConfig[];
 }
 
 export interface TransferMetadata {
@@ -36,7 +42,27 @@ export const DEFAULT_PEER_CONFIG: PeerConfig = {
   port: 443,
   path: "/",
   secure: true,
-  stunServers: ["stun:stun.l.google.com:19302"],
+  stunServers: [
+    "stun:stun.l.google.com:19302",
+    "stun:stun1.l.google.com:19302",
+  ],
+  turnServers: [
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turns:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+  ],
 };
 
 export const CHUNK_SIZE = 64 * 1024; // 64 KB

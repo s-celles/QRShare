@@ -12,6 +12,14 @@ import {
   BACKPRESSURE_HIGH,
 } from "./types";
 
+function buildIceServers(config: PeerConfig): Array<{ urls: string; username?: string; credential?: string }> {
+  const servers: Array<{ urls: string; username?: string; credential?: string }> = config.stunServers.map((url) => ({ urls: url }));
+  for (const turn of config.turnServers) {
+    servers.push({ urls: turn.urls, username: turn.username, credential: turn.credential });
+  }
+  return servers;
+}
+
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -38,14 +46,8 @@ export class WebRTCService {
     this.state.value = "waiting";
 
     return new Promise<{ peerId: string }>((resolve, reject) => {
-      const iceServers: Array<{ urls: string; username?: string; credential?: string }> = config.stunServers.map((url) => ({ urls: url }));
-      if (config.turnServer) {
-        iceServers.push({
-          urls: config.turnServer.urls,
-          username: config.turnServer.username,
-          credential: config.turnServer.credential,
-        });
-      }
+      const iceServers = buildIceServers(config);
+      console.log("[webrtc] ICE servers:", iceServers.map((s) => s.urls));
 
       this.peer = new Peer(this.peerId, {
         host: config.host,
@@ -55,17 +57,20 @@ export class WebRTCService {
         config: { iceServers },
       });
 
-      this.peer.on("open", () => {
+      this.peer.on("open", (id) => {
+        console.log("[webrtc] Receiver peer open:", id);
         resolve({ peerId: this.peerId });
       });
 
       this.peer.on("connection", (conn) => {
+        console.log("[webrtc] Incoming connection from:", conn.peer);
         this.conn = conn;
         this.state.value = "connecting";
         this.setupReceiverConnection(conn);
       });
 
       this.peer.on("error", (err) => {
+        console.error("[webrtc] Peer error:", err.type, err.message);
         this.state.value = "error";
         this.error.value = `Signaling error: ${err.message}. Try QR mode as an alternative.`;
         reject(err);
@@ -81,14 +86,7 @@ export class WebRTCService {
     this.state.value = "connecting";
 
     return new Promise<void>((resolve, reject) => {
-      const iceServers: Array<{ urls: string; username?: string; credential?: string }> = config.stunServers.map((url) => ({ urls: url }));
-      if (config.turnServer) {
-        iceServers.push({
-          urls: config.turnServer.urls,
-          username: config.turnServer.username,
-          credential: config.turnServer.credential,
-        });
-      }
+      const iceServers = buildIceServers(config);
 
       this.peer = new Peer(this.peerId, {
         host: config.host,
@@ -98,17 +96,24 @@ export class WebRTCService {
         config: { iceServers },
       });
 
-      this.peer.on("open", () => {
+      this.peer.on("open", (id) => {
+        console.log("[webrtc] Sender peer open:", id, "connecting to:", peerId);
         const conn = this.peer!.connect(peerId, { reliable: true });
         this.conn = conn;
 
         conn.on("open", () => {
+          console.log("[webrtc] Data channel open (sender side)");
           this.state.value = "confirming";
           this.deriveConfirmationCode();
           resolve();
         });
 
+        conn.on("iceStateChanged", (state: string) => {
+          console.log("[webrtc] ICE state (sender):", state);
+        });
+
         conn.on("error", (err) => {
+          console.error("[webrtc] Connection error:", err.message);
           this.state.value = "error";
           this.error.value = err.message;
           reject(err);
@@ -116,6 +121,7 @@ export class WebRTCService {
       });
 
       this.peer.on("error", (err) => {
+        console.error("[webrtc] Peer error:", err.type, err.message);
         this.state.value = "error";
         this.error.value = `Signaling error: ${err.message}. Try QR mode as an alternative.`;
         reject(err);
@@ -124,9 +130,16 @@ export class WebRTCService {
   }
 
   private setupReceiverConnection(conn: DataConnection): void {
+    console.log("[webrtc] Setting up receiver connection, conn.open:", conn.open);
+
     conn.on("open", () => {
+      console.log("[webrtc] Data channel open (receiver side)");
       this.state.value = "confirming";
       this.deriveConfirmationCode();
+    });
+
+    conn.on("iceStateChanged", (state: string) => {
+      console.log("[webrtc] ICE state (receiver):", state);
     });
 
     let metadata: TransferMetadata | null = null;

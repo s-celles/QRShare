@@ -104,9 +104,12 @@ export function WebRTCSenderView() {
 
     try {
       error.value = null;
+      console.log("[webrtc-sender] Connecting to peer:", id.trim());
       await svc.connectToReceiver(id.trim());
+      console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
       isConnected.value = true;
     } catch (err) {
+      console.error("[webrtc-sender] Connection failed:", err);
       error.value = err instanceof Error ? err.message : String(err);
     }
   }, []);

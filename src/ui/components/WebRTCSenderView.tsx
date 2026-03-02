@@ -82,6 +82,7 @@ export function WebRTCSenderView() {
             if (text) {
               peerIdInput.value = text;
               stopScanning();
+              doConnect(text);
               return;
             }
           }
@@ -96,19 +97,23 @@ export function WebRTCSenderView() {
     }
   }, [stopScanning]);
 
-  const handleConnect = useCallback(async () => {
-    if (!peerIdInput.value.trim()) return;
+  const doConnect = useCallback(async (id: string) => {
+    if (!id.trim()) return;
     const svc = serviceRef.current;
     if (!svc) return;
 
     try {
       error.value = null;
-      await svc.connectToReceiver(peerIdInput.value.trim());
+      await svc.connectToReceiver(id.trim());
       isConnected.value = true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err);
     }
   }, []);
+
+  const handleConnect = useCallback(() => {
+    doConnect(peerIdInput.value);
+  }, [doConnect]);
 
   const handleFile = useCallback(async (file: File) => {
     const svc = serviceRef.current;
@@ -146,7 +151,7 @@ export function WebRTCSenderView() {
   }, []);
 
   const svc = serviceRef.current;
-  const code = svc?.getConfirmationCode() || "";
+  const code = svc?.confirmationCode.value || "";
   const pct = progress.value
     ? Math.round(
         (progress.value.bytesSent / progress.value.totalBytes) * 100,

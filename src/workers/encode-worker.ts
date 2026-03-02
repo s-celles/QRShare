@@ -86,7 +86,7 @@ async function startEncoding(
 
     // Step 5: Generate fountain-coded frames indefinitely
     // Re-send metadata frame every METADATA_INTERVAL data frames
-    const METADATA_INTERVAL = 10;
+    const METADATA_INTERVAL = 30;
     let frameNumber = 1;
     let symbolId = 0;
 

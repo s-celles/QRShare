@@ -141,9 +141,17 @@ export class WebRTCService {
         return;
       }
 
-      if (metadata && data instanceof ArrayBuffer) {
-        chunks.push(data);
-        receivedBytes += data.byteLength;
+      // PeerJS binary serialization may deliver as ArrayBuffer, Uint8Array, or Blob
+      let chunk: ArrayBuffer | null = null;
+      if (data instanceof ArrayBuffer) {
+        chunk = data;
+      } else if (data instanceof Uint8Array) {
+        chunk = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+      }
+
+      if (metadata && chunk) {
+        chunks.push(chunk);
+        receivedBytes += chunk.byteLength;
 
         if (this.onProgressCb) {
           const elapsed = Date.now() - startTime;

@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
 import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
+import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -16,6 +17,7 @@ const sha256 = signal("");
 const isEncoding = signal(false);
 const error = signal<string | null>(null);
 const startTime = signal(0);
+const selectedFiles = signal<string[]>([]);
 
 export function SenderView() {
   const workerRef = useRef<Worker | null>(null);
@@ -31,81 +33,123 @@ export function SenderView() {
     currentFrame.value = null;
     frameNumber.value = 0;
     error.value = null;
+    selectedFiles.value = [];
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
 
-  const handleFile = useCallback(
-    (file: File) => {
-      if (file.size > MAX_FILE_SIZE) {
-        error.value = `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`;
-        return;
-      }
+  const startEncoding = useCallback(
+    (buffer: ArrayBuffer, filename: string) => {
       error.value = null;
       isEncoding.value = true;
       startTime.value = Date.now();
 
-      file.arrayBuffer().then((buffer) => {
-        const workerUrl = new URL("encode-worker.js", location.href);
-        const worker = new Worker(workerUrl, { type: "module" });
-        workerRef.current = worker;
+      const workerUrl = new URL("encode-worker.js", location.href);
+      const worker = new Worker(workerUrl, { type: "module" });
+      workerRef.current = worker;
 
-        worker.onerror = (e) => {
-          error.value = `Worker error: ${e.message || "failed to load"}`;
-          isEncoding.value = false;
-        };
+      worker.onerror = (e) => {
+        error.value = `Worker error: ${e.message || "failed to load"}`;
+        isEncoding.value = false;
+      };
 
-        worker.onmessage = (e: MessageEvent<EncodeWorkerOutput>) => {
-          const msg = e.data;
-          switch (msg.type) {
-            case "metadata":
-              console.log("[sender] Metadata received, blocks:", msg.totalBlocks, "size:", msg.fileSize);
-              totalBlocks.value = msg.totalBlocks;
-              fileSize.value = msg.fileSize;
-              sha256.value = msg.sha256;
-              break;
-            case "frame": {
-              const bytes = new Uint8Array(msg.frameBytes);
-              currentFrame.value = renderQRToDataURL(bytes, preset.value);
-              frameNumber.value = msg.frameNumber;
-              if (msg.frameNumber % 30 === 0) {
-                console.log("[sender] Frame", msg.frameNumber, "symbolId:", msg.symbolId, "size:", bytes.length);
-              }
-              break;
+      worker.onmessage = (e: MessageEvent<EncodeWorkerOutput>) => {
+        const msg = e.data;
+        switch (msg.type) {
+          case "metadata":
+            console.log("[sender] Metadata received, blocks:", msg.totalBlocks, "size:", msg.fileSize);
+            totalBlocks.value = msg.totalBlocks;
+            fileSize.value = msg.fileSize;
+            sha256.value = msg.sha256;
+            break;
+          case "frame": {
+            const bytes = new Uint8Array(msg.frameBytes);
+            currentFrame.value = renderQRToDataURL(bytes, preset.value);
+            frameNumber.value = msg.frameNumber;
+            if (msg.frameNumber % 30 === 0) {
+              console.log("[sender] Frame", msg.frameNumber, "symbolId:", msg.symbolId, "size:", bytes.length);
             }
-            case "error":
-              console.error("[sender] Worker error:", msg.message);
-              error.value = msg.message;
-              isEncoding.value = false;
-              break;
+            break;
           }
-        };
+          case "error":
+            console.error("[sender] Worker error:", msg.message);
+            error.value = msg.message;
+            isEncoding.value = false;
+            break;
+        }
+      };
 
-        worker.postMessage({
-          type: "start",
-          file: buffer,
-          filename: file.name,
-          preset: preset.value,
-        } satisfies EncodeWorkerInput);
-      });
+      worker.postMessage({
+        type: "start",
+        file: buffer,
+        filename,
+        preset: preset.value,
+      } satisfies EncodeWorkerInput);
     },
     [],
+  );
+
+  const handleFiles = useCallback(
+    async (files: FileList) => {
+      if (files.length === 0) return;
+
+      if (files.length === 1) {
+        const file = files[0];
+        if (file.size > MAX_FILE_SIZE) {
+          error.value = `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`;
+          return;
+        }
+        selectedFiles.value = [file.name];
+        const buffer = await file.arrayBuffer();
+        startEncoding(buffer, file.name);
+        return;
+      }
+
+      // Multiple files: check total size, then bundle as zip
+      let totalSize = 0;
+      const names: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        totalSize += files[i].size;
+        names.push(files[i].name);
+      }
+
+      if (totalSize > MAX_FILE_SIZE) {
+        error.value = `Total size too large (${(totalSize / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`;
+        return;
+      }
+
+      selectedFiles.value = names;
+
+      const entries = await Promise.all(
+        Array.from(files).map(async (f) => ({
+          name: f.name,
+          data: new Uint8Array(await f.arrayBuffer()),
+        })),
+      );
+
+      const zipped = bundleFiles(entries);
+      const bundleName = makeBundleName(files.length);
+      startEncoding(zipped.buffer as ArrayBuffer, bundleName);
+    },
+    [startEncoding],
   );
 
   const handleInputChange = useCallback(
     (e: Event) => {
       const target = e.target as HTMLInputElement;
-      if (target.files?.[0]) handleFile(target.files[0]);
+      if (target.files && target.files.length > 0) handleFiles(target.files);
     },
-    [handleFile],
+    [handleFiles],
   );
 
   const handleDrop = useCallback(
     (e: DragEvent) => {
       e.preventDefault();
-      if (e.dataTransfer?.files?.[0]) handleFile(e.dataTransfer.files[0]);
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        handleFiles(e.dataTransfer.files);
+      }
     },
-    [handleFile],
+    [handleFiles],
   );
 
   const handleDragOver = useCallback((e: DragEvent) => {
@@ -148,12 +192,13 @@ export function SenderView() {
             aria-label="Select file to send"
             onKeyDown={(e) => { if (e.key === "Enter") fileInputRef.current?.click(); }}
           >
-            <p>Drop a file here or click to browse</p>
-            <p class="drop-hint">Maximum 50 MB</p>
+            <p>Drop file(s) here or click to browse</p>
+            <p class="drop-hint">Maximum 50 MB total</p>
           </div>
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             class="sr-only"
             onChange={handleInputChange}
             aria-label="File input"
@@ -193,6 +238,12 @@ export function SenderView() {
               />
             )}
           </div>
+
+          {selectedFiles.value.length > 1 && (
+            <p class="settings-hint">
+              Bundled {selectedFiles.value.length} files: {selectedFiles.value.join(", ")}
+            </p>
+          )}
 
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">

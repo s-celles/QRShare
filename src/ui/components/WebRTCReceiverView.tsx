@@ -5,7 +5,13 @@ import { WebRTCService } from "@/webrtc/service";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
 import { ShareService } from "@/share/service";
-import type { TransferMetadata, TransferProgress } from "@/webrtc/types";
+import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
+
+interface ReceivedFile {
+  meta: TransferMetadata;
+  url: string;
+  verified: boolean;
+}
 
 const shareService = new ShareService();
 
@@ -18,6 +24,8 @@ const verified = signal(false);
 const error = signal<string | null>(null);
 const isWaiting = signal(false);
 const isComplete = signal(false);
+const batchTotal = signal(0);
+const receivedFiles = signal<ReceivedFile[]>([]);
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -31,6 +39,9 @@ export function WebRTCReceiverView() {
   const cleanup = useCallback(() => {
     serviceRef.current?.disconnect();
     if (downloadUrl.value) URL.revokeObjectURL(downloadUrl.value);
+    for (const f of receivedFiles.value) {
+      URL.revokeObjectURL(f.url);
+    }
     roomIdQR.value = null;
     roomId.value = "";
     progress.value = null;
@@ -39,6 +50,8 @@ export function WebRTCReceiverView() {
     error.value = null;
     isWaiting.value = false;
     isComplete.value = false;
+    batchTotal.value = 0;
+    receivedFiles.value = [];
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
@@ -51,17 +64,38 @@ export function WebRTCReceiverView() {
       progress.value = p;
     });
 
+    svc.onBatchStarted((batch: BatchMetadata) => {
+      batchTotal.value = batch.totalFiles;
+      console.log("[webrtc-receiver] Batch started:", batch);
+    });
+
     svc.onFileReceived(async (meta, data) => {
       metadata.value = meta;
-      isComplete.value = true;
-      isWaiting.value = false;
 
       // Verify SHA-256
       const hash = await hashSha256(data);
-      verified.value = toHex(hash) === meta.sha256;
+      const isVerified = toHex(hash) === meta.sha256;
 
-      const blob = new Blob([data as BlobPart]);
-      downloadUrl.value = URL.createObjectURL(blob);
+      if (batchTotal.value > 0) {
+        // Multi-file: accumulate
+        const blob = new Blob([data as BlobPart]);
+        receivedFiles.value = [
+          ...receivedFiles.value,
+          { meta, url: URL.createObjectURL(blob), verified: isVerified },
+        ];
+      } else {
+        // Single file
+        verified.value = isVerified;
+        const blob = new Blob([data as BlobPart]);
+        downloadUrl.value = URL.createObjectURL(blob);
+        isComplete.value = true;
+        isWaiting.value = false;
+      }
+    });
+
+    svc.onBatchComplete(() => {
+      isComplete.value = true;
+      isWaiting.value = false;
     });
 
     try {
@@ -162,7 +196,7 @@ export function WebRTCReceiverView() {
 
       {state === "transferring" && progress.value && (
         <div class="webrtc-transfer">
-          <h3>Receiving File...</h3>
+          <h3>Receiving{batchTotal.value > 1 ? ` (file ${receivedFiles.value.length + 1} of ${batchTotal.value})` : ""}...</h3>
           {metadata.value && <p>File: {metadata.value.filename}</p>}
           <div
             class="progress-bar"
@@ -189,7 +223,41 @@ export function WebRTCReceiverView() {
         </div>
       )}
 
-      {isComplete.value && metadata.value && (
+      {isComplete.value && receivedFiles.value.length > 0 && (
+        <div class="receiver-complete">
+          <h3>Transfer Complete</h3>
+          <p><strong>{receivedFiles.value.length} files received:</strong></p>
+          <div class="file-list">
+            {receivedFiles.value.map((f) => (
+              <div class="file-list-item" key={f.meta.sha256}>
+                <div>
+                  <span class="file-list-name">{f.meta.filename}</span>
+                  <span class="file-list-size"> ({(f.meta.fileSize / 1024).toFixed(1)} KB)</span>
+                  {f.verified ? (
+                    <span class="verified"> Verified</span>
+                  ) : (
+                    <span class="not-verified"> Hash mismatch</span>
+                  )}
+                </div>
+                <a href={f.url} download={f.meta.filename} class="download-btn">
+                  Download
+                </a>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              cleanup();
+              isComplete.value = false;
+            }}
+            aria-label="Receive more files"
+          >
+            Receive Another
+          </button>
+        </div>
+      )}
+
+      {isComplete.value && receivedFiles.value.length === 0 && metadata.value && (
         <div class="receiver-complete">
           <h3>Transfer Complete</h3>
           <div class="file-info">

@@ -2,7 +2,14 @@ import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
 import { ShareService } from "@/share/service";
+import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
+
+interface ReceivedFile {
+  name: string;
+  size: number;
+  url: string;
+}
 
 const shareService = new ShareService();
 
@@ -17,6 +24,7 @@ const isComplete = signal(false);
 const error = signal<string | null>(null);
 const downloadUrl = signal<string | null>(null);
 const cameraError = signal<string | null>(null);
+const receivedFiles = signal<ReceivedFile[]>([]);
 
 export function ReceiverView() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -43,6 +51,10 @@ export function ReceiverView() {
       URL.revokeObjectURL(downloadUrl.value);
       downloadUrl.value = null;
     }
+    for (const f of receivedFiles.value) {
+      URL.revokeObjectURL(f.url);
+    }
+    receivedFiles.value = [];
     isScanning.value = false;
   }, []);
 
@@ -90,8 +102,29 @@ export function ReceiverView() {
             isScanning.value = false;
             receivedSha256.value = msg.sha256;
             verified.value = msg.verified;
-            const blob = new Blob([msg.file]);
-            downloadUrl.value = URL.createObjectURL(blob);
+
+            if (isZipBundle(msg.filename)) {
+              // Multi-file bundle: extract individual files
+              try {
+                const entries = unbundleFiles(new Uint8Array(msg.file));
+                const files: ReceivedFile[] = entries.map((entry) => {
+                  const blob = new Blob([entry.data as BlobPart]);
+                  return {
+                    name: entry.name,
+                    size: entry.data.length,
+                    url: URL.createObjectURL(blob),
+                  };
+                });
+                receivedFiles.value = files;
+              } catch {
+                error.value = "Failed to extract bundled files";
+              }
+            } else {
+              // Single file
+              const blob = new Blob([msg.file]);
+              downloadUrl.value = URL.createObjectURL(blob);
+            }
+
             // Stop camera
             if (streamRef.current) {
               streamRef.current.getTracks().forEach((t) => t.stop());
@@ -240,17 +273,6 @@ export function ReceiverView() {
           <h3>Transfer Complete</h3>
           <div class="file-info">
             <p>
-              <strong>File:</strong> {filename.value}
-            </p>
-            <p>
-              <strong>Size:</strong>{" "}
-              {(receivedFileSize.value / 1024).toFixed(1)} KB
-            </p>
-            <p>
-              <strong>SHA-256:</strong>{" "}
-              <code>{receivedSha256.value.slice(0, 16)}...</code>
-            </p>
-            <p>
               <strong>Integrity:</strong>{" "}
               {verified.value ? (
                 <span class="verified">Verified</span>
@@ -261,8 +283,26 @@ export function ReceiverView() {
               )}
             </p>
           </div>
-          {downloadUrl.value && (
+
+          {receivedFiles.value.length > 0 ? (
+            <div class="file-list">
+              <p><strong>{receivedFiles.value.length} files received:</strong></p>
+              {receivedFiles.value.map((f) => (
+                <div class="file-list-item" key={f.name}>
+                  <span class="file-list-name">{f.name}</span>
+                  <span class="file-list-size">{(f.size / 1024).toFixed(1)} KB</span>
+                  <a href={f.url} download={f.name} class="download-btn">
+                    Download
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : downloadUrl.value ? (
             <>
+              <div class="file-info">
+                <p><strong>File:</strong> {filename.value}</p>
+                <p><strong>Size:</strong> {(receivedFileSize.value / 1024).toFixed(1)} KB</p>
+              </div>
               <a
                 href={downloadUrl.value}
                 download={filename.value}
@@ -285,7 +325,8 @@ export function ReceiverView() {
                 </button>
               )}
             </>
-          )}
+          ) : null}
+
           <button onClick={() => { cleanup(); isComplete.value = false; }} aria-label="Receive another file">
             Receive Another
           </button>

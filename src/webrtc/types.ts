@@ -17,6 +17,17 @@ export interface TransferProgress {
   elapsedMs: number;
 }
 
+export interface BatchMetadata {
+  totalFiles: number;
+  filenames: string[];
+}
+
+export interface MultiFileProgress {
+  currentFileIndex: number;
+  totalFiles: number;
+  currentFileProgress: TransferProgress;
+}
+
 export type ConnectionState =
   | "idle"
   | "waiting"

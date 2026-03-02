@@ -4,8 +4,10 @@ import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
 import {
   type RoomConfig,
+  type BatchMetadata,
   type TransferMetadata,
   type TransferProgress,
+  type MultiFileProgress,
   type ConnectionState,
   DEFAULT_ROOM_CONFIG,
   ROOM_ID_LENGTH,
@@ -36,6 +38,8 @@ export class WebRTCService {
     | ((metadata: TransferMetadata, data: Uint8Array) => void)
     | null = null;
   private onProgressCb: ((p: TransferProgress) => void) | null = null;
+  private onBatchStartedCb: ((batch: BatchMetadata) => void) | null = null;
+  private onBatchCompleteCb: (() => void) | null = null;
 
   async createReceiver(
     config: RoomConfig = DEFAULT_ROOM_CONFIG,
@@ -50,12 +54,21 @@ export class WebRTCService {
 
     console.log("[webrtc] Receiver joined room:", roomId, "selfId:", selfId);
 
-    // Set up file receiving via makeAction
+    // Set up actions
     const [, getFile, onFileProgress] = this.room.makeAction<ArrayBuffer>("file");
     const [, getMetadata] = this.room.makeAction<string>("metadata");
+    const [, getBatch] = this.room.makeAction<string>("batch");
 
     let metadata: TransferMetadata | null = null;
     let startTime = 0;
+    let batchMeta: BatchMetadata | null = null;
+    let receivedCount = 0;
+
+    getBatch((raw) => {
+      batchMeta = JSON.parse(raw) as BatchMetadata;
+      console.log("[webrtc] Batch started:", batchMeta);
+      this.onBatchStartedCb?.(batchMeta);
+    });
 
     getMetadata((raw) => {
       const meta = JSON.parse(raw) as TransferMetadata;
@@ -81,8 +94,19 @@ export class WebRTCService {
     getFile((data, _peerId) => {
       console.log("[webrtc] Received file data, size:", (data as ArrayBuffer).byteLength);
       if (metadata && this.onFileReceivedCb) {
-        this.state.value = "complete";
         this.onFileReceivedCb(metadata, new Uint8Array(data as ArrayBuffer));
+        receivedCount++;
+
+        if (batchMeta && receivedCount < batchMeta.totalFiles) {
+          // More files coming — reset metadata for next file
+          metadata = null;
+        } else {
+          // Single file or last file in batch
+          this.state.value = "complete";
+          if (batchMeta) {
+            this.onBatchCompleteCb?.();
+          }
+        }
       }
     });
 
@@ -213,6 +237,65 @@ export class WebRTCService {
     this.state.value = "complete";
   }
 
+  async sendFiles(
+    files: File[],
+    onProgress: (p: MultiFileProgress) => void,
+  ): Promise<void> {
+    if (!this.room) throw new Error("Not connected");
+
+    this.state.value = "transferring";
+
+    const [sendBatch] = this.room.makeAction<string>("batch");
+    const [sendMetadata] = this.room.makeAction<string>("metadata");
+    const [sendFile] = this.room.makeAction<ArrayBuffer>("file");
+
+    // Send batch metadata first
+    const batch: BatchMetadata = {
+      totalFiles: files.length,
+      filenames: files.map((f) => f.name),
+    };
+    await sendBatch(JSON.stringify(batch));
+    console.log("[webrtc] Sent batch metadata:", batch);
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const buffer = await file.arrayBuffer();
+      const fileData = new Uint8Array(buffer);
+      const sha256 = await hashSha256(fileData);
+
+      const metadata: TransferMetadata = {
+        filename: file.name,
+        fileSize: file.size,
+        mimeType: file.type || "application/octet-stream",
+        sha256: toHex(sha256),
+      };
+
+      await sendMetadata(JSON.stringify(metadata));
+      console.log(`[webrtc] Sent metadata for file ${i + 1}/${files.length}:`, metadata);
+
+      const startTime = Date.now();
+
+      await sendFile(buffer, null, null, (percent, _peerId) => {
+        const elapsed = Date.now() - startTime;
+        const bytesSent = Math.round(percent * file.size);
+        onProgress({
+          currentFileIndex: i,
+          totalFiles: files.length,
+          currentFileProgress: {
+            bytesSent,
+            totalBytes: file.size,
+            speedBytesPerSec: elapsed > 0 ? (bytesSent / elapsed) * 1000 : 0,
+            elapsedMs: elapsed,
+          },
+        });
+      });
+
+      console.log(`[webrtc] File ${i + 1}/${files.length} sent`);
+    }
+
+    this.state.value = "complete";
+  }
+
   onFileReceived(
     cb: (metadata: TransferMetadata, data: Uint8Array) => void,
   ): void {
@@ -221,6 +304,14 @@ export class WebRTCService {
 
   onProgress(cb: (p: TransferProgress) => void): void {
     this.onProgressCb = cb;
+  }
+
+  onBatchStarted(cb: (batch: BatchMetadata) => void): void {
+    this.onBatchStartedCb = cb;
+  }
+
+  onBatchComplete(cb: () => void): void {
+    this.onBatchCompleteCb = cb;
   }
 
   disconnect(): void {

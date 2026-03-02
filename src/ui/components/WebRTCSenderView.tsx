@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
 import { WebRTCService } from "@/webrtc/service";
-import type { TransferProgress } from "@/webrtc/types";
+import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
 
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
@@ -12,6 +12,9 @@ const isConnected = signal(false);
 const isSending = signal(false);
 const isComplete = signal(false);
 const isScanning = signal(false);
+const totalFiles = signal(0);
+const currentFileIndex = signal(0);
+const selectedFileNames = signal<string[]>([]);
 
 export function WebRTCSenderView() {
   const serviceRef = useRef<WebRTCService | null>(null);
@@ -123,15 +126,27 @@ export function WebRTCSenderView() {
     doConnect(roomIdInput.value);
   }, [doConnect]);
 
-  const handleFile = useCallback(async (file: File) => {
+  const handleFiles = useCallback(async (files: FileList) => {
     const svc = serviceRef.current;
-    if (!svc) return;
+    if (!svc || files.length === 0) return;
 
     isSending.value = true;
+    selectedFileNames.value = Array.from(files).map((f) => f.name);
+
     try {
-      await svc.sendFile(file, (p) => {
-        progress.value = p;
-      });
+      if (files.length === 1) {
+        totalFiles.value = 1;
+        currentFileIndex.value = 0;
+        await svc.sendFile(files[0], (p) => {
+          progress.value = p;
+        });
+      } else {
+        totalFiles.value = files.length;
+        await svc.sendFiles(Array.from(files), (p: MultiFileProgress) => {
+          currentFileIndex.value = p.currentFileIndex;
+          progress.value = p.currentFileProgress;
+        });
+      }
       isComplete.value = true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err);
@@ -142,9 +157,9 @@ export function WebRTCSenderView() {
   const handleInputChange = useCallback(
     (e: Event) => {
       const target = e.target as HTMLInputElement;
-      if (target.files?.[0]) handleFile(target.files[0]);
+      if (target.files && target.files.length > 0) handleFiles(target.files);
     },
-    [handleFile],
+    [handleFiles],
   );
 
   const cleanup = useCallback(() => {
@@ -156,6 +171,9 @@ export function WebRTCSenderView() {
     progress.value = null;
     error.value = null;
     roomIdInput.value = "";
+    totalFiles.value = 0;
+    currentFileIndex.value = 0;
+    selectedFileNames.value = [];
     navigate("/");
   }, []);
 
@@ -235,13 +253,14 @@ export function WebRTCSenderView() {
             <button
               class="start-btn"
               onClick={() => fileInputRef.current?.click()}
-              aria-label="Select a file to send"
+              aria-label="Select files to send"
             >
-              Select File to Send
+              Select File(s) to Send
             </button>
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               class="sr-only"
               onChange={handleInputChange}
               aria-label="File input"
@@ -252,6 +271,14 @@ export function WebRTCSenderView() {
 
       {isSending.value && progress.value && (
         <div class="webrtc-transfer">
+          {totalFiles.value > 1 && (
+            <p>
+              <strong>File {currentFileIndex.value + 1} of {totalFiles.value}</strong>
+              {selectedFileNames.value[currentFileIndex.value] && (
+                <> — {selectedFileNames.value[currentFileIndex.value]}</>
+              )}
+            </p>
+          )}
           <div
             class="progress-bar"
             role="progressbar"
@@ -286,6 +313,9 @@ export function WebRTCSenderView() {
       {isComplete.value && (
         <div class="webrtc-complete">
           <h3>Transfer Complete</h3>
+          {totalFiles.value > 1 && (
+            <p>{totalFiles.value} files sent successfully</p>
+          )}
           <button onClick={cleanup} aria-label="Done, return to home">Done</button>
         </div>
       )}

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Multi-file transfer support for both QR and WebRTC modes
+- QR mode: multiple files are bundled into a zip archive and transferred as a single stream
+- WebRTC mode: files are sent sequentially with per-file progress and "File X of Y" counter
+- QR receiver auto-detects zip bundles and shows individual file downloads
+- WebRTC receiver shows individual file list with download buttons for batch transfers
+- Zip bundle utility (`src/zip/bundle.ts`) using fflate for bundling/unbundling
+
 ### Changed
 
 - Migrate WebRTC signaling from PeerJS to Trystero (Nostr relays) for decentralized, NAT-friendly peer discovery

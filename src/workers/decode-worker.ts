@@ -64,18 +64,10 @@ async function processFrame(imageData: ImageData): Promise<void> {
   try {
     const scanResult = await scanner.scan(imageData);
     if (!scanResult) return;
-    console.log("[decode-worker] QR detected, data length:", scanResult.data.length);
 
     const parseResult = parseFrame(scanResult.data);
-    console.log("[decode-worker] parseFrame result:", parseResult.kind);
 
-    if (parseResult.kind === "unknown_version") {
-      console.log("[decode-worker] Unknown version, first bytes:", Array.from(scanResult.data.slice(0, 8)));
-      return;
-    }
-
-    if (parseResult.kind === "error") {
-      console.log("[decode-worker] Parse error:", (parseResult as { kind: string; message?: string }).message);
+    if (parseResult.kind === "unknown_version" || parseResult.kind === "error") {
       return;
     }
 
@@ -89,7 +81,6 @@ async function processFrame(imageData: ImageData): Promise<void> {
         frame.compressionId,
         frame.metadataHash,
       );
-      console.log("[decode-worker] Decoder initialized from", parseResult.kind, "frame");
     }
 
     // Handle metadata frame — extract filename, fileSize, sha256 for UI
@@ -183,12 +174,9 @@ self.onmessage = async (event: MessageEvent<DecodeWorkerInput>) => {
     case "frame":
       if (!scanner) {
         try {
-          console.log("[decode-worker] Initializing scanner...");
           await initScanner();
           running = true;
-          console.log("[decode-worker] Scanner ready");
         } catch (err) {
-          console.error("[decode-worker] Scanner init failed:", err);
           post({ type: "error", message: `Scanner init failed: ${err instanceof Error ? err.message : String(err)}` });
           return;
         }

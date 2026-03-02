@@ -7,6 +7,7 @@ import type { TransferProgress } from "@/webrtc/types";
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
 const roomIdInput = signal("");
+const isConnecting = signal(false);
 const isConnected = signal(false);
 const isSending = signal(false);
 const isComplete = signal(false);
@@ -99,11 +100,13 @@ export function WebRTCSenderView() {
 
   const doConnect = useCallback(async (id: string) => {
     if (!id.trim()) return;
+    if (isConnecting.value) return;
     const svc = serviceRef.current;
     if (!svc) return;
 
     try {
       error.value = null;
+      isConnecting.value = true;
       console.log("[webrtc-sender] Connecting to room:", id.trim());
       await svc.connectToRoom(id.trim());
       console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
@@ -111,6 +114,8 @@ export function WebRTCSenderView() {
     } catch (err) {
       console.error("[webrtc-sender] Connection failed:", err);
       error.value = err instanceof Error ? err.message : String(err);
+    } finally {
+      isConnecting.value = false;
     }
   }, []);
 
@@ -144,6 +149,7 @@ export function WebRTCSenderView() {
 
   const cleanup = useCallback(() => {
     serviceRef.current?.disconnect();
+    isConnecting.value = false;
     isConnected.value = false;
     isSending.value = false;
     isComplete.value = false;
@@ -176,7 +182,7 @@ export function WebRTCSenderView() {
         </div>
       )}
 
-      {!isConnected.value && !isComplete.value && (
+      {!isConnecting.value && !isConnected.value && !isComplete.value && (
         <div class="webrtc-connect">
           {isScanning.value ? (
             <>
@@ -211,9 +217,10 @@ export function WebRTCSenderView() {
         </div>
       )}
 
-      {isConnected.value && !code && !isSending.value && !isComplete.value && (
+      {isConnecting.value && !isConnected.value && (
         <div class="webrtc-connect">
-          <p>Connecting...</p>
+          <p>Connecting to room <code>{roomIdInput.value}</code>...</p>
+          <p class="settings-hint">Discovering peer via Nostr relays</p>
         </div>
       )}
 

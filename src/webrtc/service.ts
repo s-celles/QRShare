@@ -111,6 +111,13 @@ export class WebRTCService {
     this.state.value = "connecting";
 
     return new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        console.error("[webrtc] Connection timed out after 30s");
+        this.state.value = "error";
+        this.error.value = "Connection timed out. Make sure the receiver is still waiting and try again.";
+        reject(new Error("Connection timed out"));
+      }, 30_000);
+
       try {
         this.room = joinRoom(
           { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
@@ -120,6 +127,7 @@ export class WebRTCService {
         console.log("[webrtc] Sender joined room:", roomId, "selfId:", selfId);
 
         this.room.onPeerJoin((peerId) => {
+          clearTimeout(timeout);
           console.log("[webrtc] Connected to peer:", peerId);
           this.remotePeerId = peerId;
           this.state.value = "confirming";
@@ -135,6 +143,7 @@ export class WebRTCService {
           }
         });
       } catch (err) {
+        clearTimeout(timeout);
         this.state.value = "error";
         this.error.value = err instanceof Error ? err.message : String(err);
         reject(err);

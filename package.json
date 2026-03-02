@@ -9,7 +9,8 @@
     "build": "bun run scripts/build.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "package": "bun run scripts/package-single-html.ts"
+    "package": "bun run scripts/package-single-html.ts",
+    "serve": "bun run scripts/serve.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.0.0",

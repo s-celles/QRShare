@@ -6,6 +6,7 @@ import { ReceiverView } from "./components/ReceiverView";
 import { WebRTCSenderView } from "./components/WebRTCSenderView";
 import { WebRTCReceiverView } from "./components/WebRTCReceiverView";
 import { Settings } from "./components/Settings";
+import { About } from "./components/About";
 
 function RouteView() {
   const route = currentRoute.value;
@@ -22,6 +23,8 @@ function RouteView() {
       return <WebRTCReceiverView />;
     case "/settings":
       return <Settings />;
+    case "/about":
+      return <About />;
     default:
       return <Landing />;
   }
@@ -49,14 +52,12 @@ export function App() {
               {effectiveTheme.value === "dark" ? "\u2600" : "\u263E"}
             </button>
             <a
-              href="https://github.com/s-celles/QRShare"
+              href="#/about"
               class="icon-btn"
-              aria-label="Source code on GitHub"
-              title="Source code"
-              target="_blank"
-              rel="noopener noreferrer"
+              aria-label="About QRShare"
+              title="About"
             >
-              &lt;/&gt;
+              &#x2139;
             </a>
             <a
               href="#/settings"

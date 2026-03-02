@@ -6,7 +6,8 @@ export type Route =
   | "/receive/qr"
   | "/send/webrtc"
   | "/receive/webrtc"
-  | "/settings";
+  | "/settings"
+  | "/about";
 
 const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/",
@@ -15,6 +16,7 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/send/webrtc",
   "/receive/webrtc",
   "/settings",
+  "/about",
 ]);
 
 function getRouteFromHash(): Route {

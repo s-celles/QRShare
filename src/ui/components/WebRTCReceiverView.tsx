@@ -138,7 +138,13 @@ export function WebRTCReceiverView() {
         </div>
       )}
 
-      {(state === "confirming" || state === "connecting") && (
+      {state === "connecting" && (
+        <div class="webrtc-connect">
+          <p>Connecting...</p>
+        </div>
+      )}
+
+      {state === "confirming" && (
         <div class="webrtc-confirm">
           <h3>Confirmation Code</h3>
           <p class="confirmation-code" aria-label="Confirmation code">

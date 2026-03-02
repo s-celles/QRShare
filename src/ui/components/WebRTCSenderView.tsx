@@ -208,6 +208,12 @@ export function WebRTCSenderView() {
         </div>
       )}
 
+      {isConnected.value && !code && !isSending.value && !isComplete.value && (
+        <div class="webrtc-connect">
+          <p>Connecting...</p>
+        </div>
+      )}
+
       {isConnected.value && code && !isSending.value && !isComplete.value && (
         <div class="webrtc-confirm">
           <h3>Confirmation Code</h3>

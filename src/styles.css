@@ -572,3 +572,39 @@ section > button:hover {
   opacity: 0.6;
   margin-top: 0.25rem;
 }
+
+/* About */
+.about-content {
+  text-align: center;
+}
+
+.about-description {
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.about-info {
+  text-align: left;
+  background: var(--bg-surface);
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+
+.about-info p {
+  margin-bottom: 0.5rem;
+}
+
+.about-info a {
+  color: var(--accent);
+}
+
+.about-disclaimer {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-surface);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  text-align: left;
+  opacity: 0.8;
+}

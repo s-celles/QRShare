@@ -48,13 +48,16 @@ async function processFrame(imageData: ImageData): Promise<void> {
     console.log("[decode-worker] QR detected, data length:", scanResult.data.length);
 
     const parseResult = parseFrame(scanResult.data);
+    console.log("[decode-worker] parseFrame result:", parseResult.kind);
 
     if (parseResult.kind === "unknown_version") {
-      return; // Ignore frames with unknown versions
+      console.log("[decode-worker] Unknown version, first bytes:", Array.from(scanResult.data.slice(0, 8)));
+      return;
     }
 
     if (parseResult.kind === "error") {
-      return; // Ignore malformed frames
+      console.log("[decode-worker] Parse error:", (parseResult as { kind: string; message?: string }).message);
+      return;
     }
 
     // Handle metadata frame

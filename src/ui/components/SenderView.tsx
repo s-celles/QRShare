@@ -59,6 +59,7 @@ export function SenderView() {
           const msg = e.data;
           switch (msg.type) {
             case "metadata":
+              console.log("[sender] Metadata received, blocks:", msg.totalBlocks, "size:", msg.fileSize);
               totalBlocks.value = msg.totalBlocks;
               fileSize.value = msg.fileSize;
               sha256.value = msg.sha256;
@@ -67,9 +68,13 @@ export function SenderView() {
               const bytes = new Uint8Array(msg.frameBytes);
               currentFrame.value = renderQRToDataURL(bytes, preset.value);
               frameNumber.value = msg.frameNumber;
+              if (msg.frameNumber % 30 === 0) {
+                console.log("[sender] Frame", msg.frameNumber, "symbolId:", msg.symbolId, "size:", bytes.length);
+              }
               break;
             }
             case "error":
+              console.error("[sender] Worker error:", msg.message);
               error.value = msg.message;
               isEncoding.value = false;
               break;

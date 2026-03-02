@@ -34,6 +34,7 @@ async function startEncoding(
 
   try {
     const fileData = new Uint8Array(file);
+    console.log("[encode-worker] Starting encoding, file size:", fileData.length);
 
     // Step 1: Hash
     const sha256Full = await hashSha256(fileData);
@@ -41,6 +42,7 @@ async function startEncoding(
 
     // Step 2: Compress
     const compressed = compress(fileData);
+    console.log("[encode-worker] Compressed:", fileData.length, "->", compressed.data.length, "bytes");
 
     // Step 3: Init fountain encoder
     const factory = await getCodecFactory();
@@ -52,6 +54,7 @@ async function startEncoding(
 
     encoder.init(compressed.data, blockSize);
     const k = encoder.getSourceBlockCount();
+    console.log("[encode-worker] Fountain encoder ready, k:", k, "blockSize:", blockSize, "maxPayload:", maxPayload);
 
     // Send metadata to main thread
     post({

@@ -65,10 +65,8 @@ export function ReceiverView() {
       });
       streamRef.current = stream;
 
-      const worker = new Worker(
-        new URL("../../workers/decode-worker.ts", import.meta.url),
-        { type: "module" },
-      );
+      const workerUrl = new URL("decode-worker.js", location.href);
+      const worker = new Worker(workerUrl, { type: "module" });
       workerRef.current = worker;
 
       worker.onmessage = (e: MessageEvent<DecodeWorkerOutput>) => {

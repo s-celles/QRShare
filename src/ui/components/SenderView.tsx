@@ -46,11 +46,14 @@ export function SenderView() {
       startTime.value = Date.now();
 
       file.arrayBuffer().then((buffer) => {
-        const worker = new Worker(
-          new URL("../../workers/encode-worker.ts", import.meta.url),
-          { type: "module" },
-        );
+        const workerUrl = new URL("encode-worker.js", location.href);
+        const worker = new Worker(workerUrl, { type: "module" });
         workerRef.current = worker;
+
+        worker.onerror = (e) => {
+          error.value = `Worker error: ${e.message || "failed to load"}`;
+          isEncoding.value = false;
+        };
 
         worker.onmessage = (e: MessageEvent<EncodeWorkerOutput>) => {
           const msg = e.data;

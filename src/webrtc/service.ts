@@ -186,8 +186,9 @@ export class WebRTCService {
   }
 
   private deriveConfirmationCode(): void {
-    // Derive 4-digit code from peer IDs (simplified DTLS fingerprint derivation)
-    const combined = `${this.peerId}:${this.conn?.peer || ""}`;
+    // Derive 4-digit code from peer IDs — sort to ensure same order on both sides
+    const ids = [this.peerId, this.conn?.peer || ""].sort();
+    const combined = `${ids[0]}:${ids[1]}`;
     const encoder = new TextEncoder();
     const bytes = encoder.encode(combined);
     let hash = 0;

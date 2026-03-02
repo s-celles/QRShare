@@ -85,10 +85,24 @@ async function startEncoding(
     }
 
     // Step 5: Generate fountain-coded frames indefinitely
+    // Re-send metadata frame every METADATA_INTERVAL data frames
+    const METADATA_INTERVAL = 10;
     let frameNumber = 1;
     let symbolId = 0;
 
     while (running) {
+      // Periodically re-send metadata so receiver can join at any point
+      if (symbolId > 0 && symbolId % METADATA_INTERVAL === 0) {
+        const buf = new ArrayBuffer(metaFrameBytes.byteLength);
+        new Uint8Array(buf).set(metaFrameBytes);
+        post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber });
+        frameNumber++;
+
+        const delay = Math.max(1, Math.round(1000 / currentFps));
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        if (!running) break;
+      }
+
       const symbolData = encoder.encode(symbolId);
 
       const frame: Frame = {

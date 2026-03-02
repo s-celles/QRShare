@@ -8,6 +8,7 @@ import { ZBarQRScanner } from "@/qr/scanner";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "./types";
 
 let running = false;
+let processing = false;
 let scanner: ZBarQRScanner | null = null;
 let decoder: FountainDecoder | null = null;
 
@@ -57,7 +58,8 @@ async function initDecoder(
 }
 
 async function processFrame(imageData: ImageData): Promise<void> {
-  if (!running || !scanner) return;
+  if (!running || !scanner || processing) return;
+  processing = true;
 
   try {
     const scanResult = await scanner.scan(imageData);
@@ -164,6 +166,8 @@ async function processFrame(imageData: ImageData): Promise<void> {
       type: "error",
       message: err instanceof Error ? err.message : String(err),
     });
+  } finally {
+    processing = false;
   }
 }
 

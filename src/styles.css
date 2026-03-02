@@ -364,16 +364,30 @@ section > button:hover {
   margin-bottom: 1rem;
 }
 
+.receiver-active {
+  display: flex;
+  flex-direction: column;
+  /* Fill remaining viewport: 100dvh minus #app padding (1rem top+bottom) and view-header */
+  max-height: calc(100dvh - 5rem);
+}
+
 .viewfinder {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   background: #000;
+  flex: 1 1 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  align-self: center;
+  max-width: 100%;
 }
 
 .camera-video {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
@@ -397,12 +411,16 @@ section > button:hover {
 .corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; }
 .corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; }
 
+.receiver-active .transfer-stats {
+  margin-bottom: 0.5rem;
+}
+
 .progress-bar {
   height: 8px;
   background: var(--bg-surface);
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .progress-fill {

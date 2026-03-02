@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_NAME = "qrshare-v1";
+const CACHE_NAME = "qrshare-v2";
 
 const PRECACHE_URLS = [
   "./",
@@ -11,6 +11,9 @@ const PRECACHE_URLS = [
   "./assets/icon-192.png",
   "./assets/icon-512.png",
 ];
+
+// Hashed filenames (e.g. main.abc123.js, styles.xyz789.css) are immutable
+const isHashedAsset = (url: string) => /\.[a-z0-9]{8,}\.(js|css)$/.test(url);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -38,18 +41,36 @@ self.addEventListener("fetch", (event) => {
   // Only handle GET requests
   if (request.method !== "GET") return;
 
+  const url = request.url;
+
+  // Hashed assets are immutable — cache-first
+  if (isHashedAsset(url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      }),
+    );
+    return;
+  }
+
+  // Everything else (workers, HTML, wasm) — network-first with cache fallback
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        // Cache successful responses for same-origin
-        if (response.ok && new URL(request.url).origin === self.location.origin) {
+    fetch(request)
+      .then((response) => {
+        if (response.ok && new URL(url).origin === self.location.origin) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
-      });
-    }),
+      })
+      .catch(() => caches.match(request).then((cached) => cached || new Response("Offline", { status: 503 }))),
   );
 });
 

@@ -1,0 +1,27 @@
+{
+  "name": "qrshare",
+  "version": "0.1.0",
+  "description": "Air-gapped file transfer via animated QR codes with fountain codes",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "dev": "bun run --hot src/main.ts",
+    "build": "bun run scripts/build.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "package": "bun run scripts/package-single-html.ts"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.0.0",
+    "@undecaf/zbar-wasm": "^0.11.0",
+    "fflate": "^0.8.2",
+    "lean-qr": "^2.7.0",
+    "peerjs": "^1.5.4",
+    "preact": "^10.25.0",
+    "wirehair-wasm": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9",
+    "typescript": "^5.7.0"
+  }
+}

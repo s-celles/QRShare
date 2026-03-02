@@ -1,0 +1,90 @@
+# QRShare
+
+![QRShare](assets/QRShare.png)
+
+Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
+
+## Features
+
+- **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
+- **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
+- **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
+- **Progressive Web App** -- Install on any device, works offline after first load.
+- **Web Share Integration** -- Share received files directly to other apps using the Web Share API.
+- **Dark/Light Theme** -- Automatic theme detection with manual override.
+- **SHA-256 Verification** -- End-to-end integrity verification of transferred files.
+- **Single-File Distribution** -- Package the entire app into a single self-contained HTML file.
+
+## Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+
+# Run tests
+bun test
+
+# Type check
+bun run typecheck
+
+# Production build
+bun run build
+
+# Package as single HTML file
+bun run package
+```
+
+## How It Works
+
+### QR Code Mode (Air-Gapped)
+
+1. **Sender** selects a file and encoding preset (High Speed / Balanced / High Reliability)
+2. The file is compressed, split into blocks, and encoded using fountain codes
+3. Encoded blocks are serialized into a binary frame protocol and rendered as animated QR codes
+4. **Receiver** scans the QR animation with their camera
+5. Fountain codes allow reconstruction even if some frames are missed
+6. File integrity is verified via SHA-256 hash
+
+### WebRTC Mode (P2P)
+
+1. **Receiver** generates a peer ID displayed as a QR code
+2. **Sender** scans or enters the peer ID to establish a WebRTC connection
+3. Both devices display a 4-digit confirmation code to verify the connection
+4. File is transferred in 64 KB chunks over a DataChannel with backpressure control
+5. SHA-256 verification confirms file integrity
+
+## Architecture
+
+- **Preact + Signals** -- Lightweight reactive UI framework
+- **Web Workers** -- Encode and decode pipelines run off the main thread
+- **Binary Frame Protocol** -- 14-byte header with version, metadata hash, block count, symbol ID
+- **Compression** -- fflate (deflate) with automatic incompressible data detection
+- **QR Generation** -- lean-qr in byte mode with three quality presets
+- **QR Scanning** -- @undecaf/zbar-wasm for real-time decoding
+- **WebRTC** -- PeerJS for signaling, chunked binary transfer over DataChannel
+
+## Encoding Presets
+
+| Preset | QR Version | ECC Level | Max Payload | Default FPS |
+|--------|-----------|-----------|-------------|-------------|
+| High Speed | 25 | L | 1,273 bytes | 15 |
+| Balanced | 20 | M | 666 bytes | 12 |
+| High Reliability | 15 | Q | 292 bytes | 8 |
+
+## Technology Stack
+
+- **Runtime**: [Bun](https://bun.sh)
+- **UI**: [Preact](https://preactjs.com) + [@preact/signals](https://github.com/preactjs/signals)
+- **QR Generation**: [lean-qr](https://github.com/nicktomlin/lean-qr)
+- **QR Scanning**: [@undecaf/zbar-wasm](https://github.com/niclas-nickleby/zbar-wasm)
+- **Fountain Codes**: [wirehair-wasm](https://github.com/nicktomlin/wirehair-wasm) + pure-JS LT fallback
+- **Compression**: [fflate](https://github.com/101arrowz/fflate)
+- **WebRTC**: [PeerJS](https://peerjs.com)
+- **Language**: TypeScript (strict mode)
+
+## License
+
+[GPL-3.0-or-later](LICENSE)

@@ -1,0 +1,85 @@
+# Ignore everything
+*
+
+#####################
+
+# But not these files...
+!.gitignore
+!index.html
+!.env.example
+!README.md
+!CHANGELOG.md
+!LICENSE
+!SECURITY.md
+!manifest.webmanifest
+
+# Source
+!src/
+!src/**
+
+# Config
+!package.json
+!bunfig.toml
+!tsconfig.json
+
+# Types
+!types/
+!types/**
+
+# Tests
+!tests/
+!tests/**
+
+# Public/static assets
+!public/
+!public/**
+
+# Assets (icons, images)
+!assets/
+!assets/**
+
+# Scripts
+!scripts/
+!scripts/**
+
+# CI/CD
+!.github/
+!.github/**
+
+#####################
+
+# Dependencies
+node_modules/
+
+# Bun
+bun.lockb
+*.bun
+
+# Output
+dist/
+out/
+build/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Debug
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/

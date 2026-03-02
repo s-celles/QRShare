@@ -1,0 +1,288 @@
+import { signal } from "@preact/signals";
+import { useRef, useEffect, useCallback } from "preact/hooks";
+import { navigate } from "../router";
+import { ShareService } from "@/share/service";
+import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
+
+const shareService = new ShareService();
+
+const uniqueSymbols = signal(0);
+const neededSymbols = signal(0);
+const filename = signal("");
+const receivedFileSize = signal(0);
+const receivedSha256 = signal("");
+const verified = signal(false);
+const isScanning = signal(false);
+const isComplete = signal(false);
+const error = signal<string | null>(null);
+const downloadUrl = signal<string | null>(null);
+const cameraError = signal<string | null>(null);
+
+export function ReceiverView() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number>(0);
+
+  const cleanup = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = 0;
+    }
+    if (workerRef.current) {
+      workerRef.current.postMessage({ type: "stop" } satisfies DecodeWorkerInput);
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (downloadUrl.value) {
+      URL.revokeObjectURL(downloadUrl.value);
+      downloadUrl.value = null;
+    }
+    isScanning.value = false;
+  }, []);
+
+  useEffect(() => cleanup, [cleanup]);
+
+  const startScanning = useCallback(async () => {
+    error.value = null;
+    cameraError.value = null;
+    isComplete.value = false;
+    uniqueSymbols.value = 0;
+    neededSymbols.value = 0;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      const worker = new Worker(
+        new URL("../../workers/decode-worker.ts", import.meta.url),
+        { type: "module" },
+      );
+      workerRef.current = worker;
+
+      worker.onmessage = (e: MessageEvent<DecodeWorkerOutput>) => {
+        const msg = e.data;
+        switch (msg.type) {
+          case "progress":
+            uniqueSymbols.value = msg.uniqueSymbols;
+            neededSymbols.value = msg.neededSymbols;
+            break;
+          case "metadata":
+            filename.value = msg.filename;
+            receivedFileSize.value = msg.fileSize;
+            break;
+          case "complete": {
+            isComplete.value = true;
+            isScanning.value = false;
+            receivedSha256.value = msg.sha256;
+            verified.value = msg.verified;
+            const blob = new Blob([msg.file]);
+            downloadUrl.value = URL.createObjectURL(blob);
+            // Stop camera
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((t) => t.stop());
+            }
+            break;
+          }
+          case "error":
+            error.value = msg.message;
+            break;
+        }
+      };
+
+      isScanning.value = true;
+      captureFrames();
+    } catch (err) {
+      cameraError.value =
+        "Camera access denied. Please grant camera permissions in your browser settings.";
+    }
+  }, []);
+
+  const captureFrames = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || !workerRef.current) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const tick = () => {
+      if (!isScanning.value) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      workerRef.current?.postMessage({
+        type: "frame",
+        imageData,
+      } satisfies DecodeWorkerInput);
+
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const progress =
+    neededSymbols.value > 0
+      ? Math.min(100, (uniqueSymbols.value / neededSymbols.value) * 100)
+      : 0;
+
+  return (
+    <section aria-label="QR Receiver">
+      <div class="view-header">
+        <button onClick={() => { cleanup(); navigate("/"); }} aria-label="Back to home">
+          &larr; Back
+        </button>
+        <h2>Receive via QR</h2>
+      </div>
+
+      {cameraError.value && (
+        <div class="error-msg" role="alert">
+          {cameraError.value}
+        </div>
+      )}
+
+      {!isScanning.value && !isComplete.value && (
+        <div class="receiver-setup">
+          <p>Point your camera at the sender's QR code animation.</p>
+          <button class="start-btn" onClick={startScanning} aria-label="Start scanning QR codes">
+            Start Scanning
+          </button>
+        </div>
+      )}
+
+      {isScanning.value && (
+        <div class="receiver-active">
+          <div class="viewfinder" aria-label="Camera viewfinder">
+            <video
+              ref={videoRef}
+              class="camera-video"
+              playsInline
+              muted
+              aria-label="Camera feed"
+            />
+            <div class="viewfinder-overlay" aria-hidden="true">
+              <div class="corner tl" />
+              <div class="corner tr" />
+              <div class="corner bl" />
+              <div class="corner br" />
+            </div>
+          </div>
+          <canvas ref={canvasRef} class="sr-only" aria-hidden="true" />
+
+          <div class="transfer-stats" aria-live="polite">
+            <div class="stat">
+              <span class="stat-label">Symbols</span>
+              <span class="stat-value">
+                {uniqueSymbols.value} / {neededSymbols.value || "?"}
+              </span>
+            </div>
+            {filename.value && (
+              <div class="stat">
+                <span class="stat-label">File</span>
+                <span class="stat-value">{filename.value}</span>
+              </div>
+            )}
+          </div>
+
+          <div
+            class="progress-bar"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Transfer progress"
+          >
+            <div class="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+
+          <button class="stop-btn" onClick={cleanup} aria-label="Stop scanning">
+            Stop
+          </button>
+        </div>
+      )}
+
+      {isComplete.value && (
+        <div class="receiver-complete">
+          <h3>Transfer Complete</h3>
+          <div class="file-info">
+            <p>
+              <strong>File:</strong> {filename.value}
+            </p>
+            <p>
+              <strong>Size:</strong>{" "}
+              {(receivedFileSize.value / 1024).toFixed(1)} KB
+            </p>
+            <p>
+              <strong>SHA-256:</strong>{" "}
+              <code>{receivedSha256.value.slice(0, 16)}...</code>
+            </p>
+            <p>
+              <strong>Integrity:</strong>{" "}
+              {verified.value ? (
+                <span class="verified">Verified</span>
+              ) : (
+                <span class="not-verified">
+                  Warning: Hash mismatch - data may be corrupted
+                </span>
+              )}
+            </p>
+          </div>
+          {downloadUrl.value && (
+            <>
+              <a
+                href={downloadUrl.value}
+                download={filename.value}
+                class="download-btn"
+              >
+                Download {filename.value}
+              </a>
+              {shareService.isShareSupported() && (
+                <button
+                  class="start-btn"
+                  style={{ marginTop: "0.5rem" }}
+                  onClick={async () => {
+                    const response = await fetch(downloadUrl.value!);
+                    const blob = await response.blob();
+                    const file = new File([blob], filename.value, { type: blob.type });
+                    await shareService.shareFile(file);
+                  }}
+                >
+                  Share
+                </button>
+              )}
+            </>
+          )}
+          <button onClick={() => { cleanup(); isComplete.value = false; }} aria-label="Receive another file">
+            Receive Another
+          </button>
+        </div>
+      )}
+
+      {error.value && (
+        <div class="error-msg" role="alert">
+          {error.value}
+        </div>
+      )}
+    </section>
+  );
+}

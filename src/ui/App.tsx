@@ -49,6 +49,16 @@ export function App() {
               {effectiveTheme.value === "dark" ? "\u2600" : "\u263E"}
             </button>
             <a
+              href="https://github.com/s-celles/QRShare"
+              class="icon-btn"
+              aria-label="Source code on GitHub"
+              title="Source code"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              &lt;/&gt;
+            </a>
+            <a
               href="#/settings"
               class="icon-btn"
               aria-label="Settings"

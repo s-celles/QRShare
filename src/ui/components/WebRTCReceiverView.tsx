@@ -6,6 +6,7 @@ import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
 import { ShareService } from "@/share/service";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
+import { t } from "../i18n";
 
 interface ReceivedFile {
   meta: TransferMetadata;
@@ -124,18 +125,18 @@ export function WebRTCReceiverView() {
     : 0;
 
   return (
-    <section aria-label="WebRTC Receiver">
+    <section aria-label={t("webrtcReceiver.section")}>
       <div class="view-header">
         <button
           onClick={() => {
             cleanup();
             navigate("/");
           }}
-          aria-label="Back to home"
+          aria-label={t("common.backToHome")}
         >
-          &larr; Back
+          {"\u2190 " + t("common.back")}
         </button>
-        <h2>Receive via WebRTC</h2>
+        <h2>{t("webrtcReceiver.heading")}</h2>
       </div>
 
       {error.value && (
@@ -147,74 +148,72 @@ export function WebRTCReceiverView() {
       {!isWaiting.value && !isComplete.value && (
         <div class="receiver-setup">
           <p>
-            Start receiving to generate a QR code. The sender will scan it to
-            connect.
+            {t("webrtcReceiver.setupText")}
           </p>
-          <button class="start-btn" onClick={startReceiving} aria-label="Start receiving files via WebRTC">
-            Start Receiving
+          <button class="start-btn" onClick={startReceiving} aria-label={t("webrtcReceiver.startReceivingAria")}>
+            {t("webrtcReceiver.startReceiving")}
           </button>
         </div>
       )}
 
       {isWaiting.value && state === "waiting" && (
         <div class="webrtc-waiting">
-          <h3>Waiting for Sender</h3>
+          <h3>{t("webrtcReceiver.waitingForSender")}</h3>
           {roomIdQR.value && (
             <div class="qr-display">
               <img
                 src={roomIdQR.value}
-                alt="Room ID QR code"
+                alt={t("webrtcReceiver.roomIdQRAlt")}
                 class="qr-image"
               />
             </div>
           )}
           <p class="peer-id-text">
-            Room ID: <code>{roomId.value}</code>
+            {t("webrtcReceiver.roomIdLabel")} <code>{roomId.value}</code>
           </p>
-          <p>Show this QR code to the sender or share the Room ID.</p>
+          <p>{t("webrtcReceiver.showQR")}</p>
         </div>
       )}
 
       {state === "connecting" && (
         <div class="webrtc-connect">
-          <p>Connecting...</p>
+          <p>{t("webrtcReceiver.connecting")}</p>
         </div>
       )}
 
       {state === "confirming" && (
         <div class="webrtc-confirm">
-          <h3>Confirmation Code</h3>
-          <p class="confirmation-code" aria-label="Confirmation code">
+          <h3>{t("webrtcReceiver.confirmationCode")}</h3>
+          <p class="confirmation-code" aria-label={t("webrtcReceiver.confirmationCodeAria")}>
             {code}
           </p>
           <p>
-            Verify this code matches on the sender's screen. If it doesn't
-            match, close the connection.
+            {t("webrtcReceiver.verifyCode")}
           </p>
         </div>
       )}
 
       {state === "transferring" && progress.value && (
         <div class="webrtc-transfer">
-          <h3>Receiving{batchTotal.value > 1 ? ` (file ${receivedFiles.value.length + 1} of ${batchTotal.value})` : ""}...</h3>
-          {metadata.value && <p>File: {metadata.value.filename}</p>}
+          <h3>{batchTotal.value > 1 ? t("webrtcReceiver.receivingFileOf", { current: receivedFiles.value.length + 1, total: batchTotal.value }) : t("webrtcReceiver.receiving")}</h3>
+          {metadata.value && <p>{t("webrtcReceiver.fileLabel", { filename: metadata.value.filename })}</p>}
           <div
             class="progress-bar"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="File reception progress"
+            aria-label={t("webrtcReceiver.receptionProgress")}
           >
             <div class="progress-fill" style={{ width: `${pct}%` }} />
           </div>
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">Progress</span>
+              <span class="stat-label">{t("webrtcReceiver.progress")}</span>
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">Speed</span>
+              <span class="stat-label">{t("webrtcReceiver.speed")}</span>
               <span class="stat-value">
                 {(progress.value.speedBytesPerSec / 1024).toFixed(0)} KB/s
               </span>
@@ -225,8 +224,8 @@ export function WebRTCReceiverView() {
 
       {isComplete.value && receivedFiles.value.length > 0 && (
         <div class="receiver-complete">
-          <h3>Transfer Complete</h3>
-          <p><strong>{receivedFiles.value.length} files received:</strong></p>
+          <h3>{t("webrtcReceiver.transferComplete")}</h3>
+          <p><strong>{t("webrtcReceiver.filesReceived", { count: receivedFiles.value.length })}</strong></p>
           <div class="file-list">
             {receivedFiles.value.map((f) => (
               <div class="file-list-item" key={f.meta.sha256}>
@@ -234,13 +233,13 @@ export function WebRTCReceiverView() {
                   <span class="file-list-name">{f.meta.filename}</span>
                   <span class="file-list-size"> ({(f.meta.fileSize / 1024).toFixed(1)} KB)</span>
                   {f.verified ? (
-                    <span class="verified"> Verified</span>
+                    <span class="verified"> {t("common.verified")}</span>
                   ) : (
-                    <span class="not-verified"> Hash mismatch</span>
+                    <span class="not-verified"> {t("common.hashMismatch")}</span>
                   )}
                 </div>
                 <a href={f.url} download={f.meta.filename} class="download-btn">
-                  Download
+                  {t("common.download")}
                 </a>
               </div>
             ))}
@@ -250,35 +249,35 @@ export function WebRTCReceiverView() {
               cleanup();
               isComplete.value = false;
             }}
-            aria-label="Receive more files"
+            aria-label={t("webrtcReceiver.receiveMoreAria")}
           >
-            Receive Another
+            {t("webrtcReceiver.receiveAnother")}
           </button>
         </div>
       )}
 
       {isComplete.value && receivedFiles.value.length === 0 && metadata.value && (
         <div class="receiver-complete">
-          <h3>Transfer Complete</h3>
+          <h3>{t("webrtcReceiver.transferComplete")}</h3>
           <div class="file-info">
             <p>
-              <strong>File:</strong> {metadata.value.filename}
+              <strong>{t("receiver.fileLabel")}</strong> {metadata.value.filename}
             </p>
             <p>
-              <strong>Size:</strong>{" "}
+              <strong>{t("receiver.sizeLabel")}</strong>{" "}
               {(metadata.value.fileSize / 1024).toFixed(1)} KB
             </p>
             <p>
-              <strong>SHA-256:</strong>{" "}
+              <strong>{t("webrtcReceiver.sha256")}</strong>{" "}
               <code>{metadata.value.sha256.slice(0, 16)}...</code>
             </p>
             <p>
-              <strong>Integrity:</strong>{" "}
+              <strong>{t("webrtcReceiver.integrity")}</strong>{" "}
               {verified.value ? (
-                <span class="verified">Verified</span>
+                <span class="verified">{t("common.verified")}</span>
               ) : (
                 <span class="not-verified">
-                  Warning: Hash mismatch
+                  {t("common.hashMismatch")}
                 </span>
               )}
             </p>
@@ -290,7 +289,7 @@ export function WebRTCReceiverView() {
                 download={metadata.value.filename}
                 class="download-btn"
               >
-                Download {metadata.value.filename}
+                {t("webrtcReceiver.downloadFile", { filename: metadata.value.filename })}
               </a>
               {shareService.isShareSupported() && (
                 <button
@@ -303,7 +302,7 @@ export function WebRTCReceiverView() {
                     await shareService.shareFile(file);
                   }}
                 >
-                  Share
+                  {t("common.share")}
                 </button>
               )}
             </>
@@ -313,9 +312,9 @@ export function WebRTCReceiverView() {
               cleanup();
               isComplete.value = false;
             }}
-            aria-label="Receive another file"
+            aria-label={t("webrtcReceiver.receiveAnotherAria")}
           >
-            Receive Another
+            {t("webrtcReceiver.receiveAnother")}
           </button>
         </div>
       )}

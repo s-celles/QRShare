@@ -5,6 +5,7 @@ import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
 import { pendingFile } from "../shared-file";
+import { t } from "../i18n";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
@@ -110,7 +111,7 @@ export function SenderView() {
       if (files.length === 1) {
         const file = files[0];
         if (file.size > MAX_FILE_SIZE) {
-          error.value = `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`;
+          error.value = t("sender.fileTooLarge", { size: (file.size / 1024 / 1024).toFixed(1) });
           return;
         }
         selectedFiles.value = [file.name];
@@ -128,7 +129,7 @@ export function SenderView() {
       }
 
       if (totalSize > MAX_FILE_SIZE) {
-        error.value = `Total size too large (${(totalSize / 1024 / 1024).toFixed(1)} MB). Maximum is 50 MB.`;
+        error.value = t("sender.totalTooLarge", { size: (totalSize / 1024 / 1024).toFixed(1) });
         return;
       }
 
@@ -186,12 +187,12 @@ export function SenderView() {
     : "0";
 
   return (
-    <section aria-label="QR Sender">
+    <section aria-label={t("sender.section")}>
       <div class="view-header">
-        <button onClick={() => { cleanup(); navigate("/"); }} aria-label="Back to home">
-          &larr; Back
+        <button onClick={() => { cleanup(); navigate("/"); }} aria-label={t("common.backToHome")}>
+          {"\u2190 " + t("common.back")}
         </button>
-        <h2>Send via QR</h2>
+        <h2>{t("sender.heading")}</h2>
       </div>
 
       {!isEncoding.value && (
@@ -203,11 +204,11 @@ export function SenderView() {
             onClick={() => fileInputRef.current?.click()}
             role="button"
             tabIndex={0}
-            aria-label="Select file to send"
+            aria-label={t("sender.selectFile")}
             onKeyDown={(e) => { if (e.key === "Enter") fileInputRef.current?.click(); }}
           >
-            <p>Drop file(s) here or click to browse</p>
-            <p class="drop-hint">Maximum 50 MB total</p>
+            <p>{t("sender.dropZone")}</p>
+            <p class="drop-hint">{t("sender.maxSize")}</p>
           </div>
           <input
             ref={fileInputRef}
@@ -215,11 +216,11 @@ export function SenderView() {
             multiple
             class="sr-only"
             onChange={handleInputChange}
-            aria-label="File input"
+            aria-label={t("common.fileInput")}
           />
 
           <div class="preset-selector">
-            <label htmlFor="preset">Encoding Preset:</label>
+            <label htmlFor="preset">{t("sender.encodingPreset")}</label>
             <select
               id="preset"
               value={preset.value}
@@ -227,9 +228,9 @@ export function SenderView() {
                 preset.value = (e.target as HTMLSelectElement).value as EncodingPreset;
               }}
             >
-              <option value="high_speed">High Speed (v25, ECC L, 15fps)</option>
-              <option value="balanced">Balanced (v20, ECC M, 12fps)</option>
-              <option value="high_reliability">High Reliability (v15, ECC Q, 8fps)</option>
+              <option value="high_speed">{t("sender.presetHighSpeed")}</option>
+              <option value="balanced">{t("sender.presetBalanced")}</option>
+              <option value="high_reliability">{t("sender.presetHighReliability")}</option>
             </select>
           </div>
         </div>
@@ -243,11 +244,11 @@ export function SenderView() {
 
       {isEncoding.value && (
         <div class="sender-active">
-          <div class="qr-display" aria-label="QR code animation">
+          <div class="qr-display" aria-label={t("sender.qrAnimation")}>
             {currentFrame.value && (
               <img
                 src={currentFrame.value}
-                alt={`QR frame ${frameNumber.value}`}
+                alt={t("sender.qrFrame", { n: frameNumber.value })}
                 class="qr-image"
               />
             )}
@@ -255,34 +256,34 @@ export function SenderView() {
 
           {selectedFiles.value.length > 1 && (
             <p class="settings-hint">
-              Bundled {selectedFiles.value.length} files: {selectedFiles.value.join(", ")}
+              {t("sender.bundledFiles", { count: selectedFiles.value.length, names: selectedFiles.value.join(", ") })}
             </p>
           )}
 
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">Frame</span>
+              <span class="stat-label">{t("sender.frame")}</span>
               <span class="stat-value">{frameNumber.value}</span>
             </div>
             <div class="stat">
-              <span class="stat-label">Blocks</span>
+              <span class="stat-label">{t("sender.blocks")}</span>
               <span class="stat-value">{totalBlocks.value}</span>
             </div>
             <div class="stat">
-              <span class="stat-label">Size</span>
+              <span class="stat-label">{t("sender.size")}</span>
               <span class="stat-value">
                 {(fileSize.value / 1024).toFixed(1)} KB
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">Elapsed</span>
+              <span class="stat-label">{t("sender.elapsed")}</span>
               <span class="stat-value">{elapsed}s</span>
             </div>
           </div>
 
           <div class="fps-control">
             <label htmlFor="fps-slider">
-              Frame Rate: {fps.value} FPS
+              {t("sender.frameRate", { fps: fps.value })}
             </label>
             <input
               id="fps-slider"
@@ -291,12 +292,12 @@ export function SenderView() {
               max="30"
               value={fps.value}
               onInput={handleFpsChange}
-              aria-label="Adjust frame rate"
+              aria-label={t("sender.adjustFrameRate")}
             />
           </div>
 
-          <button class="stop-btn" onClick={cleanup} aria-label="Stop encoding">
-            Stop
+          <button class="stop-btn" onClick={cleanup} aria-label={t("sender.stopEncoding")}>
+            {t("common.stop")}
           </button>
         </div>
       )}

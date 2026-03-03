@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
+import { t } from "../i18n";
 
 interface ReceivedFile {
   name: string;
@@ -117,7 +118,7 @@ export function ReceiverView() {
                 });
                 receivedFiles.value = files;
               } catch {
-                error.value = "Failed to extract bundled files";
+                error.value = t("receiver.extractError");
               }
             } else {
               // Single file
@@ -150,8 +151,7 @@ export function ReceiverView() {
 
       captureFrames();
     } catch (err) {
-      cameraError.value =
-        "Camera access denied. Please grant camera permissions in your browser settings.";
+      cameraError.value = t("common.cameraAccessDenied");
     }
   }, []);
 
@@ -194,12 +194,12 @@ export function ReceiverView() {
       : 0;
 
   return (
-    <section aria-label="QR Receiver">
+    <section aria-label={t("receiver.section")}>
       <div class="view-header">
-        <button onClick={() => { cleanup(); navigate("/"); }} aria-label="Back to home">
-          &larr; Back
+        <button onClick={() => { cleanup(); navigate("/"); }} aria-label={t("common.backToHome")}>
+          {"\u2190 " + t("common.back")}
         </button>
-        <h2>Receive via QR</h2>
+        <h2>{t("receiver.heading")}</h2>
       </div>
 
       {cameraError.value && (
@@ -210,22 +210,22 @@ export function ReceiverView() {
 
       {!isScanning.value && !isComplete.value && (
         <div class="receiver-setup">
-          <p>Point your camera at the sender's QR code animation.</p>
-          <button class="start-btn" onClick={startScanning} aria-label="Start scanning QR codes">
-            Start Scanning
+          <p>{t("receiver.setupText")}</p>
+          <button class="start-btn" onClick={startScanning} aria-label={t("receiver.startScanningAria")}>
+            {t("receiver.startScanning")}
           </button>
         </div>
       )}
 
       {isScanning.value && (
         <div class="receiver-active">
-          <div class="viewfinder" aria-label="Camera viewfinder">
+          <div class="viewfinder" aria-label={t("common.cameraViewfinder")}>
             <video
               ref={videoRef}
               class="camera-video"
               playsInline
               muted
-              aria-label="Camera feed"
+              aria-label={t("common.cameraFeed")}
             />
             <div class="viewfinder-overlay" aria-hidden="true">
               <div class="corner tl" />
@@ -238,14 +238,14 @@ export function ReceiverView() {
 
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">Symbols</span>
+              <span class="stat-label">{t("receiver.symbols")}</span>
               <span class="stat-value">
                 {uniqueSymbols.value} / {neededSymbols.value || "?"}
               </span>
             </div>
             {filename.value && (
               <div class="stat">
-                <span class="stat-label">File</span>
+                <span class="stat-label">{t("receiver.file")}</span>
                 <span class="stat-value">{filename.value}</span>
               </div>
             )}
@@ -257,28 +257,28 @@ export function ReceiverView() {
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Transfer progress"
+            aria-label={t("receiver.transferProgress")}
           >
             <div class="progress-fill" style={{ width: `${progress}%` }} />
           </div>
 
-          <button class="stop-btn" onClick={cleanup} aria-label="Stop scanning">
-            Stop
+          <button class="stop-btn" onClick={cleanup} aria-label={t("receiver.stopScanning")}>
+            {t("common.stop")}
           </button>
         </div>
       )}
 
       {isComplete.value && (
         <div class="receiver-complete">
-          <h3>Transfer Complete</h3>
+          <h3>{t("receiver.transferComplete")}</h3>
           <div class="file-info">
             <p>
-              <strong>Integrity:</strong>{" "}
+              <strong>{t("receiver.integrity")}</strong>{" "}
               {verified.value ? (
-                <span class="verified">Verified</span>
+                <span class="verified">{t("common.verified")}</span>
               ) : (
                 <span class="not-verified">
-                  Warning: Hash mismatch - data may be corrupted
+                  {t("receiver.hashWarning")}
                 </span>
               )}
             </p>
@@ -286,13 +286,13 @@ export function ReceiverView() {
 
           {receivedFiles.value.length > 0 ? (
             <div class="file-list">
-              <p><strong>{receivedFiles.value.length} files received:</strong></p>
+              <p><strong>{t("receiver.filesReceived", { count: receivedFiles.value.length })}</strong></p>
               {receivedFiles.value.map((f) => (
                 <div class="file-list-item" key={f.name}>
                   <span class="file-list-name">{f.name}</span>
                   <span class="file-list-size">{(f.size / 1024).toFixed(1)} KB</span>
                   <a href={f.url} download={f.name} class="download-btn">
-                    Download
+                    {t("common.download")}
                   </a>
                 </div>
               ))}
@@ -300,15 +300,15 @@ export function ReceiverView() {
           ) : downloadUrl.value ? (
             <>
               <div class="file-info">
-                <p><strong>File:</strong> {filename.value}</p>
-                <p><strong>Size:</strong> {(receivedFileSize.value / 1024).toFixed(1)} KB</p>
+                <p><strong>{t("receiver.fileLabel")}</strong> {filename.value}</p>
+                <p><strong>{t("receiver.sizeLabel")}</strong> {(receivedFileSize.value / 1024).toFixed(1)} KB</p>
               </div>
               <a
                 href={downloadUrl.value}
                 download={filename.value}
                 class="download-btn"
               >
-                Download {filename.value}
+                {t("receiver.downloadFile", { filename: filename.value })}
               </a>
               {shareService.isShareSupported() && (
                 <button
@@ -321,14 +321,14 @@ export function ReceiverView() {
                     await shareService.shareFile(file);
                   }}
                 >
-                  Share
+                  {t("common.share")}
                 </button>
               )}
             </>
           ) : null}
 
-          <button onClick={() => { cleanup(); isComplete.value = false; }} aria-label="Receive another file">
-            Receive Another
+          <button onClick={() => { cleanup(); isComplete.value = false; }} aria-label={t("receiver.receiveAnotherAria")}>
+            {t("receiver.receiveAnother")}
           </button>
         </div>
       )}

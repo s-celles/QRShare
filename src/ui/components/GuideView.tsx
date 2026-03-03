@@ -1,23 +1,14 @@
-import { signal, computed } from "@preact/signals";
+import { computed } from "@preact/signals";
 import { useRef, useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { effectiveTheme } from "../theme";
 import { markdownToHtml } from "../markdown";
+import { locale, t } from "../i18n";
 import guideEn from "../../../docs/en-user-guide.md" with { type: "text" };
 import guideFr from "../../../docs/fr-guide-utilisateur.md" with { type: "text" };
 
-type Lang = "en" | "fr";
-
-function detectLang(): Lang {
-  if (typeof navigator === "undefined") return "en";
-  const lang = navigator.language.toLowerCase();
-  return lang.startsWith("fr") ? "fr" : "en";
-}
-
-const lang = signal<Lang>(detectLang());
-
 const htmlContent = computed(() =>
-  markdownToHtml(lang.value === "fr" ? guideFr : guideEn),
+  markdownToHtml(locale.value === "fr" ? guideFr : guideEn),
 );
 
 let mermaidLoaded = false;
@@ -93,32 +84,12 @@ export function GuideView() {
   }, [currentHtml, currentTheme]);
 
   return (
-    <section aria-label="User Guide">
+    <section aria-label={t("guide.section")}>
       <div class="view-header">
-        <button onClick={() => navigate("/")} aria-label="Back to home">
-          &larr; Back
+        <button onClick={() => navigate("/")} aria-label={t("common.backToHome")}>
+          &larr; {t("common.back")}
         </button>
-        <h2>{lang.value === "fr" ? "Guide utilisateur" : "User Guide"}</h2>
-        <div class="lang-toggle">
-          <button
-            class={`lang-btn ${lang.value === "en" ? "active" : ""}`}
-            onClick={() => {
-              lang.value = "en";
-            }}
-            aria-label="English"
-          >
-            EN
-          </button>
-          <button
-            class={`lang-btn ${lang.value === "fr" ? "active" : ""}`}
-            onClick={() => {
-              lang.value = "fr";
-            }}
-            aria-label="Français"
-          >
-            FR
-          </button>
-        </div>
+        <h2>{t("guide.heading")}</h2>
       </div>
 
       <div

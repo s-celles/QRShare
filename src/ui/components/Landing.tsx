@@ -1,85 +1,86 @@
 import { navigate } from "../router";
+import { t } from "../i18n";
 
 export function Landing() {
   return (
-    <section class="landing" aria-label="QRShare home">
-      <h2>QR Utilities</h2>
-      <div class="mode-grid" role="group" aria-label="QR utilities">
+    <section class="landing" aria-label={t("landing.home")}>
+      <h2>{t("landing.qrUtilities")}</h2>
+      <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
         <button
           class="mode-btn"
           onClick={() => navigate("/scan")}
-          aria-label="Scan a QR code"
+          aria-label={t("landing.scanAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x1F4F7;
           </span>
-          <span class="mode-label">Scan QR Code</span>
-          <span class="mode-desc">Decode any QR code</span>
+          <span class="mode-label">{t("landing.scanTitle")}</span>
+          <span class="mode-desc">{t("landing.scanDesc")}</span>
         </button>
 
         <button
           class="mode-btn"
           onClick={() => navigate("/create")}
-          aria-label="Create a QR code"
+          aria-label={t("landing.createAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x2B1A;
           </span>
-          <span class="mode-label">Create QR Code</span>
-          <span class="mode-desc">Generate from text</span>
+          <span class="mode-label">{t("landing.createTitle")}</span>
+          <span class="mode-desc">{t("landing.createDesc")}</span>
         </button>
       </div>
 
       <div class="section-divider" />
 
-      <h2>File Transfer</h2>
-      <div class="mode-grid" role="group" aria-label="Transfer modes">
+      <h2>{t("landing.fileTransfer")}</h2>
+      <div class="mode-grid" role="group" aria-label={t("landing.transferGroup")}>
         <button
           class="mode-btn"
           onClick={() => navigate("/send/qr")}
-          aria-label="Send file via QR code"
+          aria-label={t("landing.sendQRAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x25A3;
           </span>
-          <span class="mode-label">Send (QR)</span>
-          <span class="mode-desc">Air-gapped optical transfer</span>
+          <span class="mode-label">{t("landing.sendQRTitle")}</span>
+          <span class="mode-desc">{t("landing.sendQRDesc")}</span>
         </button>
 
         <button
           class="mode-btn"
           onClick={() => navigate("/receive/qr")}
-          aria-label="Receive file via QR code"
+          aria-label={t("landing.receiveQRAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x25A2;
           </span>
-          <span class="mode-label">Receive (QR)</span>
-          <span class="mode-desc">Scan animated QR codes</span>
+          <span class="mode-label">{t("landing.receiveQRTitle")}</span>
+          <span class="mode-desc">{t("landing.receiveQRDesc")}</span>
         </button>
 
         <button
           class="mode-btn"
           onClick={() => navigate("/send/webrtc")}
-          aria-label="Send file via WebRTC"
+          aria-label={t("landing.sendWebRTCAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x21C6;
           </span>
-          <span class="mode-label">Send (WebRTC)</span>
-          <span class="mode-desc">P2P network transfer</span>
+          <span class="mode-label">{t("landing.sendWebRTCTitle")}</span>
+          <span class="mode-desc">{t("landing.sendWebRTCDesc")}</span>
         </button>
 
         <button
           class="mode-btn"
           onClick={() => navigate("/receive/webrtc")}
-          aria-label="Receive file via WebRTC"
+          aria-label={t("landing.receiveWebRTCAria")}
         >
           <span class="mode-icon" aria-hidden="true">
             &#x21C4;
           </span>
-          <span class="mode-label">Receive (WebRTC)</span>
-          <span class="mode-desc">P2P network receive</span>
+          <span class="mode-label">{t("landing.receiveWebRTCTitle")}</span>
+          <span class="mode-desc">{t("landing.receiveWebRTCDesc")}</span>
         </button>
       </div>
     </section>

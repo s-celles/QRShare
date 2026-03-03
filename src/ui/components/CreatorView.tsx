@@ -9,6 +9,7 @@ import {
 } from "@/qr/renderer";
 import { ShareService } from "@/share/service";
 import { pendingFile } from "../shared-file";
+import { t } from "../i18n";
 
 const shareService = new ShareService();
 
@@ -128,64 +129,64 @@ export function CreatorView() {
   useEffect(() => cleanup, [cleanup]);
 
   return (
-    <section aria-label="QR Creator">
+    <section aria-label={t("creator.section")}>
       <div class="view-header">
         <button
           onClick={() => {
             cleanup();
             navigate("/");
           }}
-          aria-label="Back to home"
+          aria-label={t("common.backToHome")}
         >
-          &larr; Back
+          ← {t("common.back")}
         </button>
-        <h2>Create QR Code</h2>
+        <h2>{t("creator.heading")}</h2>
       </div>
 
       <div class="creator-content">
         <div class="creator-input">
-          <label htmlFor="qr-text">Content:</label>
+          <label htmlFor="qr-text">{t("creator.contentLabel")}</label>
           <textarea
             id="qr-text"
             class="creator-textarea"
             value={inputText.value}
             onInput={handleTextInput}
-            placeholder="Enter text or URL to encode..."
+            placeholder={t("creator.placeholder")}
             rows={4}
           />
         </div>
 
         <div class="creator-params">
           <div class="creator-param">
-            <label htmlFor="ecc-level">Error Correction:</label>
+            <label htmlFor="ecc-level">{t("creator.errorCorrection")}</label>
             <select
               id="ecc-level"
               value={eccLevel.value}
               onChange={handleEccChange}
             >
-              <option value="L">L (Low — 7%)</option>
-              <option value="M">M (Medium — 15%)</option>
-              <option value="Q">Q (Quartile — 25%)</option>
-              <option value="H">H (High — 30%)</option>
+              <option value="L">{t("creator.eccL")}</option>
+              <option value="M">{t("creator.eccM")}</option>
+              <option value="Q">{t("creator.eccQ")}</option>
+              <option value="H">{t("creator.eccH")}</option>
             </select>
           </div>
 
           <div class="creator-param">
-            <label htmlFor="version-mode">Version:</label>
+            <label htmlFor="version-mode">{t("creator.version")}</label>
             <select
               id="version-mode"
               value={autoVersion.value ? "auto" : "manual"}
               onChange={handleVersionModeChange}
             >
-              <option value="auto">Auto (smallest fit)</option>
-              <option value="manual">Manual</option>
+              <option value="auto">{t("creator.versionAuto")}</option>
+              <option value="manual">{t("creator.versionManual")}</option>
             </select>
           </div>
 
           {!autoVersion.value && (
             <div class="creator-param">
               <label htmlFor="manual-version">
-                QR Version (1–40):
+                {t("creator.versionRange")}
               </label>
               <input
                 id="manual-version"
@@ -199,11 +200,11 @@ export function CreatorView() {
           )}
 
           <div class="creator-capacity">
-            <span class="param-label">Payload:</span>
+            <span class="param-label">{t("creator.payload")}</span>
             <span
               class={`param-value ${isOverCapacity.value ? "over-capacity" : ""}`}
             >
-              {byteLength.value} / {maxCapacity.value} bytes
+              {byteLength.value} / {maxCapacity.value} {t("creator.bytes")}
               {autoVersion.value && byteLength.value > 0 && (
                 <> (v{effectiveMaxVersion.value})</>
               )}
@@ -214,14 +215,13 @@ export function CreatorView() {
 
         {isOverCapacity.value && (
           <div class="error-msg" role="alert">
-            Content too large for the selected QR version and error correction
-            level. Reduce text or change parameters.
+            {t("creator.overCapacity")}
           </div>
         )}
 
         {byteLength.value === 0 && (
           <div class="creator-placeholder">
-            <p>Enter text to generate a QR code</p>
+            <p>{t("creator.emptyState")}</p>
           </div>
         )}
 
@@ -229,7 +229,7 @@ export function CreatorView() {
           <div class="qr-display">
             <img
               src={qrDataUrl.value}
-              alt="Generated QR code"
+              alt={t("creator.qrAlt")}
               class="qr-image"
             />
           </div>
@@ -238,18 +238,18 @@ export function CreatorView() {
         {qrDataUrl.value && (
           <div class="share-actions">
             <button class="start-btn download-action" onClick={handleDownload}>
-              Download PNG
+              {t("creator.downloadPNG")}
             </button>
             {shareService.isShareSupported() && (
               <button class="start-btn share-action" onClick={handleShare}>
-                Share
+                {t("common.share")}
               </button>
             )}
             <button class="start-btn share-action" onClick={handleSendQR}>
-              Send via QR
+              {t("common.sendQR")}
             </button>
             <button class="start-btn share-action" onClick={handleSendWebRTC}>
-              Send via WebRTC
+              {t("common.sendWebRTC")}
             </button>
           </div>
         )}

@@ -3,6 +3,7 @@ import { useRef, useCallback, useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { ShareService } from "@/share/service";
 import { pendingFile } from "../shared-file";
+import { t } from "../i18n";
 
 const shareService = new ShareService();
 
@@ -124,7 +125,7 @@ export function ScannerView() {
         animFrameRef.current = requestAnimationFrame(tick);
       } catch {
         cameraError.value =
-          "Camera access denied. Please grant camera permissions in your browser settings.";
+          t("common.cameraAccessDenied");
       }
     },
     [updateCameraInfo],
@@ -206,18 +207,18 @@ export function ScannerView() {
   useEffect(() => cleanup, [cleanup]);
 
   return (
-    <section aria-label="QR Scanner">
+    <section aria-label={t("scanner.section")}>
       <div class="view-header">
         <button
           onClick={() => {
             cleanup();
             navigate("/");
           }}
-          aria-label="Back to home"
+          aria-label={t("common.backToHome")}
         >
-          &larr; Back
+          ← {t("common.back")}
         </button>
-        <h2>Scan QR Code</h2>
+        <h2>{t("scanner.heading")}</h2>
       </div>
 
       {cameraError.value && (
@@ -228,22 +229,22 @@ export function ScannerView() {
 
       {!isScanning.value && (
         <div class="scanner-setup">
-          <p>Point your camera at a QR code to scan its content.</p>
+          <p>{t("scanner.setupText")}</p>
           <button class="start-btn" onClick={() => startCamera()}>
-            Start Scanning
+            {t("scanner.startScanning")}
           </button>
         </div>
       )}
 
       {isScanning.value && (
         <div class="scanner-active">
-          <div class="viewfinder" aria-label="Camera viewfinder">
+          <div class="viewfinder" aria-label={t("common.cameraViewfinder")}>
             <video
               ref={videoRef}
               class="camera-video"
               playsInline
               muted
-              aria-label="Camera feed"
+              aria-label={t("common.cameraFeed")}
             />
             <div class="viewfinder-overlay">
               <div class="corner tl" />
@@ -257,7 +258,7 @@ export function ScannerView() {
           <div class="scanner-info">
             {devices.value.length > 1 && (
               <div class="scanner-param">
-                <label htmlFor="camera-select">Camera:</label>
+                <label htmlFor="camera-select">{t("scanner.camera")}</label>
                 <select
                   id="camera-select"
                   value={selectedDeviceId.value}
@@ -273,15 +274,15 @@ export function ScannerView() {
             )}
             {devices.value.length === 1 && (
               <div class="scanner-param">
-                <span class="param-label">Camera:</span>
+                <span class="param-label">{t("scanner.camera")}</span>
                 <span class="param-value">
-                  {devices.value[0].label || "Default"}
+                  {devices.value[0].label || t("scanner.cameraDefault")}
                 </span>
               </div>
             )}
             {cameraResolution.value && (
               <div class="scanner-param">
-                <span class="param-label">Resolution:</span>
+                <span class="param-label">{t("scanner.resolution")}</span>
                 <span class="param-value">
                   {cameraResolution.value.width} &times;{" "}
                   {cameraResolution.value.height}
@@ -290,7 +291,7 @@ export function ScannerView() {
             )}
             {scanType.value && (
               <div class="scanner-param">
-                <span class="param-label">Type:</span>
+                <span class="param-label">{t("scanner.type")}</span>
                 <span class="param-value">{scanType.value}</span>
               </div>
             )}
@@ -298,7 +299,7 @@ export function ScannerView() {
 
           {scannedText.value && (
             <div class="scanner-result" aria-live="polite">
-              <h3>Scanned Content</h3>
+              <h3>{t("scanner.scannedContent")}</h3>
               {isHttpUrl(scannedText.value) ? (
                 <div class="result-content">
                   <a
@@ -317,25 +318,25 @@ export function ScannerView() {
               )}
               <div class="share-actions">
                 <button class="copy-btn" onClick={handleCopy}>
-                  {copyFeedback.value ? "Copied!" : "Copy to Clipboard"}
+                  {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
                 </button>
                 {shareService.isShareSupported() && (
                   <button class="start-btn share-action" onClick={handleShare}>
-                    Share
+                    {t("common.share")}
                   </button>
                 )}
                 <button class="start-btn share-action" onClick={handleSendQR}>
-                  Send via QR
+                  {t("common.sendQR")}
                 </button>
                 <button class="start-btn share-action" onClick={handleSendWebRTC}>
-                  Send via WebRTC
+                  {t("common.sendWebRTC")}
                 </button>
               </div>
             </div>
           )}
 
           <button class="stop-btn" onClick={stopScanning}>
-            Stop
+            {t("common.stop")}
           </button>
         </div>
       )}

@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
 import { pendingFile } from "../shared-file";
+import { t } from "../i18n";
 
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
@@ -222,12 +223,12 @@ export function WebRTCSenderView() {
     : 0;
 
   return (
-    <section aria-label="WebRTC Sender">
+    <section aria-label={t("webrtcSender.section")}>
       <div class="view-header">
-        <button onClick={cleanup} aria-label="Back to home">
-          &larr; Back
+        <button onClick={cleanup} aria-label={t("common.backToHome")}>
+          {"\u2190 " + t("common.back")}
         </button>
-        <h2>Send via WebRTC</h2>
+        <h2>{t("webrtcSender.heading")}</h2>
       </div>
 
       {error.value && (
@@ -241,16 +242,16 @@ export function WebRTCSenderView() {
           {isScanning.value ? (
             <>
               <div class="viewfinder" style={{ width: "min(100%, calc(100dvh - 14rem))", aspectRatio: "1", margin: "0 auto 0.5rem" }}>
-                <video ref={videoRef} class="camera-video" playsInline muted aria-label="Camera feed" />
+                <video ref={videoRef} class="camera-video" playsInline muted aria-label={t("common.cameraFeed")} />
               </div>
               <canvas ref={canvasRef} class="sr-only" aria-hidden="true" />
-              <button onClick={stopScanning} class="stop-btn" aria-label="Stop scanning">Cancel</button>
+              <button onClick={stopScanning} class="stop-btn" aria-label={t("common.stop")}>{t("common.cancel")}</button>
             </>
           ) : (
             <>
-              <p>Scan the receiver's QR code or enter their Room ID:</p>
-              <button onClick={startScanning} class="start-btn" style={{ marginBottom: "1rem" }} aria-label="Scan QR code">
-                Scan QR Code
+              <p>{t("webrtcSender.scanOrEnter")}</p>
+              <button onClick={startScanning} class="start-btn" style={{ marginBottom: "1rem" }} aria-label={t("webrtcSender.scanQR")}>
+                {t("webrtcSender.scanQR")}
               </button>
               <div class="peer-id-input">
                 <input
@@ -259,11 +260,11 @@ export function WebRTCSenderView() {
                   onInput={(e) => {
                     roomIdInput.value = (e.target as HTMLInputElement).value;
                   }}
-                  placeholder="Room ID"
-                  aria-label="Receiver Room ID"
+                  placeholder={t("webrtcSender.roomIdPlaceholder")}
+                  aria-label={t("webrtcSender.roomIdAria")}
                 />
-                <button onClick={handleConnect} class="start-btn" aria-label="Connect to receiver">
-                  Connect
+                <button onClick={handleConnect} class="start-btn" aria-label={t("webrtcSender.connectAria")}>
+                  {t("common.connect")}
                 </button>
               </div>
             </>
@@ -273,34 +274,34 @@ export function WebRTCSenderView() {
 
       {isConnecting.value && !isConnected.value && (
         <div class="webrtc-connect">
-          <p>Connecting to room <code>{roomIdInput.value}</code>...</p>
-          <p class="settings-hint">Discovering peer via Nostr relays</p>
+          <p>{t("webrtcSender.connecting", { roomId: roomIdInput.value })}</p>
+          <p class="settings-hint">{t("webrtcSender.discoveringPeer")}</p>
         </div>
       )}
 
       {isConnected.value && code && !isSending.value && !isComplete.value && (
         <div class="webrtc-confirm">
-          <h3>Confirmation Code</h3>
-          <p class="confirmation-code" aria-label="Confirmation code">
+          <h3>{t("webrtcSender.confirmationCode")}</h3>
+          <p class="confirmation-code" aria-label={t("webrtcSender.confirmationCodeAria")}>
             {code}
           </p>
-          <p>Verify this code matches on the receiver's screen.</p>
+          <p>{t("webrtcSender.verifyCode")}</p>
           <div class="file-select">
             {preloadedFile.value && (
               <button
                 class="start-btn"
                 onClick={handleSendPreloaded}
-                aria-label={`Send ${preloadedFile.value.filename}`}
+                aria-label={t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
               >
-                Send {preloadedFile.value.filename}
+                {t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
               </button>
             )}
             <button
               class={preloadedFile.value ? "start-btn share-action" : "start-btn"}
               onClick={() => fileInputRef.current?.click()}
-              aria-label="Select files to send"
+              aria-label={t("webrtcSender.selectFilesAria")}
             >
-              {preloadedFile.value ? "Choose Different File(s)" : "Select File(s) to Send"}
+              {preloadedFile.value ? t("webrtcSender.chooseDifferent") : t("webrtcSender.selectFiles")}
             </button>
             <input
               ref={fileInputRef}
@@ -308,7 +309,7 @@ export function WebRTCSenderView() {
               multiple
               class="sr-only"
               onChange={handleInputChange}
-              aria-label="File input"
+              aria-label={t("common.fileInput")}
             />
           </div>
         </div>
@@ -318,7 +319,7 @@ export function WebRTCSenderView() {
         <div class="webrtc-transfer">
           {totalFiles.value > 1 && (
             <p>
-              <strong>File {currentFileIndex.value + 1} of {totalFiles.value}</strong>
+              <strong>{t("webrtcSender.fileOf", { current: currentFileIndex.value + 1, total: totalFiles.value })}</strong>
               {selectedFileNames.value[currentFileIndex.value] && (
                 <> — {selectedFileNames.value[currentFileIndex.value]}</>
               )}
@@ -330,23 +331,23 @@ export function WebRTCSenderView() {
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="File transfer progress"
+            aria-label={t("webrtcSender.transferProgress")}
           >
             <div class="progress-fill" style={{ width: `${pct}%` }} />
           </div>
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">Progress</span>
+              <span class="stat-label">{t("webrtcSender.progress")}</span>
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">Speed</span>
+              <span class="stat-label">{t("webrtcSender.speed")}</span>
               <span class="stat-value">
                 {(progress.value.speedBytesPerSec / 1024).toFixed(0)} KB/s
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">Elapsed</span>
+              <span class="stat-label">{t("webrtcSender.elapsed")}</span>
               <span class="stat-value">
                 {(progress.value.elapsedMs / 1000).toFixed(1)}s
               </span>
@@ -357,11 +358,11 @@ export function WebRTCSenderView() {
 
       {isComplete.value && (
         <div class="webrtc-complete">
-          <h3>Transfer Complete</h3>
+          <h3>{t("webrtcSender.transferComplete")}</h3>
           {totalFiles.value > 1 && (
-            <p>{totalFiles.value} files sent successfully</p>
+            <p>{t("webrtcSender.filesSent", { count: totalFiles.value })}</p>
           )}
-          <button onClick={cleanup} aria-label="Done, return to home">Done</button>
+          <button onClick={cleanup} aria-label={t("webrtcSender.doneAria")}>{t("common.done")}</button>
         </div>
       )}
     </section>

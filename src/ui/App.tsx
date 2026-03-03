@@ -1,5 +1,6 @@
 import { currentRoute } from "./router";
 import { toggleTheme, effectiveTheme } from "./theme";
+import { t, locale } from "./i18n";
 import { Landing } from "./components/Landing";
 import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
@@ -40,6 +41,8 @@ function RouteView() {
 }
 
 export function App() {
+  // Subscribe to locale for reactivity
+  void locale.value;
   return (
     <>
       <header role="banner">
@@ -47,7 +50,7 @@ export function App() {
           <a
             href="#/"
             class="logo-link"
-            aria-label="QRShare home"
+            aria-label={t("app.home")}
           >
             <h1>QRShare</h1>
           </a>
@@ -55,32 +58,32 @@ export function App() {
             <button
               class="icon-btn"
               onClick={toggleTheme}
-              aria-label={`Switch to ${effectiveTheme.value === "dark" ? "light" : "dark"} theme`}
-              title="Toggle theme"
+              aria-label={effectiveTheme.value === "dark" ? t("app.toggleThemeLight") : t("app.toggleThemeDark")}
+              title={t("app.toggleTheme")}
             >
               {effectiveTheme.value === "dark" ? "\u2600" : "\u263E"}
             </button>
             <a
               href="#/guide"
               class="icon-btn"
-              aria-label="User guide"
-              title="Guide"
+              aria-label={t("app.guide")}
+              title={t("app.guideTitle")}
             >
               ?
             </a>
             <a
               href="#/about"
               class="icon-btn"
-              aria-label="About QRShare"
-              title="About"
+              aria-label={t("app.about")}
+              title={t("app.aboutTitle")}
             >
               &#x2139;
             </a>
             <a
               href="#/settings"
               class="icon-btn"
-              aria-label="Settings"
-              title="Settings"
+              aria-label={t("app.settings")}
+              title={t("app.settings")}
             >
               &#x2699;
             </a>

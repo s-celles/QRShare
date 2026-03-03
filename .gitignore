@@ -17,6 +17,10 @@
 !src/
 !src/**
 
+# Documentation
+!docs/
+!docs/**
+
 # Config
 !package.json
 !bunfig.toml

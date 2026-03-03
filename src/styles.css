@@ -803,6 +803,90 @@ section > button:hover {
   margin-top: 1rem;
 }
 
+/* Language Toggle */
+.lang-toggle {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.lang-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.lang-btn:hover {
+  opacity: 1;
+  background: var(--bg-surface);
+}
+
+.lang-btn.active {
+  opacity: 1;
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Guide Content (rendered markdown) */
+.guide-content {
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.guide-content h1 {
+  font-size: 1.5rem;
+  margin: 1.5rem 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.guide-content h2 {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.guide-content h3 {
+  font-size: 1.05rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.guide-content p {
+  margin: 0.5rem 0;
+}
+
+.guide-content ul,
+.guide-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.guide-content li {
+  margin: 0.25rem 0;
+}
+
+.guide-content a {
+  color: var(--accent);
+}
+
+.guide-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.guide-content strong {
+  font-weight: 600;
+}
+
 .about-disclaimer {
   margin-top: 1rem;
   padding: 0.75rem 1rem;

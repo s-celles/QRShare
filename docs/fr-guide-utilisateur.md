@@ -1,0 +1,132 @@
+# QRShare — Guide utilisateur
+
+## Qu'est-ce que QRShare ?
+
+QRShare est une application web qui permet de :
+
+1. **Scanner un QR code** avec la caméra de votre appareil
+2. **Créer un QR code** à partir d'un texte ou d'une adresse web
+3. **Envoyer un fichier** à un autre appareil via des QR codes animés (sans connexion internet)
+4. **Envoyer un fichier** en pair-à-pair via WebRTC (avec connexion internet)
+
+L'application fonctionne directement dans votre navigateur, sans rien installer. Elle est accessible à l'adresse :
+**https://s-celles.github.io/QRShare/**
+
+---
+
+## Page d'accueil
+
+En ouvrant l'application, vous voyez deux sections :
+
+### QR Utilities (en haut)
+
+Deux boutons pour les outils QR du quotidien :
+
+- **Scan QR Code** — Pour lire un QR code avec votre caméra
+- **Create QR Code** — Pour fabriquer votre propre QR code
+
+### File Transfer (en bas)
+
+Quatre boutons pour le transfert de fichiers entre appareils :
+
+- **Send (QR)** — Envoyer un fichier via des QR codes animés
+- **Receive (QR)** — Recevoir un fichier en scannant les QR codes animés
+- **Send (WebRTC)** — Envoyer un fichier en pair-à-pair sur le réseau
+- **Receive (WebRTC)** — Recevoir un fichier en pair-à-pair sur le réseau
+
+---
+
+## Scanner un QR code
+
+1. Appuyez sur **Scan QR Code**
+2. Appuyez sur **Start Scanning** — votre navigateur vous demandera d'autoriser la caméra
+3. Pointez la caméra vers un QR code
+4. Le contenu s'affiche automatiquement :
+   - Si c'est une adresse web, elle apparaît sous forme de lien cliquable
+   - Sinon, le texte est affiché et vous pouvez le copier avec le bouton **Copy to Clipboard**
+5. Vous pouvez scanner plusieurs QR codes à la suite sans arrêter
+6. Appuyez sur **Stop** pour arrêter la caméra
+
+**Informations affichées** : nom de la caméra utilisée, résolution, type de code détecté. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
+
+---
+
+## Créer un QR code
+
+1. Appuyez sur **Create QR Code**
+2. Tapez votre texte ou collez une adresse web dans la zone de saisie
+3. Le QR code se génère instantanément et se met à jour à chaque modification
+4. Ajustez les paramètres si besoin :
+   - **Error Correction** — Niveau de correction d'erreur (L, M, Q ou H). Plus le niveau est élevé, plus le QR code résiste aux dégradations, mais moins il peut contenir de données
+   - **Version** — En mode Auto, l'application choisit la plus petite taille possible. En mode Manuel, vous choisissez une version de 1 (petit) à 40 (très grand)
+5. Le compteur **Payload** indique combien d'octets votre texte occupe par rapport à la capacité maximale
+6. Appuyez sur **Download PNG** pour enregistrer le QR code comme image
+
+Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
+
+---
+
+## Envoyer un fichier par QR code (sans internet)
+
+Cette méthode ne nécessite **aucune connexion internet**. Le fichier est transmis optiquement, d'écran à caméra.
+
+**Sur l'appareil qui envoie :**
+1. Appuyez sur **Send (QR)**
+2. Déposez un fichier ou cliquez pour en choisir un (50 Mo maximum)
+3. Choisissez un mode d'encodage :
+   - **High Speed** — Rapide, adapté aux bonnes conditions de scan
+   - **Balanced** — Compromis entre vitesse et fiabilité
+   - **High Reliability** — Lent mais très fiable
+4. Un QR code animé s'affiche à l'écran — ne fermez pas la page
+
+**Sur l'appareil qui reçoit :**
+1. Appuyez sur **Receive (QR)**
+2. Appuyez sur **Start Scanning**
+3. Pointez la caméra vers le QR code animé de l'appareil émetteur
+4. La barre de progression montre l'avancement du transfert
+5. Une fois terminé, le fichier se télécharge automatiquement
+
+---
+
+## Envoyer un fichier par WebRTC (avec internet)
+
+Cette méthode utilise une connexion réseau mais le fichier transite directement d'appareil à appareil, sans passer par un serveur.
+
+**Sur l'appareil qui reçoit :**
+1. Appuyez sur **Receive (WebRTC)**
+2. Un QR code s'affiche avec un identifiant de salle (Room ID)
+
+**Sur l'appareil qui envoie :**
+1. Appuyez sur **Send (WebRTC)**
+2. Scannez le QR code du récepteur ou saisissez le Room ID manuellement
+3. Vérifiez que le **code de confirmation à 4 chiffres** est identique sur les deux appareils
+4. Sélectionnez le(s) fichier(s) à envoyer
+5. Le transfert démarre automatiquement
+
+---
+
+## Barre de navigation
+
+En haut de chaque page :
+
+- **QRShare** (à gauche) — Retour à la page d'accueil
+- Bouton soleil/lune — Basculer entre thème clair et sombre
+- **i** — Page « À propos »
+- Roue dentée — Paramètres (choix du thème)
+- **← Back** — Retour à la page d'accueil (présent sur chaque sous-page)
+
+---
+
+## Questions fréquentes
+
+**L'application a-t-elle besoin d'internet ?**
+Non pour le mode QR code (transfert optique). Oui pour le mode WebRTC. Les outils Scanner et Créateur fonctionnent sans internet après le premier chargement.
+
+**Quels navigateurs sont compatibles ?**
+Tout navigateur moderne (Chrome, Firefox, Safari, Edge) sur ordinateur ou mobile.
+
+**Mes fichiers passent-ils par un serveur ?**
+Non. En mode QR, le transfert est purement optique. En mode WebRTC, le fichier va directement d'un appareil à l'autre.
+
+**Puis-je installer l'application ?**
+Oui. QRShare est une Progressive Web App (PWA) : votre navigateur peut vous proposer de l'installer sur votre écran d'accueil pour un accès hors-ligne.

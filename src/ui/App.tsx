@@ -7,6 +7,7 @@ import { WebRTCSenderView } from "./components/WebRTCSenderView";
 import { WebRTCReceiverView } from "./components/WebRTCReceiverView";
 import { ScannerView } from "./components/ScannerView";
 import { CreatorView } from "./components/CreatorView";
+import { GuideView } from "./components/GuideView";
 import { Settings } from "./components/Settings";
 import { About } from "./components/About";
 
@@ -27,6 +28,8 @@ function RouteView() {
       return <WebRTCSenderView />;
     case "/receive/webrtc":
       return <WebRTCReceiverView />;
+    case "/guide":
+      return <GuideView />;
     case "/settings":
       return <Settings />;
     case "/about":
@@ -57,6 +60,14 @@ export function App() {
             >
               {effectiveTheme.value === "dark" ? "\u2600" : "\u263E"}
             </button>
+            <a
+              href="#/guide"
+              class="icon-btn"
+              aria-label="User guide"
+              title="Guide"
+            >
+              ?
+            </a>
             <a
               href="#/about"
               class="icon-btn"

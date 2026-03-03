@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Internationalization (i18n) with EN/FR translations and auto-detection from browser language
+- Language selector in Settings (Auto/English/Français) with localStorage persistence
+- Share/send actions for created QR codes (Web Share API, QR transfer, WebRTC)
+- Share/send actions for scanned QR content (Web Share API, QR transfer, WebRTC)
+- In-app user guide with Mermaid diagrams for workflow visualization
 - Multi-file transfer support for both QR and WebRTC modes
 - QR mode: multiple files are bundled into a zip archive and transferred as a single stream
 - WebRTC mode: files are sent sequentially with per-file progress and "File X of Y" counter
@@ -16,8 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WebRTC receiver shows individual file list with download buttons for batch transfers
 - Zip bundle utility (`src/zip/bundle.ts`) using fflate for bundling/unbundling
 
+### Fixed
+
+- Reduce block size for small payloads to satisfy Wirehair k>=2 requirement (fixes "Wirehair encode failed with code 2" for short content)
+
 ### Changed
 
+- GuideView uses shared i18n locale signal instead of its own language detection
 - Migrate WebRTC signaling from PeerJS to Trystero (Nostr relays) for decentralized, NAT-friendly peer discovery
 - Replace Peer ID with short 6-character Room ID for simpler QR codes
 - Room ID used as password for SDP encryption

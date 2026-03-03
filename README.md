@@ -6,13 +6,15 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 
 ## Features
 
-- **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Includes camera device selection, resolution display, and scan metadata.
-- **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, and PNG download.
+- **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. Includes camera device selection, resolution display, and scan metadata.
+- **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
 - **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
 - **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
+- **Internationalization** -- Full EN/FR interface with auto-detection from browser language and manual selection in Settings.
+- **In-App User Guide** -- Bilingual (EN/FR) user guide rendered in-app with Mermaid diagrams for workflow visualization.
 - **Progressive Web App** -- Install on any device, works offline after first load.
-- **Web Share Integration** -- Share received files directly to other apps using the Web Share API.
+- **Web Share Integration** -- Share received files, created QR codes, and scanned content directly to other apps using the Web Share API.
 - **Dark/Light Theme** -- Automatic theme detection with manual override.
 - **SHA-256 Verification** -- End-to-end integrity verification of transferred files.
 - **Single-File Distribution** -- Package the entire app into a single self-contained HTML file.
@@ -72,6 +74,8 @@ bun run package
 - **QR Generation** -- lean-qr in byte mode with three quality presets
 - **QR Scanning** -- @undecaf/zbar-wasm for real-time decoding
 - **WebRTC** -- Trystero (Nostr relays) for decentralized signaling, binary transfer over DataChannel
+- **i18n** -- Custom lightweight translation system with signal-based locale, flat key-value dictionaries, parameterized strings, auto-detection + localStorage persistence
+- **Mermaid** -- Dynamic CDN loading for diagram rendering in the user guide (theme-aware)
 
 ## Encoding Presets
 

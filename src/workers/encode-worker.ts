@@ -51,7 +51,14 @@ async function startEncoding(
 
     const maxPayload = getMaxPayloadBytes(preset);
     // Reserve header bytes from max payload
-    const blockSize = Math.max(1, maxPayload - HEADER_SIZE);
+    let blockSize = Math.max(1, maxPayload - HEADER_SIZE);
+
+    // Wirehair requires at least 2 source blocks (k >= 2).
+    // For small payloads, reduce blockSize to ensure this.
+    const dataLen = compressed.data.length;
+    if (dataLen > 0 && dataLen < blockSize * 2) {
+      blockSize = Math.max(1, Math.floor(dataLen / 2));
+    }
 
     encoder.init(compressed.data, blockSize);
     const k = encoder.getSourceBlockCount();

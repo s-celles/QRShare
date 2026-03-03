@@ -907,6 +907,35 @@ section > button:hover {
   font-weight: 600;
 }
 
+.guide-content .mermaid {
+  margin: 1.5rem auto;
+  padding: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  overflow-x: auto;
+}
+
+.guide-content .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.guide-content pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+
+.guide-content code {
+  font-family: monospace;
+}
+
 .about-disclaimer {
   margin-top: 1rem;
   padding: 0.75rem 1rem;

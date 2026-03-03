@@ -1,13 +1,17 @@
 /**
  * Minimal markdown-to-HTML converter.
  * Handles only the subset used in the user guides:
- * headings, bold, links, lists (ordered/unordered), horizontal rules, paragraphs.
+ * headings, bold, links, lists (ordered/unordered), horizontal rules,
+ * fenced code blocks (with mermaid support), paragraphs.
  */
 export function markdownToHtml(md: string): string {
   const lines = md.split("\n");
   const out: string[] = [];
   let inUl = false;
   let inOl = false;
+  let inCodeBlock = false;
+  let codeBlockLang = "";
+  let codeBlockLines: string[] = [];
 
   function closeLists(): void {
     if (inUl) {
@@ -31,8 +35,44 @@ export function markdownToHtml(md: string): string {
     return text;
   }
 
+  function escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    // Fenced code block handling
+    if (inCodeBlock) {
+      if (/^```\s*$/.test(line)) {
+        // Close code block
+        const content = codeBlockLines.join("\n");
+        if (codeBlockLang === "mermaid") {
+          out.push(`<div class="mermaid">${content}</div>`);
+        } else {
+          out.push(`<pre><code>${escapeHtml(content)}</code></pre>`);
+        }
+        inCodeBlock = false;
+        codeBlockLang = "";
+        codeBlockLines = [];
+      } else {
+        codeBlockLines.push(line);
+      }
+      continue;
+    }
+
+    // Opening fenced code block
+    const fenceMatch = line.match(/^```(\w*)\s*$/);
+    if (fenceMatch) {
+      closeLists();
+      inCodeBlock = true;
+      codeBlockLang = fenceMatch[1] || "";
+      codeBlockLines = [];
+      continue;
+    }
 
     // Horizontal rule
     if (/^---+\s*$/.test(line)) {

@@ -12,6 +12,24 @@ QRShare is a web application that lets you:
 The application runs directly in your browser with nothing to install. It is available at:
 **https://s-celles.github.io/QRShare/**
 
+```mermaid
+flowchart TD
+    Home[Home Page]
+    Home --> Scan[Scan QR Code]
+    Home --> Create[Create QR Code]
+    Home --> SendQR[Send via QR]
+    Home --> RecvQR[Receive via QR]
+    Home --> SendWR[Send via WebRTC]
+    Home --> RecvWR[Receive via WebRTC]
+
+    Scan --> |URL detected| Link[Open Link]
+    Scan --> |Text detected| Copy[Copy / Share / Send]
+    Create --> Download[Download PNG]
+    Create --> Share[Share / Send via QR / WebRTC]
+    SendQR --> |Animated QR codes| RecvQR
+    SendWR --> |Peer-to-peer| RecvWR
+```
+
 ---
 
 ## Home Page
@@ -70,6 +88,21 @@ If the text is too long for the selected version and error correction level, an 
 
 This method requires **no internet connection**. The file is transmitted optically, from screen to camera.
 
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant R as Receiver
+
+    S->>S: Select file
+    S->>S: Compress & encode (fountain codes)
+    loop Animated QR codes
+        S->>R: Display QR frame on screen
+        R->>R: Scan frame with camera
+    end
+    R->>R: Decode & decompress
+    R->>R: Download file
+```
+
 **On the sending device:**
 1. Tap **Send (QR)**
 2. Drop a file or click to choose one (50 MB maximum)
@@ -91,6 +124,23 @@ This method requires **no internet connection**. The file is transmitted optical
 ## Sending a File via WebRTC (with internet)
 
 This method uses a network connection but the file goes directly from device to device, without passing through a server.
+
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant Sig as Signaling (Nostr)
+    participant R as Receiver
+
+    R->>Sig: Create room (display QR + Room ID)
+    S->>Sig: Join room (scan QR or enter ID)
+    Sig->>S: Peer discovery
+    Sig->>R: Peer discovery
+    S-->>R: WebRTC connection established
+    S->>R: Verify confirmation code
+    S->>S: Select file(s)
+    S->>R: Transfer file (peer-to-peer)
+    R->>R: Download file
+```
 
 **On the receiving device:**
 1. Tap **Receive (WebRTC)**

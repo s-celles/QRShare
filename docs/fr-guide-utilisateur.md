@@ -12,6 +12,24 @@ QRShare est une application web qui permet de :
 L'application fonctionne directement dans votre navigateur, sans rien installer. Elle est accessible à l'adresse :
 **https://s-celles.github.io/QRShare/**
 
+```mermaid
+flowchart TD
+    Accueil[Page d'accueil]
+    Accueil --> Scanner[Scanner un QR code]
+    Accueil --> Creer[Créer un QR code]
+    Accueil --> EnvQR[Envoyer via QR]
+    Accueil --> RecQR[Recevoir via QR]
+    Accueil --> EnvWR[Envoyer via WebRTC]
+    Accueil --> RecWR[Recevoir via WebRTC]
+
+    Scanner --> |URL détectée| Lien[Ouvrir le lien]
+    Scanner --> |Texte détecté| Copier[Copier / Partager / Envoyer]
+    Creer --> Telecharger[Télécharger PNG]
+    Creer --> Partager[Partager / Envoyer via QR / WebRTC]
+    EnvQR --> |QR codes animés| RecQR
+    EnvWR --> |Pair-à-pair| RecWR
+```
+
 ---
 
 ## Page d'accueil
@@ -70,6 +88,21 @@ Si le texte est trop long pour la version et le niveau de correction choisis, un
 
 Cette méthode ne nécessite **aucune connexion internet**. Le fichier est transmis optiquement, d'écran à caméra.
 
+```mermaid
+sequenceDiagram
+    participant E as Émetteur
+    participant R as Récepteur
+
+    E->>E: Sélectionner le fichier
+    E->>E: Compresser & encoder (codes fontaine)
+    loop QR codes animés
+        E->>R: Afficher le QR à l'écran
+        R->>R: Scanner avec la caméra
+    end
+    R->>R: Décoder & décompresser
+    R->>R: Télécharger le fichier
+```
+
 **Sur l'appareil qui envoie :**
 1. Appuyez sur **Send (QR)**
 2. Déposez un fichier ou cliquez pour en choisir un (50 Mo maximum)
@@ -91,6 +124,23 @@ Cette méthode ne nécessite **aucune connexion internet**. Le fichier est trans
 ## Envoyer un fichier par WebRTC (avec internet)
 
 Cette méthode utilise une connexion réseau mais le fichier transite directement d'appareil à appareil, sans passer par un serveur.
+
+```mermaid
+sequenceDiagram
+    participant E as Émetteur
+    participant Sig as Signalisation (Nostr)
+    participant R as Récepteur
+
+    R->>Sig: Créer la salle (afficher QR + Room ID)
+    E->>Sig: Rejoindre la salle (scanner QR ou saisir ID)
+    Sig->>E: Découverte du pair
+    Sig->>R: Découverte du pair
+    E-->>R: Connexion WebRTC établie
+    E->>R: Vérifier le code de confirmation
+    E->>E: Sélectionner le(s) fichier(s)
+    E->>R: Transfert du fichier (pair-à-pair)
+    R->>R: Télécharger le fichier
+```
 
 **Sur l'appareil qui reçoit :**
 1. Appuyez sur **Receive (WebRTC)**

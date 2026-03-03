@@ -3,6 +3,7 @@ import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
+import { pendingFile } from "../shared-file";
 
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
@@ -15,6 +16,9 @@ const isScanning = signal(false);
 const totalFiles = signal(0);
 const currentFileIndex = signal(0);
 const selectedFileNames = signal<string[]>([]);
+const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
+  null,
+);
 
 export function WebRTCSenderView() {
   const serviceRef = useRef<WebRTCService | null>(null);
@@ -26,8 +30,15 @@ export function WebRTCSenderView() {
 
   useEffect(() => {
     serviceRef.current = new WebRTCService();
+    // Capture pending file from CreatorView
+    const pending = pendingFile.value;
+    if (pending) {
+      preloadedFile.value = pending;
+      pendingFile.value = null;
+    }
     return () => {
       serviceRef.current?.disconnect();
+      preloadedFile.value = null;
       stopScanning();
     };
   }, []);
@@ -154,6 +165,30 @@ export function WebRTCSenderView() {
     isSending.value = false;
   }, []);
 
+  const handleSendPreloaded = useCallback(async () => {
+    const svc = serviceRef.current;
+    const pre = preloadedFile.value;
+    if (!svc || !pre) return;
+
+    isSending.value = true;
+    selectedFileNames.value = [pre.filename];
+    totalFiles.value = 1;
+    currentFileIndex.value = 0;
+
+    try {
+      const file = new File([pre.buffer], pre.filename, {
+        type: "image/png",
+      });
+      await svc.sendFile(file, (p) => {
+        progress.value = p;
+      });
+      isComplete.value = true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : String(err);
+    }
+    isSending.value = false;
+  }, []);
+
   const handleInputChange = useCallback(
     (e: Event) => {
       const target = e.target as HTMLInputElement;
@@ -174,6 +209,7 @@ export function WebRTCSenderView() {
     totalFiles.value = 0;
     currentFileIndex.value = 0;
     selectedFileNames.value = [];
+    preloadedFile.value = null;
     navigate("/");
   }, []);
 
@@ -250,12 +286,21 @@ export function WebRTCSenderView() {
           </p>
           <p>Verify this code matches on the receiver's screen.</p>
           <div class="file-select">
+            {preloadedFile.value && (
+              <button
+                class="start-btn"
+                onClick={handleSendPreloaded}
+                aria-label={`Send ${preloadedFile.value.filename}`}
+              >
+                Send {preloadedFile.value.filename}
+              </button>
+            )}
             <button
-              class="start-btn"
+              class={preloadedFile.value ? "start-btn share-action" : "start-btn"}
               onClick={() => fileInputRef.current?.click()}
               aria-label="Select files to send"
             >
-              Select File(s) to Send
+              {preloadedFile.value ? "Choose Different File(s)" : "Select File(s) to Send"}
             </button>
             <input
               ref={fileInputRef}

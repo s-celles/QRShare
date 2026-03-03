@@ -800,7 +800,27 @@ section > button:hover {
 }
 
 .download-action {
+  margin-top: 0;
+}
+
+/* Share Actions */
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 1rem;
+  justify-content: center;
+}
+
+.share-action {
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.share-action:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* Language Toggle */

@@ -7,6 +7,10 @@ import {
   getByteCapacityTable,
   type CorrectionLabel,
 } from "@/qr/renderer";
+import { ShareService } from "@/share/service";
+import { pendingFile } from "../shared-file";
+
+const shareService = new ShareService();
 
 const inputText = signal("");
 const eccLevel = signal<CorrectionLabel>("M");
@@ -83,6 +87,36 @@ export function CreatorView() {
     link.click();
     document.body.removeChild(link);
   }, []);
+
+  const dataUrlToBlob = useCallback(async (): Promise<Blob | null> => {
+    const dataUrl = qrDataUrl.value;
+    if (!dataUrl) return null;
+    const res = await fetch(dataUrl);
+    return res.blob();
+  }, []);
+
+  const handleShare = useCallback(async () => {
+    const blob = await dataUrlToBlob();
+    if (!blob) return;
+    const file = new File([blob], "qrcode.png", { type: "image/png" });
+    await shareService.shareFile(file);
+  }, [dataUrlToBlob]);
+
+  const handleSendQR = useCallback(async () => {
+    const blob = await dataUrlToBlob();
+    if (!blob) return;
+    const buffer = await blob.arrayBuffer();
+    pendingFile.value = { buffer, filename: "qrcode.png" };
+    navigate("/send/qr");
+  }, [dataUrlToBlob]);
+
+  const handleSendWebRTC = useCallback(async () => {
+    const blob = await dataUrlToBlob();
+    if (!blob) return;
+    const buffer = await blob.arrayBuffer();
+    pendingFile.value = { buffer, filename: "qrcode.png" };
+    navigate("/send/webrtc");
+  }, [dataUrlToBlob]);
 
   const cleanup = useCallback(() => {
     inputText.value = "";
@@ -202,9 +236,22 @@ export function CreatorView() {
         )}
 
         {qrDataUrl.value && (
-          <button class="start-btn download-action" onClick={handleDownload}>
-            Download PNG
-          </button>
+          <div class="share-actions">
+            <button class="start-btn download-action" onClick={handleDownload}>
+              Download PNG
+            </button>
+            {shareService.isShareSupported() && (
+              <button class="start-btn share-action" onClick={handleShare}>
+                Share
+              </button>
+            )}
+            <button class="start-btn share-action" onClick={handleSendQR}>
+              Send via QR
+            </button>
+            <button class="start-btn share-action" onClick={handleSendWebRTC}>
+              Send via WebRTC
+            </button>
+          </div>
         )}
       </div>
     </section>

@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
+import { pendingFile } from "../shared-file";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
@@ -88,6 +89,19 @@ export function SenderView() {
     },
     [],
   );
+
+  // Auto-start encoding if a pending file was passed from CreatorView
+  const pendingHandled = useRef(false);
+  useEffect(() => {
+    if (pendingHandled.current) return;
+    const pending = pendingFile.value;
+    if (pending) {
+      pendingHandled.current = true;
+      pendingFile.value = null;
+      selectedFiles.value = [pending.filename];
+      startEncoding(pending.buffer, pending.filename);
+    }
+  });
 
   const handleFiles = useCallback(
     async (files: FileList) => {

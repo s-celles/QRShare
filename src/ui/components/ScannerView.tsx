@@ -1,6 +1,10 @@
 import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect } from "preact/hooks";
 import { navigate } from "../router";
+import { ShareService } from "@/share/service";
+import { pendingFile } from "../shared-file";
+
+const shareService = new ShareService();
 
 const isScanning = signal(false);
 const scannedText = signal<string | null>(null);
@@ -156,6 +160,38 @@ export function ScannerView() {
     }
   }, []);
 
+  const handleShare = useCallback(async () => {
+    if (!scannedText.value) return;
+    try {
+      await navigator.share({ title: "Scanned QR", text: scannedText.value });
+    } catch {
+      // Share cancelled or unsupported
+    }
+  }, []);
+
+  const textToBuffer = useCallback(
+    (text: string): ArrayBuffer => new TextEncoder().encode(text).buffer as ArrayBuffer,
+    [],
+  );
+
+  const handleSendQR = useCallback(() => {
+    if (!scannedText.value) return;
+    pendingFile.value = {
+      buffer: textToBuffer(scannedText.value),
+      filename: "scanned-qr.txt",
+    };
+    navigate("/send/qr");
+  }, [textToBuffer]);
+
+  const handleSendWebRTC = useCallback(() => {
+    if (!scannedText.value) return;
+    pendingFile.value = {
+      buffer: textToBuffer(scannedText.value),
+      filename: "scanned-qr.txt",
+    };
+    navigate("/send/webrtc");
+  }, [textToBuffer]);
+
   const cleanup = useCallback(() => {
     stopScanning();
     scannedText.value = null;
@@ -279,9 +315,22 @@ export function ScannerView() {
                   <pre class="result-text">{scannedText.value}</pre>
                 </div>
               )}
-              <button class="copy-btn" onClick={handleCopy}>
-                {copyFeedback.value ? "Copied!" : "Copy to Clipboard"}
-              </button>
+              <div class="share-actions">
+                <button class="copy-btn" onClick={handleCopy}>
+                  {copyFeedback.value ? "Copied!" : "Copy to Clipboard"}
+                </button>
+                {shareService.isShareSupported() && (
+                  <button class="start-btn share-action" onClick={handleShare}>
+                    Share
+                  </button>
+                )}
+                <button class="start-btn share-action" onClick={handleSendQR}>
+                  Send via QR
+                </button>
+                <button class="start-btn share-action" onClick={handleSendWebRTC}>
+                  Send via WebRTC
+                </button>
+              </div>
             </div>
           )}
 

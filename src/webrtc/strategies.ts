@@ -4,12 +4,17 @@ import { joinRoom as joinTorrent } from "trystero/torrent";
 
 export type StrategyName = "nostr" | "torrent" | "mqtt";
 
+export interface JoinRoomConfig {
+  appId: string;
+  password: string;
+  relayRedundancy: number;
+  relayUrls?: string[];
+}
+
 export interface StrategyAdapter {
   name: StrategyName;
-  joinRoom: (
-    config: { appId: string; password: string; relayRedundancy: number },
-    roomId: string,
-  ) => Room;
+  joinRoom: (config: JoinRoomConfig, roomId: string) => Room;
+  defaultRelayUrls?: string[];
 }
 
 const nostrAdapter: StrategyAdapter = {
@@ -20,6 +25,11 @@ const nostrAdapter: StrategyAdapter = {
 const torrentAdapter: StrategyAdapter = {
   name: "torrent",
   joinRoom: joinTorrent,
+  defaultRelayUrls: [
+    "wss://tracker.webtorrent.dev",
+    "wss://tracker.openwebtorrent.com",
+    "wss://tracker.files.fm:7073/announce",
+  ],
 };
 
 const STATIC_STRATEGIES: Record<string, StrategyAdapter> = {

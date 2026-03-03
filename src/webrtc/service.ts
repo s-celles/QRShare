@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { selfId } from "trystero/nostr";
 import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
-import { getAdapter, ALL_STRATEGIES, type StrategyName } from "./strategies";
+import { getAdapter, ALL_STRATEGIES, type StrategyName, type JoinRoomConfig } from "./strategies";
 import {
   type RoomConfig,
   type BatchMetadata,
@@ -58,10 +58,13 @@ export class WebRTCService {
     const rooms: { strategy: StrategyName; room: Room }[] = [];
     for (const adapter of adapters) {
       try {
-        const room = adapter.joinRoom(
-          { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
-          roomId,
-        );
+        const joinConfig: JoinRoomConfig = {
+          appId: config.appId,
+          password: roomId,
+          relayRedundancy: config.relayRedundancy,
+          relayUrls: adapter.defaultRelayUrls,
+        };
+        const room = adapter.joinRoom(joinConfig, roomId);
         rooms.push({ strategy: adapter.name, room });
       } catch (err) {
         console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);

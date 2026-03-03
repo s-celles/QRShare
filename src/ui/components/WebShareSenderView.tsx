@@ -7,7 +7,7 @@ import { t } from "../i18n";
 
 const shareService = new ShareService();
 
-const selectedFileNames = signal<string[]>([]);
+const selectedFiles = signal<File[]>([]);
 const error = signal<string | null>(null);
 const isShared = signal(false);
 const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
@@ -28,11 +28,39 @@ export function WebShareSenderView() {
     };
   }, []);
 
-  const handleShare = useCallback(async (files: File[]) => {
+  const storeFiles = useCallback((files: File[]) => {
     if (files.length === 0) return;
-
     error.value = null;
-    selectedFileNames.value = files.map((f) => f.name);
+    selectedFiles.value = files;
+  }, []);
+
+  const handleInputChange = useCallback(
+    (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        storeFiles(Array.from(target.files));
+      }
+    },
+    [storeFiles],
+  );
+
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        storeFiles(Array.from(e.dataTransfer.files));
+      }
+    },
+    [storeFiles],
+  );
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  // Called directly from a button click (user gesture)
+  const doShare = useCallback(async (files: File[]) => {
+    if (files.length === 0) return;
 
     if (!shareService.isShareSupported()) {
       error.value = t("shareSender.unsupported");
@@ -40,7 +68,6 @@ export function WebShareSenderView() {
     }
 
     try {
-      // Try sharing multiple files at once
       const canShareMultiple =
         navigator.canShare?.({ files }) ?? false;
       if (canShareMultiple) {
@@ -60,48 +87,34 @@ export function WebShareSenderView() {
       isShared.value = true;
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
-        // User cancelled — not an error
         return;
       }
       error.value = err instanceof Error ? err.message : String(err);
     }
   }, []);
 
-  const handleInputChange = useCallback(
-    (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        handleShare(Array.from(target.files));
-      }
-    },
-    [handleShare],
-  );
+  const handleShareSelected = useCallback(() => {
+    doShare(selectedFiles.value);
+  }, [doShare]);
 
-  const handleDrop = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault();
-      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        handleShare(Array.from(e.dataTransfer.files));
-      }
-    },
-    [handleShare],
-  );
-
-  const handleDragOver = useCallback((e: DragEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleSharePreloaded = useCallback(async () => {
+  const handleSharePreloaded = useCallback(() => {
     const pre = preloadedFile.value;
     if (!pre) return;
     const file = new File([pre.buffer], pre.filename, {
       type: "application/octet-stream",
     });
-    await handleShare([file]);
-  }, [handleShare]);
+    doShare([file]);
+  }, [doShare]);
+
+  const handleClearSelection = useCallback(() => {
+    selectedFiles.value = [];
+    error.value = null;
+    // Reset file input so re-selecting the same file triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
 
   const cleanup = useCallback(() => {
-    selectedFileNames.value = [];
+    selectedFiles.value = [];
     error.value = null;
     isShared.value = false;
     preloadedFile.value = null;
@@ -109,6 +122,8 @@ export function WebShareSenderView() {
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
+
+  const hasFiles = selectedFiles.value.length > 0;
 
   return (
     <section aria-label={t("shareSender.section")}>
@@ -125,7 +140,7 @@ export function WebShareSenderView() {
         </div>
       )}
 
-      {!isShared.value && (
+      {!isShared.value && !hasFiles && (
         <div class="sender-setup">
           <div
             class="drop-zone"
@@ -163,14 +178,41 @@ export function WebShareSenderView() {
         </div>
       )}
 
+      {!isShared.value && hasFiles && (
+        <div class="webrtc-confirm">
+          <h3>{t("shareSender.readyToShare")}</h3>
+          <ul class="file-list">
+            {selectedFiles.value.map((f) => (
+              <li key={f.name}>{f.name} ({(f.size / 1024).toFixed(1)} KB)</li>
+            ))}
+          </ul>
+          <div class="share-actions">
+            <button
+              class="start-btn"
+              onClick={handleShareSelected}
+              aria-label={t("shareSender.shareNow")}
+            >
+              {t("shareSender.shareNow")}
+            </button>
+            <button
+              class="start-btn share-action"
+              onClick={handleClearSelection}
+              aria-label={t("shareSender.changeFiles")}
+            >
+              {t("shareSender.changeFiles")}
+            </button>
+          </div>
+        </div>
+      )}
+
       {isShared.value && (
         <div class="webrtc-complete">
           <h3>{t("shareSender.success")}</h3>
-          {selectedFileNames.value.length > 0 && (
+          {selectedFiles.value.length > 0 && (
             <p>
-              {selectedFileNames.value.length === 1
-                ? selectedFileNames.value[0]
-                : t("shareSender.filesShared", { count: selectedFileNames.value.length })}
+              {selectedFiles.value.length === 1
+                ? selectedFiles.value[0].name
+                : t("shareSender.filesShared", { count: selectedFiles.value.length })}
             </p>
           )}
           <button onClick={cleanup} aria-label={t("shareSender.doneAria")}>

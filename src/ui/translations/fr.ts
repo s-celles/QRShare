@@ -204,9 +204,9 @@ export const fr: Record<string, string> = {
   "settings.language": "Langue",
   "settings.languageLabel": "Pr\u00e9f\u00e9rence de langue",
   "settings.languageAuto": "Auto (syst\u00e8me)",
-  "settings.languageEn": "English",
-  "settings.languageFr": "Fran\u00e7ais",
-  "settings.languageAr": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+  "settings.languageEn": "(en) English",
+  "settings.languageFr": "(fr) Fran\u00e7ais",
+  "settings.languageAr": "(ar) \u0627\u0644\u0639\u0631\u0628\u064a\u0629",
   "settings.languageCurrent": "Actuelle : {lang}",
 
   // About

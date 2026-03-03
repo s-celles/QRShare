@@ -204,9 +204,9 @@ export const ar: Record<string, string> = {
   "settings.language": "اللغة",
   "settings.languageLabel": "تفضيل اللغة",
   "settings.languageAuto": "تلقائي (النظام)",
-  "settings.languageEn": "English",
-  "settings.languageFr": "Français",
-  "settings.languageAr": "العربية",
+  "settings.languageEn": "(en) English",
+  "settings.languageFr": "(fr) Français",
+  "settings.languageAr": "(ar) العربية",
   "settings.languageCurrent": "الحالية: {lang}",
 
   // About

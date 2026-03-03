@@ -8,6 +8,8 @@ import { ShareService } from "@/share/service";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { t } from "../i18n";
 
+const copyRoomIdFeedback = signal(false);
+
 interface ReceivedFile {
   meta: TransferMetadata;
   url: string;
@@ -53,6 +55,7 @@ export function WebRTCReceiverView() {
     isComplete.value = false;
     batchTotal.value = 0;
     receivedFiles.value = [];
+    copyRoomIdFeedback.value = false;
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
@@ -172,6 +175,32 @@ export function WebRTCReceiverView() {
             {t("webrtcReceiver.roomIdLabel")} <code>{roomId.value}</code>
           </p>
           <p>{t("webrtcReceiver.showQR")}</p>
+          <div class="share-actions">
+            <button
+              class="copy-btn"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(roomId.value);
+                  copyRoomIdFeedback.value = true;
+                  setTimeout(() => { copyRoomIdFeedback.value = false; }, 2000);
+                } catch { /* clipboard not available */ }
+              }}
+              aria-label={t("webrtcReceiver.copyRoomId")}
+            >
+              {copyRoomIdFeedback.value ? t("webrtcReceiver.copied") : t("webrtcReceiver.copyRoomId")}
+            </button>
+            {shareService.isShareSupported() && (
+              <button
+                class="start-btn share-action"
+                onClick={() => {
+                  navigator.share({ title: "QRShare", text: roomId.value }).catch(() => {});
+                }}
+                aria-label={t("webrtcReceiver.shareRoomId")}
+              >
+                {t("webrtcReceiver.shareRoomId")}
+              </button>
+            )}
+          </div>
         </div>
       )}
 

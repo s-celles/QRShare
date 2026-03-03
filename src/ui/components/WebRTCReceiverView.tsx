@@ -212,6 +212,9 @@ export function WebRTCReceiverView() {
 
       {state === "confirming" && (
         <div class="webrtc-confirm">
+          {serviceRef.current?.activeStrategy.value && (
+            <p class="settings-hint">{t("webrtcReceiver.connectedVia", { strategy: serviceRef.current.activeStrategy.value })}</p>
+          )}
           <h3>{t("webrtcReceiver.confirmationCode")}</h3>
           <p class="confirmation-code" aria-label={t("webrtcReceiver.confirmationCodeAria")}>
             {code}

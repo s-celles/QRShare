@@ -4,12 +4,14 @@ import {
   ROOM_ID_LENGTH,
   type BatchMetadata,
   type MultiFileProgress,
+  type StrategyAttemptStatus,
 } from "@/webrtc/types";
 
 describe("WebRTC types", () => {
   it("has sensible default room config", () => {
     expect(DEFAULT_ROOM_CONFIG.appId).toBe("qrshare-webrtc-v1");
     expect(DEFAULT_ROOM_CONFIG.relayRedundancy).toBe(3);
+    expect(DEFAULT_ROOM_CONFIG.strategies).toEqual(["nostr", "torrent", "mqtt"]);
   });
 
   it("room ID length is 6", () => {
@@ -23,6 +25,15 @@ describe("WebRTC types", () => {
     };
     expect(batch.totalFiles).toBe(3);
     expect(batch.filenames).toHaveLength(3);
+  });
+
+  it("StrategyAttemptStatus has correct shape", () => {
+    const attempt: StrategyAttemptStatus = {
+      strategy: "nostr",
+      status: "connecting",
+    };
+    expect(attempt.strategy).toBe("nostr");
+    expect(attempt.status).toBe("connecting");
   });
 
   it("MultiFileProgress has correct shape", () => {

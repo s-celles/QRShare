@@ -142,16 +142,18 @@ sequenceDiagram
 
 This method uses a network connection but the file goes directly from device to device, without passing through a server.
 
+Peer discovery uses multiple signaling strategies in parallel (Nostr relays, BitTorrent trackers, MQTT brokers) for improved reliability. The first strategy to discover the peer wins, and the others are cancelled.
+
 ```mermaid
 sequenceDiagram
     participant S as Sender
-    participant Sig as Signaling (Nostr)
+    participant Sig as Signaling (Nostr/Torrent/MQTT)
     participant R as Receiver
 
     R->>Sig: Create room (display QR + Room ID)
     S->>Sig: Join room (scan QR or enter ID)
-    Sig->>S: Peer discovery
-    Sig->>R: Peer discovery
+    Sig->>S: Peer discovery (parallel race)
+    Sig->>R: Peer discovery (parallel race)
     S-->>R: WebRTC connection established
     S->>R: Verify confirmation code
     S->>S: Select file(s)

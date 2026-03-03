@@ -1,7 +1,8 @@
 import { signal } from "@preact/signals";
-import { joinRoom, selfId } from "trystero/nostr";
+import { selfId } from "trystero/nostr";
 import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
+import { getAdapter, ALL_STRATEGIES, type StrategyName } from "./strategies";
 import {
   type RoomConfig,
   type BatchMetadata,
@@ -9,6 +10,7 @@ import {
   type TransferProgress,
   type MultiFileProgress,
   type ConnectionState,
+  type StrategyAttemptStatus,
   DEFAULT_ROOM_CONFIG,
   ROOM_ID_LENGTH,
 } from "./types";
@@ -31,8 +33,11 @@ export class WebRTCService {
   readonly state = signal<ConnectionState>("idle");
   readonly confirmationCode = signal("");
   readonly error = signal<string | null>(null);
+  readonly activeStrategy = signal<StrategyName | null>(null);
+  readonly strategyAttempts = signal<StrategyAttemptStatus[]>([]);
 
   private room: Room | null = null;
+  private activeRooms: { strategy: StrategyName; room: Room }[] = [];
   private remotePeerId = "";
   private onFileReceivedCb:
     | ((metadata: TransferMetadata, data: Uint8Array) => void)
@@ -47,17 +52,90 @@ export class WebRTCService {
     const roomId = generateRoomId();
     this.state.value = "waiting";
 
-    this.room = joinRoom(
-      { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
+    const strategies = config.strategies ?? ALL_STRATEGIES;
+    const adapters = await Promise.all(strategies.map(getAdapter));
+
+    const rooms: { strategy: StrategyName; room: Room }[] = [];
+    for (const adapter of adapters) {
+      try {
+        const room = adapter.joinRoom(
+          { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
+          roomId,
+        );
+        rooms.push({ strategy: adapter.name, room });
+      } catch (err) {
+        console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);
+      }
+    }
+
+    if (rooms.length === 0) {
+      this.state.value = "error";
+      this.error.value = "All signaling strategies failed to initialize.";
+      throw new Error("All signaling strategies failed");
+    }
+
+    this.activeRooms = rooms;
+    this.strategyAttempts.value = rooms.map((r) => ({
+      strategy: r.strategy,
+      status: "connecting" as const,
+    }));
+
+    console.log(
+      "[webrtc] Receiver joined room:",
       roomId,
+      "selfId:",
+      selfId,
+      "strategies:",
+      rooms.map((r) => r.strategy),
     );
 
-    console.log("[webrtc] Receiver joined room:", roomId, "selfId:", selfId);
+    let settled = false;
 
-    // Set up actions
-    const [, getFile, onFileProgress] = this.room.makeAction<ArrayBuffer>("file");
-    const [, getMetadata] = this.room.makeAction<string>("metadata");
-    const [, getBatch] = this.room.makeAction<string>("batch");
+    for (const { strategy, room } of rooms) {
+      room.onPeerJoin((peerId) => {
+        if (settled) return;
+        settled = true;
+
+        console.log("[webrtc] Peer joined via", strategy, ":", peerId);
+        this.room = room;
+        this.activeStrategy.value = strategy;
+        this.remotePeerId = peerId;
+        this.state.value = "confirming";
+        this.deriveConfirmationCode();
+
+        this.strategyAttempts.value = rooms.map((r) => ({
+          strategy: r.strategy,
+          status: r.strategy === strategy ? "connected" : "cancelled",
+        }));
+
+        // Clean up losing rooms
+        for (const other of rooms) {
+          if (other.strategy !== strategy) {
+            other.room.leave();
+          }
+        }
+        this.activeRooms = [{ strategy, room }];
+
+        // Set up actions on the winning room
+        this.setupReceiverActions(room);
+      });
+
+      room.onPeerLeave((peerId) => {
+        if (this.room === room && this.state.value !== "complete") {
+          console.log("[webrtc] Peer left:", peerId);
+          this.state.value = "error";
+          this.error.value = "Peer disconnected";
+        }
+      });
+    }
+
+    return { roomId };
+  }
+
+  private setupReceiverActions(room: Room): void {
+    const [, getFile, onFileProgress] = room.makeAction<ArrayBuffer>("file");
+    const [, getMetadata] = room.makeAction<string>("metadata");
+    const [, getBatch] = room.makeAction<string>("batch");
 
     let metadata: TransferMetadata | null = null;
     let startTime = 0;
@@ -98,10 +176,8 @@ export class WebRTCService {
         receivedCount++;
 
         if (batchMeta && receivedCount < batchMeta.totalFiles) {
-          // More files coming — reset metadata for next file
           metadata = null;
         } else {
-          // Single file or last file in batch
           this.state.value = "complete";
           if (batchMeta) {
             this.onBatchCompleteCb?.();
@@ -109,23 +185,6 @@ export class WebRTCService {
         }
       }
     });
-
-    this.room.onPeerJoin((peerId) => {
-      console.log("[webrtc] Peer joined:", peerId);
-      this.remotePeerId = peerId;
-      this.state.value = "confirming";
-      this.deriveConfirmationCode();
-    });
-
-    this.room.onPeerLeave((peerId) => {
-      console.log("[webrtc] Peer left:", peerId);
-      if (this.state.value !== "complete") {
-        this.state.value = "error";
-        this.error.value = "Peer disconnected";
-      }
-    });
-
-    return { roomId };
   }
 
   async connectToRoom(
@@ -134,43 +193,98 @@ export class WebRTCService {
   ): Promise<void> {
     this.state.value = "connecting";
 
+    const strategies = config.strategies ?? ALL_STRATEGIES;
+    const adapters = await Promise.all(strategies.map(getAdapter));
+
     return new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        console.error("[webrtc] Connection timed out after 30s");
+      let settled = false;
+
+      const rooms: { strategy: StrategyName; room: Room }[] = [];
+      for (const adapter of adapters) {
+        try {
+          const room = adapter.joinRoom(
+            { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
+            roomId,
+          );
+          rooms.push({ strategy: adapter.name, room });
+        } catch (err) {
+          console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);
+        }
+      }
+
+      if (rooms.length === 0) {
         this.state.value = "error";
-        this.error.value = "Connection timed out. Make sure the receiver is still waiting and try again.";
+        this.error.value = "All signaling strategies failed to initialize.";
+        reject(new Error("All signaling strategies failed"));
+        return;
+      }
+
+      this.activeRooms = rooms;
+      this.strategyAttempts.value = rooms.map((r) => ({
+        strategy: r.strategy,
+        status: "connecting" as const,
+      }));
+
+      console.log(
+        "[webrtc] Sender joined room:",
+        roomId,
+        "selfId:",
+        selfId,
+        "strategies:",
+        rooms.map((r) => r.strategy),
+      );
+
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        for (const { room } of rooms) room.leave();
+        this.activeRooms = [];
+        this.state.value = "error";
+        this.error.value =
+          "Connection timed out. Make sure the receiver is still waiting and try again.";
+        this.strategyAttempts.value = rooms.map((r) => ({
+          strategy: r.strategy,
+          status: "failed",
+        }));
         reject(new Error("Connection timed out"));
       }, 30_000);
 
-      try {
-        this.room = joinRoom(
-          { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
-          roomId,
-        );
-
-        console.log("[webrtc] Sender joined room:", roomId, "selfId:", selfId);
-
-        this.room.onPeerJoin((peerId) => {
+      for (const { strategy, room } of rooms) {
+        room.onPeerJoin((peerId) => {
+          if (settled) return;
+          settled = true;
           clearTimeout(timeout);
-          console.log("[webrtc] Connected to peer:", peerId);
+
+          console.log("[webrtc] Connected to peer via", strategy, ":", peerId);
+          this.room = room;
+          this.activeStrategy.value = strategy;
           this.remotePeerId = peerId;
           this.state.value = "confirming";
           this.deriveConfirmationCode();
+
+          this.strategyAttempts.value = rooms.map((r) => ({
+            strategy: r.strategy,
+            status: r.strategy === strategy ? "connected" : "cancelled",
+          }));
+
+          // Clean up losing rooms
+          for (const other of rooms) {
+            if (other.strategy !== strategy) {
+              other.room.leave();
+            }
+          }
+          this.activeRooms = [{ strategy, room }];
+
           resolve();
         });
 
-        this.room.onPeerLeave((peerId) => {
-          console.log("[webrtc] Peer left:", peerId);
-          if (this.state.value !== "complete") {
+        room.onPeerLeave((peerId) => {
+          if (this.room === room && this.state.value !== "complete") {
+            console.log("[webrtc] Peer left:", peerId);
             this.state.value = "error";
             this.error.value = "Peer disconnected";
           }
         });
-      } catch (err) {
-        clearTimeout(timeout);
-        this.state.value = "error";
-        this.error.value = err instanceof Error ? err.message : String(err);
-        reject(err);
       }
     });
   }
@@ -216,13 +330,11 @@ export class WebRTCService {
     const [sendMetadata] = this.room.makeAction<string>("metadata");
     const [sendFile] = this.room.makeAction<ArrayBuffer>("file");
 
-    // Send metadata first as JSON string
     await sendMetadata(JSON.stringify(metadata));
     console.log("[webrtc] Sent metadata:", metadata);
 
     const startTime = Date.now();
 
-    // Send file with progress tracking
     await sendFile(buffer, null, null, (percent, _peerId) => {
       const elapsed = Date.now() - startTime;
       const bytesSent = Math.round(percent * file.size);
@@ -249,7 +361,6 @@ export class WebRTCService {
     const [sendMetadata] = this.room.makeAction<string>("metadata");
     const [sendFile] = this.room.makeAction<ArrayBuffer>("file");
 
-    // Send batch metadata first
     const batch: BatchMetadata = {
       totalFiles: files.length,
       filenames: files.map((f) => f.name),
@@ -315,11 +426,14 @@ export class WebRTCService {
   }
 
   disconnect(): void {
-    if (this.room) {
-      this.room.leave();
-      this.room = null;
+    for (const { room } of this.activeRooms) {
+      room.leave();
     }
+    this.activeRooms = [];
+    this.room = null;
     this.state.value = "idle";
+    this.activeStrategy.value = null;
+    this.strategyAttempts.value = [];
     this.confirmationCode.value = "";
     this.error.value = null;
   }

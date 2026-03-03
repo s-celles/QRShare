@@ -142,16 +142,18 @@ sequenceDiagram
 
 Cette méthode utilise une connexion réseau mais le fichier transite directement d'appareil à appareil, sans passer par un serveur.
 
+La découverte de pair utilise plusieurs stratégies de signalisation en parallèle (relais Nostr, trackers BitTorrent, brokers MQTT) pour une meilleure fiabilité. La première stratégie à découvrir le pair l'emporte, les autres sont annulées.
+
 ```mermaid
 sequenceDiagram
     participant E as Émetteur
-    participant Sig as Signalisation (Nostr)
+    participant Sig as Signalisation (Nostr/Torrent/MQTT)
     participant R as Récepteur
 
     R->>Sig: Créer la salle (afficher QR + Room ID)
     E->>Sig: Rejoindre la salle (scanner QR ou saisir ID)
-    Sig->>E: Découverte du pair
-    Sig->>R: Découverte du pair
+    Sig->>E: Découverte du pair (course parallèle)
+    Sig->>R: Découverte du pair (course parallèle)
     E-->>R: Connexion WebRTC établie
     E->>R: Vérifier le code de confirmation
     E->>E: Sélectionner le(s) fichier(s)

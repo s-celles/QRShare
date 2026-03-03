@@ -276,11 +276,23 @@ export function WebRTCSenderView() {
         <div class="webrtc-connect">
           <p>{t("webrtcSender.connecting", { roomId: roomIdInput.value })}</p>
           <p class="settings-hint">{t("webrtcSender.discoveringPeer")}</p>
+          {svc && svc.strategyAttempts.value.length > 0 && (
+            <div class="strategy-status" aria-live="polite">
+              {svc.strategyAttempts.value.map((attempt) => (
+                <span class="strategy-badge" key={attempt.strategy}>
+                  {attempt.strategy}: {t(`webrtcSender.strategy${attempt.status.charAt(0).toUpperCase() + attempt.status.slice(1)}`)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {isConnected.value && code && !isSending.value && !isComplete.value && (
         <div class="webrtc-confirm">
+          {svc?.activeStrategy.value && (
+            <p class="settings-hint">{t("webrtcSender.connectedVia", { strategy: svc.activeStrategy.value })}</p>
+          )}
           <h3>{t("webrtcSender.confirmationCode")}</h3>
           <p class="confirmation-code" aria-label={t("webrtcSender.confirmationCodeAria")}>
             {code}

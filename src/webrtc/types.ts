@@ -1,6 +1,9 @@
+import type { StrategyName } from "./strategies";
+
 export interface RoomConfig {
   appId: string;
   relayRedundancy: number;
+  strategies?: StrategyName[];
 }
 
 export interface TransferMetadata {
@@ -28,6 +31,11 @@ export interface MultiFileProgress {
   currentFileProgress: TransferProgress;
 }
 
+export interface StrategyAttemptStatus {
+  strategy: StrategyName;
+  status: "connecting" | "connected" | "failed" | "cancelled";
+}
+
 export type ConnectionState =
   | "idle"
   | "waiting"
@@ -42,4 +50,5 @@ export const ROOM_ID_LENGTH = 6;
 export const DEFAULT_ROOM_CONFIG: RoomConfig = {
   appId: "qrshare-webrtc-v1",
   relayRedundancy: 3,
+  strategies: ["nostr", "torrent", "mqtt"],
 };

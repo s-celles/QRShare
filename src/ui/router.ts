@@ -2,6 +2,8 @@ import { signal } from "@preact/signals";
 
 export type Route =
   | "/"
+  | "/scan"
+  | "/create"
   | "/send/qr"
   | "/receive/qr"
   | "/send/webrtc"
@@ -11,6 +13,8 @@ export type Route =
 
 const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/",
+  "/scan",
+  "/create",
   "/send/qr",
   "/receive/qr",
   "/send/webrtc",

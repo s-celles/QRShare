@@ -2,8 +2,37 @@ import { navigate } from "../router";
 
 export function Landing() {
   return (
-    <section class="landing" aria-label="Transfer mode selection">
-      <h2>Choose Transfer Mode</h2>
+    <section class="landing" aria-label="QRShare home">
+      <h2>QR Utilities</h2>
+      <div class="mode-grid" role="group" aria-label="QR utilities">
+        <button
+          class="mode-btn"
+          onClick={() => navigate("/scan")}
+          aria-label="Scan a QR code"
+        >
+          <span class="mode-icon" aria-hidden="true">
+            &#x1F4F7;
+          </span>
+          <span class="mode-label">Scan QR Code</span>
+          <span class="mode-desc">Decode any QR code</span>
+        </button>
+
+        <button
+          class="mode-btn"
+          onClick={() => navigate("/create")}
+          aria-label="Create a QR code"
+        >
+          <span class="mode-icon" aria-hidden="true">
+            &#x2B1A;
+          </span>
+          <span class="mode-label">Create QR Code</span>
+          <span class="mode-desc">Generate from text</span>
+        </button>
+      </div>
+
+      <div class="section-divider" />
+
+      <h2>File Transfer</h2>
       <div class="mode-grid" role="group" aria-label="Transfer modes">
         <button
           class="mode-btn"

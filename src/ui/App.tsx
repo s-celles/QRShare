@@ -5,6 +5,8 @@ import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
 import { WebRTCSenderView } from "./components/WebRTCSenderView";
 import { WebRTCReceiverView } from "./components/WebRTCReceiverView";
+import { ScannerView } from "./components/ScannerView";
+import { CreatorView } from "./components/CreatorView";
 import { Settings } from "./components/Settings";
 import { About } from "./components/About";
 
@@ -13,6 +15,10 @@ function RouteView() {
   switch (route) {
     case "/":
       return <Landing />;
+    case "/scan":
+      return <ScannerView />;
+    case "/create":
+      return <CreatorView />;
     case "/send/qr":
       return <SenderView />;
     case "/receive/qr":

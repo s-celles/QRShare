@@ -6,6 +6,8 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 
 ## Features
 
+- **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Includes camera device selection, resolution display, and scan metadata.
+- **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, and PNG download.
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
 - **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
 - **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
@@ -38,6 +40,11 @@ bun run package
 ```
 
 ## How It Works
+
+### QR Utilities
+
+- **Scan QR Code** -- Point your camera at any QR code to decode it. The app detects URLs and displays them as clickable links; other content is shown as text with a copy-to-clipboard button. Camera parameters (device, resolution) and scan metadata are always visible.
+- **Create QR Code** -- Type or paste text into the editor to generate a QR code in real time. Adjust QR version and error correction level directly. A capacity meter shows payload size versus maximum. Download the result as a PNG.
 
 ### QR Code Mode (Air-Gapped)
 

@@ -2,6 +2,13 @@ import { generate, mode, correction } from "lean-qr";
 import type { Correction, Bitmap2D } from "lean-qr";
 
 export type EncodingPreset = "high_speed" | "balanced" | "high_reliability";
+export type CorrectionLabel = "L" | "M" | "Q" | "H";
+
+export interface CustomQROptions {
+  readonly eccLevel: CorrectionLabel;
+  readonly autoVersion: boolean;
+  readonly manualVersion?: number;
+}
 
 export interface PresetConfig {
   readonly minVersion: number;
@@ -88,5 +95,55 @@ export function renderQRToDataURL(
   preset: EncodingPreset,
 ): string {
   const bitmap = renderQR(data, preset);
+  return bitmap.toDataURL({ type: "image/png", scale: 8 });
+}
+
+const CORRECTION_MAP: Record<CorrectionLabel, Correction> = {
+  L: correction.L,
+  M: correction.M,
+  Q: correction.Q,
+  H: correction.H,
+};
+
+export function getByteCapacity(
+  version: number,
+  eccLevel: CorrectionLabel,
+): number {
+  return BYTE_CAPACITY[eccLevel][version];
+}
+
+export function getByteCapacityTable(): Readonly<
+  Record<CorrectionLabel, readonly number[]>
+> {
+  return BYTE_CAPACITY as Record<CorrectionLabel, readonly number[]>;
+}
+
+export function renderQRCustom(
+  data: Uint8Array,
+  options: CustomQROptions,
+): Bitmap2D {
+  const correctionLevel = CORRECTION_MAP[options.eccLevel];
+  if (options.autoVersion) {
+    return generate(mode.bytes(data), {
+      minVersion: 1,
+      maxVersion: 40,
+      minCorrectionLevel: correctionLevel,
+      maxCorrectionLevel: correctionLevel,
+    });
+  }
+  const version = options.manualVersion!;
+  return generate(mode.bytes(data), {
+    minVersion: version,
+    maxVersion: version,
+    minCorrectionLevel: correctionLevel,
+    maxCorrectionLevel: correctionLevel,
+  });
+}
+
+export function renderQRCustomToDataURL(
+  data: Uint8Array,
+  options: CustomQROptions,
+): string {
+  const bitmap = renderQRCustom(data, options);
   return bitmap.toDataURL({ type: "image/png", scale: 8 });
 }

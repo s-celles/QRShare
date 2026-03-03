@@ -39,35 +39,35 @@ flowchart TD
 
 En ouvrant l'application, vous voyez deux sections :
 
-### QR Utilities (en haut)
+### Outils QR (en haut)
 
 Deux boutons pour les outils QR du quotidien :
 
-- **Scan QR Code** — Pour lire un QR code avec votre caméra
-- **Create QR Code** — Pour fabriquer votre propre QR code
+- **Scanner un QR code** — Pour lire un QR code avec votre caméra
+- **Créer un QR code** — Pour fabriquer votre propre QR code
 
-### File Transfer (en bas)
+### Transfert de fichiers (en bas)
 
 Cinq boutons pour le transfert de fichiers entre appareils :
 
-- **Send (Share)** — Partager des fichiers via le dialogue de partage natif (messagerie, e-mail, stockage cloud, etc.)
-- **Send (QR)** — Envoyer un fichier via des QR codes animés
-- **Receive (QR)** — Recevoir un fichier en scannant les QR codes animés
-- **Send (WebRTC)** — Envoyer un fichier en pair-à-pair sur le réseau
-- **Receive (WebRTC)** — Recevoir un fichier en pair-à-pair sur le réseau
+- **Envoyer (Partage)** — Partager des fichiers via le dialogue de partage natif (messagerie, e-mail, stockage cloud, etc.)
+- **Envoyer (QR)** — Envoyer un fichier via des QR codes animés
+- **Recevoir (QR)** — Recevoir un fichier en scannant les QR codes animés
+- **Recevoir (WebRTC)** — Recevoir un fichier en pair-à-pair sur le réseau
+- **Envoyer (WebRTC)** — Envoyer un fichier en pair-à-pair sur le réseau
 
 ---
 
 ## Scanner un QR code
 
-1. Appuyez sur **Scan QR Code**
-2. Appuyez sur **Start Scanning** — votre navigateur vous demandera d'autoriser la caméra
+1. Appuyez sur **Scanner un QR code**
+2. Appuyez sur **Démarrer le scan** — votre navigateur vous demandera d'autoriser la caméra
 3. Pointez la caméra vers un QR code
 4. Le contenu s'affiche automatiquement :
    - Si c'est une adresse web, elle apparaît sous forme de lien cliquable
-   - Sinon, le texte est affiché et vous pouvez le copier avec le bouton **Copy to Clipboard**
+   - Sinon, le texte est affiché et vous pouvez le copier avec le bouton **Copier dans le presse-papiers**
 5. Vous pouvez scanner plusieurs QR codes à la suite sans arrêter
-6. Appuyez sur **Stop** pour arrêter la caméra
+6. Appuyez sur **Arrêter** pour arrêter la caméra
 
 **Informations affichées** : nom de la caméra utilisée, résolution, type de code détecté. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
 
@@ -75,14 +75,14 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 
 ## Créer un QR code
 
-1. Appuyez sur **Create QR Code**
+1. Appuyez sur **Créer un QR code**
 2. Tapez votre texte ou collez une adresse web dans la zone de saisie
 3. Le QR code se génère instantanément et se met à jour à chaque modification
 4. Ajustez les paramètres si besoin :
-   - **Error Correction** — Niveau de correction d'erreur (L, M, Q ou H). Plus le niveau est élevé, plus le QR code résiste aux dégradations, mais moins il peut contenir de données
+   - **Correction d'erreur** — Niveau de correction d'erreur (L, M, Q ou H). Plus le niveau est élevé, plus le QR code résiste aux dégradations, mais moins il peut contenir de données
    - **Version** — En mode Auto, l'application choisit la plus petite taille possible. En mode Manuel, vous choisissez une version de 1 (petit) à 40 (très grand)
-5. Le compteur **Payload** indique combien d'octets votre texte occupe par rapport à la capacité maximale
-6. Appuyez sur **Download PNG** pour enregistrer le QR code comme image
+5. Le compteur **Charge utile** indique combien d'octets votre texte occupe par rapport à la capacité maximale
+6. Appuyez sur **Télécharger PNG** pour enregistrer le QR code comme image
 
 Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
 
@@ -92,7 +92,7 @@ Si le texte est trop long pour la version et le niveau de correction choisis, un
 
 Cette méthode utilise le dialogue de partage intégré à votre navigateur pour envoyer des fichiers vers n'importe quelle application compatible (messagerie, e-mail, stockage cloud, etc.).
 
-1. Appuyez sur **Send (Share)**
+1. Appuyez sur **Envoyer (Partage)**
 2. Déposez des fichiers ou cliquez pour parcourir et sélectionner un ou plusieurs fichiers
 3. Le dialogue de partage natif s'ouvre — choisissez l'application cible
 4. Le fichier est transmis à l'application sélectionnée
@@ -121,17 +121,17 @@ sequenceDiagram
 ```
 
 **Sur l'appareil qui envoie :**
-1. Appuyez sur **Send (QR)**
+1. Appuyez sur **Envoyer (QR)**
 2. Déposez un fichier ou cliquez pour en choisir un (50 Mo maximum)
 3. Choisissez un mode d'encodage :
-   - **High Speed** — Rapide, adapté aux bonnes conditions de scan
-   - **Balanced** — Compromis entre vitesse et fiabilité
-   - **High Reliability** — Lent mais très fiable
+   - **Haute vitesse** — Rapide, adapté aux bonnes conditions de scan
+   - **Équilibré** — Compromis entre vitesse et fiabilité
+   - **Haute fiabilité** — Lent mais très fiable
 4. Un QR code animé s'affiche à l'écran — ne fermez pas la page
 
 **Sur l'appareil qui reçoit :**
-1. Appuyez sur **Receive (QR)**
-2. Appuyez sur **Start Scanning**
+1. Appuyez sur **Recevoir (QR)**
+2. Appuyez sur **Démarrer le scan**
 3. Pointez la caméra vers le QR code animé de l'appareil émetteur
 4. La barre de progression montre l'avancement du transfert
 5. Une fois terminé, le fichier se télécharge automatiquement
@@ -160,11 +160,11 @@ sequenceDiagram
 ```
 
 **Sur l'appareil qui reçoit :**
-1. Appuyez sur **Receive (WebRTC)**
+1. Appuyez sur **Recevoir (WebRTC)**
 2. Un QR code s'affiche avec un identifiant de salle (Room ID)
 
 **Sur l'appareil qui envoie :**
-1. Appuyez sur **Send (WebRTC)**
+1. Appuyez sur **Envoyer (WebRTC)**
 2. Scannez le QR code du récepteur ou saisissez le Room ID manuellement
 3. Vérifiez que le **code de confirmation à 4 chiffres** est identique sur les deux appareils
 4. Sélectionnez le(s) fichier(s) à envoyer
@@ -178,9 +178,10 @@ En haut de chaque page :
 
 - **QRShare** (à gauche) — Retour à la page d'accueil
 - Bouton soleil/lune — Basculer entre thème clair et sombre
+- **?** — Guide utilisateur
 - **i** — Page « À propos »
-- Roue dentée — Paramètres (choix du thème)
-- **← Back** — Retour à la page d'accueil (présent sur chaque sous-page)
+- Roue dentée — Paramètres (choix de la langue et du thème)
+- **← Retour** — Retour à la page d'accueil (présent sur chaque sous-page)
 
 ---
 

@@ -36,7 +36,7 @@ export function Landing() {
       <h2>{t("landing.fileTransfer")}</h2>
       <div class="mode-grid" role="group" aria-label={t("landing.transferGroup")}>
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--full"
           onClick={() => navigate("/send/share")}
           aria-label={t("landing.sendShareAria")}
         >
@@ -73,18 +73,6 @@ export function Landing() {
 
         <button
           class="mode-btn"
-          onClick={() => navigate("/send/webrtc")}
-          aria-label={t("landing.sendWebRTCAria")}
-        >
-          <span class="mode-icon" aria-hidden="true">
-            &#x21C6;
-          </span>
-          <span class="mode-label">{t("landing.sendWebRTCTitle")}</span>
-          <span class="mode-desc">{t("landing.sendWebRTCDesc")}</span>
-        </button>
-
-        <button
-          class="mode-btn"
           onClick={() => navigate("/receive/webrtc")}
           aria-label={t("landing.receiveWebRTCAria")}
         >
@@ -93,6 +81,18 @@ export function Landing() {
           </span>
           <span class="mode-label">{t("landing.receiveWebRTCTitle")}</span>
           <span class="mode-desc">{t("landing.receiveWebRTCDesc")}</span>
+        </button>
+
+        <button
+          class="mode-btn"
+          onClick={() => navigate("/send/webrtc")}
+          aria-label={t("landing.sendWebRTCAria")}
+        >
+          <span class="mode-icon" aria-hidden="true">
+            &#x21C6;
+          </span>
+          <span class="mode-label">{t("landing.sendWebRTCTitle")}</span>
+          <span class="mode-desc">{t("landing.sendWebRTCDesc")}</span>
         </button>
       </div>
     </section>

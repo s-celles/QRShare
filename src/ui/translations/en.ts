@@ -206,6 +206,7 @@ export const en: Record<string, string> = {
   "settings.languageAuto": "Auto (system)",
   "settings.languageEn": "English",
   "settings.languageFr": "Fran\u00e7ais",
+  "settings.languageAr": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
   "settings.languageCurrent": "Current: {lang}",
 
   // About

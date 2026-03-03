@@ -29,6 +29,7 @@ export function Settings() {
             <option value="auto">{t("settings.languageAuto")}</option>
             <option value="en">{t("settings.languageEn")}</option>
             <option value="fr">{t("settings.languageFr")}</option>
+            <option value="ar">{t("settings.languageAr")}</option>
           </select>
           <p class="settings-hint">{t("settings.languageCurrent", { lang: locale.value.toUpperCase() })}</p>
         </div>

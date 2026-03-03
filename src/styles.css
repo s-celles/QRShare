@@ -158,6 +158,10 @@ nav {
   outline-offset: 2px;
 }
 
+.mode-btn--full {
+  grid-column: 1 / -1;
+}
+
 .mode-icon {
   font-size: 2rem;
 }
@@ -404,10 +408,10 @@ section > button:hover {
   border-width: 0;
 }
 
-.corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; }
-.corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; }
-.corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; }
-.corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; }
+.corner.tl { top: 0; inset-inline-start: 0; border-top-width: 3px; border-inline-start-width: 3px; }
+.corner.tr { top: 0; inset-inline-end: 0; border-top-width: 3px; border-inline-end-width: 3px; }
+.corner.bl { bottom: 0; inset-inline-start: 0; border-bottom-width: 3px; border-inline-start-width: 3px; }
+.corner.br { bottom: 0; inset-inline-end: 0; border-bottom-width: 3px; border-inline-end-width: 3px; }
 
 .receiver-active .transfer-stats {
   margin-bottom: 0.5rem;
@@ -439,7 +443,7 @@ section > button:hover {
 }
 
 .file-info {
-  text-align: left;
+  text-align: start;
   background: var(--bg-surface);
   padding: 1rem;
   border-radius: var(--radius);
@@ -584,7 +588,7 @@ section > button:hover {
 }
 
 .about-info {
-  text-align: left;
+  text-align: start;
   background: var(--bg-surface);
   padding: 1rem;
   border-radius: var(--radius);
@@ -827,7 +831,7 @@ section > button:hover {
 .lang-toggle {
   display: flex;
   gap: 0.25rem;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .lang-btn {
@@ -886,7 +890,7 @@ section > button:hover {
 .guide-content ul,
 .guide-content ol {
   margin: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
 }
 
 .guide-content li {
@@ -940,9 +944,9 @@ section > button:hover {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
   background: var(--bg-surface);
-  border-left: 3px solid var(--border);
+  border-inline-start: 3px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.85rem;
-  text-align: left;
+  text-align: start;
   opacity: 0.8;
 }

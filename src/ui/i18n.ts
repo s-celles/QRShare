@@ -1,16 +1,21 @@
 import { signal, effect } from "@preact/signals";
 import { en } from "./translations/en";
 import { fr } from "./translations/fr";
+import { ar } from "./translations/ar";
 
-export type Locale = "en" | "fr";
+export type Locale = "en" | "fr" | "ar";
 export type LocalePreference = Locale | "auto";
 
-const translations: Record<Locale, Record<string, string>> = { en, fr };
+const RTL_LOCALES: ReadonlySet<Locale> = new Set(["ar"]);
+
+const translations: Record<Locale, Record<string, string>> = { en, fr, ar };
 
 function detectLocale(): Locale {
   if (typeof navigator === "undefined") return "en";
   const lang = navigator.language.toLowerCase();
-  return lang.startsWith("fr") ? "fr" : "en";
+  if (lang.startsWith("ar")) return "ar";
+  if (lang.startsWith("fr")) return "fr";
+  return "en";
 }
 
 function loadPreference(): LocalePreference {
@@ -31,6 +36,8 @@ if (typeof window !== "undefined") {
     const pref = localePreference.value;
     locale.value = pref === "auto" ? detectLocale() : pref;
     localStorage.setItem("qrshare-locale", pref);
+    document.documentElement.lang = locale.value;
+    document.documentElement.dir = RTL_LOCALES.has(locale.value) ? "rtl" : "ltr";
   });
 }
 

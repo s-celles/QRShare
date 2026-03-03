@@ -8,6 +8,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 
 - **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. Includes camera device selection, resolution display, and scan metadata.
 - **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
+- **Native Share** -- Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
 - **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
 - **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
@@ -47,6 +48,12 @@ bun run package
 
 - **Scan QR Code** -- Point your camera at any QR code to decode it. The app detects URLs and displays them as clickable links; other content is shown as text with a copy-to-clipboard button. Camera parameters (device, resolution) and scan metadata are always visible.
 - **Create QR Code** -- Type or paste text into the editor to generate a QR code in real time. Adjust QR version and error correction level directly. A capacity meter shows payload size versus maximum. Download the result as a PNG.
+
+### Share Mode (Native)
+
+1. Select one or more files (drop or browse)
+2. The native share dialog opens, letting you send files to any compatible app (messaging, email, cloud storage)
+3. No setup required -- uses the browser's built-in Web Share API
 
 ### QR Code Mode (Air-Gapped)
 

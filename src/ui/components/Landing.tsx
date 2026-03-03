@@ -37,6 +37,18 @@ export function Landing() {
       <div class="mode-grid" role="group" aria-label={t("landing.transferGroup")}>
         <button
           class="mode-btn"
+          onClick={() => navigate("/send/share")}
+          aria-label={t("landing.sendShareAria")}
+        >
+          <span class="mode-icon" aria-hidden="true">
+            &#x1F4E4;
+          </span>
+          <span class="mode-label">{t("landing.sendShareTitle")}</span>
+          <span class="mode-desc">{t("landing.sendShareDesc")}</span>
+        </button>
+
+        <button
+          class="mode-btn"
           onClick={() => navigate("/send/qr")}
           aria-label={t("landing.sendQRAria")}
         >

@@ -11,6 +11,7 @@ import { CreatorView } from "./components/CreatorView";
 import { GuideView } from "./components/GuideView";
 import { Settings } from "./components/Settings";
 import { About } from "./components/About";
+import { WebShareSenderView } from "./components/WebShareSenderView";
 
 function RouteView() {
   const route = currentRoute.value;
@@ -29,6 +30,8 @@ function RouteView() {
       return <WebRTCSenderView />;
     case "/receive/webrtc":
       return <WebRTCReceiverView />;
+    case "/send/share":
+      return <WebShareSenderView />;
     case "/guide":
       return <GuideView />;
     case "/settings":

@@ -6,8 +6,9 @@ QRShare is a web application that lets you:
 
 1. **Scan a QR code** using your device's camera
 2. **Create a QR code** from any text or web address
-3. **Send a file** to another device via animated QR codes (no internet required)
-4. **Send a file** peer-to-peer via WebRTC (internet required)
+3. **Share a file** to any app via the native share dialog
+4. **Send a file** to another device via animated QR codes (no internet required)
+5. **Send a file** peer-to-peer via WebRTC (internet required)
 
 The application runs directly in your browser with nothing to install. It is available at:
 **https://s-celles.github.io/QRShare/**
@@ -17,6 +18,7 @@ flowchart TD
     Home[Home Page]
     Home --> Scan[Scan QR Code]
     Home --> Create[Create QR Code]
+    Home --> SendShare[Send via Share]
     Home --> SendQR[Send via QR]
     Home --> RecvQR[Receive via QR]
     Home --> SendWR[Send via WebRTC]
@@ -26,6 +28,7 @@ flowchart TD
     Scan --> |Text detected| Copy[Copy / Share / Send]
     Create --> Download[Download PNG]
     Create --> Share[Share / Send via QR / WebRTC]
+    SendShare --> |Native dialog| Apps[Other apps]
     SendQR --> |Animated QR codes| RecvQR
     SendWR --> |Peer-to-peer| RecvWR
 ```
@@ -45,8 +48,9 @@ Two buttons for everyday QR tools:
 
 ### File Transfer (bottom)
 
-Four buttons for transferring files between devices:
+Five buttons for transferring files between devices:
 
+- **Send (Share)** — Share files via the native share dialog (messaging, email, cloud storage, etc.)
 - **Send (QR)** — Send a file via animated QR codes
 - **Receive (QR)** — Receive a file by scanning animated QR codes
 - **Send (WebRTC)** — Send a file peer-to-peer over the network
@@ -81,6 +85,19 @@ Four buttons for transferring files between devices:
 6. Tap **Download PNG** to save the QR code as an image
 
 If the text is too long for the selected version and error correction level, an error message is displayed.
+
+---
+
+## Sharing Files via Native Share
+
+This method uses your browser's built-in share dialog to send files to any compatible app (messaging, email, cloud storage, etc.).
+
+1. Tap **Send (Share)**
+2. Drop files or click to browse and select one or more files
+3. The native share dialog opens — choose the target app
+4. The file is handed off to the selected app
+
+**Note:** This feature requires a browser that supports the Web Share API (most mobile browsers and some desktop browsers). If unsupported, an error message is displayed.
 
 ---
 

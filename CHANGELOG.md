@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Send (Share) mode: dedicated file sharing via native Web Share API dialog, supporting one or more files
 - Internationalization (i18n) with EN/FR translations and auto-detection from browser language
 - Language selector in Settings (Auto/English/Français) with localStorage persistence
 - Share/send actions for created QR codes (Web Share API, QR transfer, WebRTC)

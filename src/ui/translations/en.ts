@@ -40,6 +40,9 @@ export const en: Record<string, string> = {
   "landing.createAria": "Create a QR code",
   "landing.fileTransfer": "File Transfer",
   "landing.transferGroup": "Transfer modes",
+  "landing.sendShareTitle": "Send (Share)",
+  "landing.sendShareDesc": "Native share dialog",
+  "landing.sendShareAria": "Send file via native share",
   "landing.sendQRTitle": "Send (QR)",
   "landing.sendQRDesc": "Air-gapped optical transfer",
   "landing.sendQRAria": "Send file via QR code",
@@ -212,6 +215,17 @@ export const en: Record<string, string> = {
   "about.sourceCode": "Source code on GitHub",
   "about.disclaimer": "Disclaimer:",
   "about.disclaimerText": "QRShare is intended for lawful file sharing only. Do not use this tool to transfer illegal, harmful, or copyrighted content without proper authorization. Users are solely responsible for the content they share. The authors assume no liability for misuse.",
+
+  // Share Sender
+  "shareSender.section": "Share Sender",
+  "shareSender.heading": "Send via Share",
+  "shareSender.dropZone": "Drop file(s) here or click to browse",
+  "shareSender.selectFiles": "Select files to share",
+  "shareSender.shareFile": "Share {filename}",
+  "shareSender.unsupported": "The Web Share API is not supported by your browser.",
+  "shareSender.success": "Shared Successfully",
+  "shareSender.filesShared": "{count} files shared",
+  "shareSender.doneAria": "Done, return to home",
 
   // Guide
   "guide.section": "User Guide",

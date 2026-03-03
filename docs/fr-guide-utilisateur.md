@@ -6,8 +6,9 @@ QRShare est une application web qui permet de :
 
 1. **Scanner un QR code** avec la caméra de votre appareil
 2. **Créer un QR code** à partir d'un texte ou d'une adresse web
-3. **Envoyer un fichier** à un autre appareil via des QR codes animés (sans connexion internet)
-4. **Envoyer un fichier** en pair-à-pair via WebRTC (avec connexion internet)
+3. **Partager un fichier** vers n'importe quelle application via le dialogue de partage natif
+4. **Envoyer un fichier** à un autre appareil via des QR codes animés (sans connexion internet)
+5. **Envoyer un fichier** en pair-à-pair via WebRTC (avec connexion internet)
 
 L'application fonctionne directement dans votre navigateur, sans rien installer. Elle est accessible à l'adresse :
 **https://s-celles.github.io/QRShare/**
@@ -17,6 +18,7 @@ flowchart TD
     Accueil[Page d'accueil]
     Accueil --> Scanner[Scanner un QR code]
     Accueil --> Creer[Créer un QR code]
+    Accueil --> EnvPartage[Envoyer via Partage]
     Accueil --> EnvQR[Envoyer via QR]
     Accueil --> RecQR[Recevoir via QR]
     Accueil --> EnvWR[Envoyer via WebRTC]
@@ -26,6 +28,7 @@ flowchart TD
     Scanner --> |Texte détecté| Copier[Copier / Partager / Envoyer]
     Creer --> Telecharger[Télécharger PNG]
     Creer --> Partager[Partager / Envoyer via QR / WebRTC]
+    EnvPartage --> |Dialogue natif| Apps[Autres applications]
     EnvQR --> |QR codes animés| RecQR
     EnvWR --> |Pair-à-pair| RecWR
 ```
@@ -45,8 +48,9 @@ Deux boutons pour les outils QR du quotidien :
 
 ### File Transfer (en bas)
 
-Quatre boutons pour le transfert de fichiers entre appareils :
+Cinq boutons pour le transfert de fichiers entre appareils :
 
+- **Send (Share)** — Partager des fichiers via le dialogue de partage natif (messagerie, e-mail, stockage cloud, etc.)
 - **Send (QR)** — Envoyer un fichier via des QR codes animés
 - **Receive (QR)** — Recevoir un fichier en scannant les QR codes animés
 - **Send (WebRTC)** — Envoyer un fichier en pair-à-pair sur le réseau
@@ -81,6 +85,19 @@ Quatre boutons pour le transfert de fichiers entre appareils :
 6. Appuyez sur **Download PNG** pour enregistrer le QR code comme image
 
 Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
+
+---
+
+## Partager des fichiers via le partage natif
+
+Cette méthode utilise le dialogue de partage intégré à votre navigateur pour envoyer des fichiers vers n'importe quelle application compatible (messagerie, e-mail, stockage cloud, etc.).
+
+1. Appuyez sur **Send (Share)**
+2. Déposez des fichiers ou cliquez pour parcourir et sélectionner un ou plusieurs fichiers
+3. Le dialogue de partage natif s'ouvre — choisissez l'application cible
+4. Le fichier est transmis à l'application sélectionnée
+
+**Remarque :** Cette fonctionnalité nécessite un navigateur compatible avec l'API Web Share (la plupart des navigateurs mobiles et certains navigateurs de bureau). Si non supportée, un message d'erreur s'affiche.
 
 ---
 

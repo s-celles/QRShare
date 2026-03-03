@@ -40,6 +40,9 @@ export const fr: Record<string, string> = {
   "landing.createAria": "Cr\u00e9er un QR code",
   "landing.fileTransfer": "Transfert de fichiers",
   "landing.transferGroup": "Modes de transfert",
+  "landing.sendShareTitle": "Envoyer (Partage)",
+  "landing.sendShareDesc": "Dialogue de partage natif",
+  "landing.sendShareAria": "Envoyer un fichier via le partage natif",
   "landing.sendQRTitle": "Envoyer (QR)",
   "landing.sendQRDesc": "Transfert optique hors r\u00e9seau",
   "landing.sendQRAria": "Envoyer un fichier via QR code",
@@ -212,6 +215,17 @@ export const fr: Record<string, string> = {
   "about.sourceCode": "Code source sur GitHub",
   "about.disclaimer": "Avertissement :",
   "about.disclaimerText": "QRShare est destin\u00e9 uniquement au partage l\u00e9gal de fichiers. N\u2019utilisez pas cet outil pour transf\u00e9rer du contenu ill\u00e9gal, nuisible ou prot\u00e9g\u00e9 par le droit d\u2019auteur sans autorisation. Les utilisateurs sont seuls responsables du contenu qu\u2019ils partagent. Les auteurs d\u00e9clinent toute responsabilit\u00e9 en cas d\u2019utilisation abusive.",
+
+  // Share Sender
+  "shareSender.section": "Partage",
+  "shareSender.heading": "Envoyer via Partage",
+  "shareSender.dropZone": "D\u00e9posez un ou des fichiers ici ou cliquez pour parcourir",
+  "shareSender.selectFiles": "S\u00e9lectionner les fichiers \u00e0 partager",
+  "shareSender.shareFile": "Partager {filename}",
+  "shareSender.unsupported": "L\u2019API Web Share n\u2019est pas prise en charge par votre navigateur.",
+  "shareSender.success": "Partage r\u00e9ussi",
+  "shareSender.filesShared": "{count} fichiers partag\u00e9s",
+  "shareSender.doneAria": "Termin\u00e9, retour \u00e0 l\u2019accueil",
 
   // Guide
   "guide.section": "Guide utilisateur",

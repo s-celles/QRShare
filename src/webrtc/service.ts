@@ -64,6 +64,14 @@ function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: s
     }
   }
 
+  if (joinConfig.rtcConfig || joinConfig.turnConfig) {
+    console.log("[webrtc] ICE config:", {
+      stun: joinConfig.rtcConfig?.iceServers?.length ?? 0,
+      turn: joinConfig.turnConfig?.length ?? 0,
+      turnUrls: joinConfig.turnConfig?.map((t) => t.urls),
+    });
+  }
+
   return joinConfig;
 }
 

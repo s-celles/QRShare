@@ -220,6 +220,27 @@ Cliquez sur **Réinitialiser les valeurs par défaut** pour restaurer tous les p
 
 ---
 
+## Export / Import des paramètres
+
+Vous pouvez sauvegarder et restaurer tous les paramètres de QRShare (thème, langue et configuration WebRTC) via des fichiers TOML.
+
+### Export
+
+1. Allez dans **Paramètres**
+2. Cliquez sur **Exporter les paramètres (TOML)**
+3. Un fichier `qrshare-config.toml` est téléchargé
+
+### Import
+
+1. Allez dans **Paramètres**
+2. Cliquez sur **Importer les paramètres (TOML)**
+3. Sélectionnez un fichier `.toml` précédemment exporté
+4. Tous les paramètres sont appliqués immédiatement
+
+Cela permet de partager votre configuration entre appareils ou de restaurer vos paramètres après avoir effacé les données du navigateur.
+
+---
+
 ## Questions fréquentes
 
 **L'application a-t-elle besoin d'internet ?**

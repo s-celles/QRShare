@@ -2,7 +2,13 @@ import { signal, effect } from "@preact/signals";
 
 export type Theme = "light" | "dark" | "auto";
 
-export const theme = signal<Theme>("auto");
+function loadTheme(): Theme {
+  if (typeof localStorage === "undefined") return "auto";
+  const stored = localStorage.getItem("qrshare-theme") as Theme | null;
+  return stored === "light" || stored === "dark" ? stored : "auto";
+}
+
+export const theme = signal<Theme>(loadTheme());
 
 function getEffectiveTheme(t: Theme): "light" | "dark" {
   if (t !== "auto") return t;
@@ -15,7 +21,7 @@ function getEffectiveTheme(t: Theme): "light" | "dark" {
 }
 
 export const effectiveTheme = signal<"light" | "dark">(
-  getEffectiveTheme("auto"),
+  getEffectiveTheme(loadTheme()),
 );
 
 if (typeof window !== "undefined") {
@@ -25,6 +31,7 @@ if (typeof window !== "undefined") {
       "data-theme",
       effectiveTheme.value,
     );
+    localStorage.setItem("qrshare-theme", theme.value);
   });
 
   window

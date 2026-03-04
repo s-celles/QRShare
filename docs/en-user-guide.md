@@ -219,6 +219,27 @@ Click **Reset to Defaults** to restore all WebRTC settings to their original val
 
 ---
 
+## Settings Export / Import
+
+You can back up and restore all QRShare settings (theme, language, and WebRTC configuration) using TOML files.
+
+### Export
+
+1. Go to **Settings**
+2. Click **Export Settings (TOML)**
+3. A `qrshare-config.toml` file is downloaded
+
+### Import
+
+1. Go to **Settings**
+2. Click **Import Settings (TOML)**
+3. Select a previously exported `.toml` file
+4. All settings are applied immediately
+
+This is useful for sharing your configuration across devices or restoring settings after clearing browser data.
+
+---
+
 ## Frequently Asked Questions
 
 **Does the application need internet?**

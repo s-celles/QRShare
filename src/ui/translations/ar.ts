@@ -218,6 +218,9 @@ export const ar: Record<string, string> = {
   "settings.webrtcHint": "تكوين استراتيجيات الإشارات وخوادم الترحيل ووضع الاتصال.",
   "settings.webrtcOpen": "إعدادات WebRTC",
   "settings.webrtcAria": "فتح إعدادات اتصال WebRTC",
+  "settings.exportToml": "تصدير الإعدادات (TOML)",
+  "settings.importToml": "استيراد الإعدادات (TOML)",
+  "settings.importError": "فشل استيراد الإعدادات: ملف TOML غير صالح",
 
   // WebRTC Settings
   "webrtcSettings.section": "إعدادات WebRTC",

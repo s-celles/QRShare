@@ -1,6 +1,11 @@
+import { signal } from "@preact/signals";
 import { navigate } from "../router";
 import { theme as themePreference, effectiveTheme, type Theme } from "../theme";
 import { locale, localePreference, t, type LocalePreference } from "../i18n";
+import { configToToml, tomlToConfig } from "../../config-toml";
+import { gatherConfig, applyConfig } from "../../config";
+
+const importError = signal("");
 
 export function Settings() {
   return (
@@ -65,6 +70,54 @@ export function Settings() {
             {t("settings.webrtcOpen")}
           </button>
         </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-field" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button
+            class="start-btn"
+            onClick={() => {
+              const toml = configToToml(gatherConfig());
+              const blob = new Blob([toml], { type: "application/toml" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "qrshare-config.toml";
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            {t("settings.exportToml")}
+          </button>
+          <button
+            class="start-btn"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = ".toml,text/plain";
+              input.onchange = async () => {
+                const file = input.files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const config = tomlToConfig(text);
+                  applyConfig(config);
+                  importError.value = "";
+                } catch {
+                  importError.value = t("settings.importError");
+                }
+              };
+              input.click();
+            }}
+          >
+            {t("settings.importToml")}
+          </button>
+        </div>
+        {importError.value && (
+          <p class="settings-hint" style={{ color: "var(--color-error, #d32f2f)" }}>
+            {importError.value}
+          </p>
+        )}
       </div>
     </section>
   );

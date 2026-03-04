@@ -217,7 +217,10 @@ export const fr: Record<string, string> = {
   "settings.webrtc": "Connexion WebRTC",
   "settings.webrtcHint": "Configurer les strat\u00e9gies de signalisation, les serveurs relais et le mode de connexion.",
   "settings.webrtcOpen": "Param\u00e8tres WebRTC",
-  "settings.webrtcAria": "Ouvrir les param\u00e8tres de connexion WebRTC",
+  "settings.webrtcAria": "Ouvrir les paramètres de connexion WebRTC",
+  "settings.exportToml": "Exporter les paramètres (TOML)",
+  "settings.importToml": "Importer les paramètres (TOML)",
+  "settings.importError": "Échec de l'importation : fichier TOML invalide",
 
   // WebRTC Settings
   "webrtcSettings.section": "Param\u00e8tres WebRTC",

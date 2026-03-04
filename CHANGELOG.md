@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- TOML import/export for all application settings (theme, language, WebRTC) via Settings page
+- Theme preference now persists across page reloads via localStorage
 - Configurable WebRTC signaling strategies: enable/disable strategies, reorder priority, edit per-strategy relay URLs, and choose between parallel race or sequential fallback connection mode
 - WebRTC Settings page (`/#/settings/webrtc`) with connection mode selector, strategy toggles with reorder buttons, and per-strategy relay URL editor
 - Settings link from main Settings page to WebRTC Settings

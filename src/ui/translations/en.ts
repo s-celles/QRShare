@@ -218,6 +218,9 @@ export const en: Record<string, string> = {
   "settings.webrtcHint": "Configure signaling strategies, relay servers, and connection mode.",
   "settings.webrtcOpen": "WebRTC Settings",
   "settings.webrtcAria": "Open WebRTC connection settings",
+  "settings.exportToml": "Export Settings (TOML)",
+  "settings.importToml": "Import Settings (TOML)",
+  "settings.importError": "Failed to import settings: invalid TOML file",
 
   // WebRTC Settings
   "webrtcSettings.section": "WebRTC Settings",

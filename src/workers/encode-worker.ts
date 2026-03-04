@@ -1,6 +1,6 @@
 import { hashSha256, truncatedHash } from "@/crypto/hash";
 import { compress } from "@/compression/compression";
-import { getCodecFactory } from "@/codec/factory";
+import { LTCodecFactory } from "@/codec/lt-adapter";
 import {
   serializeFrame,
   serializeMetadataFrame,
@@ -46,7 +46,9 @@ async function startEncoding(
     console.log("[encode-worker] Compressed:", fileData.length, "->", compressed.data.length, "bytes");
 
     // Step 3: Init fountain encoder
-    const factory = await getCodecFactory();
+    // Always use LT codec for QR transfers to ensure cross-device compatibility.
+    // Wirehair (WASM) may not be available on all devices, causing codec mismatch.
+    const factory = new LTCodecFactory();
     const encoder = await factory.createEncoder();
 
     const maxPayload = getMaxPayloadBytes(preset);

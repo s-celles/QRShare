@@ -84,13 +84,7 @@ describe("E2E roundtrip pipeline", () => {
     let decodedData: Uint8Array | null = null;
     let recvCompressionId: 0x00 | 0x01 = 0x00;
 
-    // Compute seed for LT decoder (same as encoder uses internally)
-    let seed = 0x811c9dc5;
-    for (let i = 0; i < Math.min(compressed.data.length, 1024); i++) {
-      seed ^= compressed.data[i];
-      seed = Math.imul(seed, 0x01000193);
-    }
-    seed = seed >>> 0;
+    // Both encoder and decoder use baseSeed=0, no manual seed needed.
 
     for (const frameBytes of allFrameBytes) {
       const parsed = parseFrame(frameBytes);
@@ -99,7 +93,6 @@ describe("E2E roundtrip pipeline", () => {
       if (!decoderInitialized && (parsed.kind === "metadata" || parsed.kind === "data")) {
         const frame = parsed.frame;
         decoder.init(frame.compressedSize, frame.blockSize);
-        decoder.setBaseSeed(seed);
         recvCompressionId = frame.compressionId;
         decoderInitialized = true;
       }
@@ -171,22 +164,14 @@ describe("E2E roundtrip pipeline", () => {
 
     const metadataBytes = serializeMetadataFrame(metaFrame);
 
-    // Compute seed for decoder
-    let seed = 0x811c9dc5;
-    for (let i = 0; i < Math.min(compressed.data.length, 1024); i++) {
-      seed ^= compressed.data[i];
-      seed = Math.imul(seed, 0x01000193);
-    }
-    seed = seed >>> 0;
-
     const decoder = new LTFountainDecoder();
 
     // Parse metadata — decoder can also init from data frames now
     const metaParsed = parseFrame(metadataBytes);
     expect(metaParsed.kind).toBe("metadata");
     if (metaParsed.kind === "metadata") {
+      // Both encoder and decoder use baseSeed=0, no manual seed needed.
       decoder.init(metaParsed.frame.compressedSize, metaParsed.frame.blockSize);
-      decoder.setBaseSeed(seed);
     }
 
     // Feed symbols

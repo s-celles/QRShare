@@ -1,7 +1,7 @@
 import { hashSha256 } from "@/crypto/hash";
 import { decompress } from "@/compression/compression";
 import type { CompressionAlgorithm } from "@/compression/compression";
-import { getCodecFactory } from "@/codec/factory";
+import { LTCodecFactory } from "@/codec/lt-adapter";
 import { parseFrame } from "@/protocol/frame";
 import type { FountainDecoder } from "@/codec/types";
 import { ZBarQRScanner } from "@/qr/scanner";
@@ -51,7 +51,8 @@ async function initDecoder(
   expectedMetadataHash = new Uint8Array(metadataHash);
   metadataHashHex = toHex(expectedMetadataHash);
 
-  const factory = await getCodecFactory();
+  // Always use LT codec for QR transfers to ensure cross-device compatibility.
+  const factory = new LTCodecFactory();
   decoder = await factory.createDecoder();
   decoder.init(compressedSize, blockSize);
   decoderReady = true;

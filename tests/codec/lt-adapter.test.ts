@@ -19,15 +19,7 @@ describe("LT Fountain Codec", () => {
 
     const decoder = new LTFountainDecoder();
     decoder.init(original.length, blockSize);
-    // The decoder needs the same seed as encoder. Use setBaseSeed.
-    // Compute the same seed the encoder uses internally.
-    let seed = 0x811c9dc5;
-    for (let i = 0; i < Math.min(original.length, 1024); i++) {
-      seed ^= original[i];
-      seed = Math.imul(seed, 0x01000193);
-    }
-    seed = seed >>> 0;
-    decoder.setBaseSeed(seed);
+    // Both encoder and decoder use baseSeed=0 by default, no need to set it.
 
     // Send many more symbols than k to ensure decode
     let status;
@@ -69,12 +61,6 @@ describe("LT Fountain Codec", () => {
 
     const decoder = new LTFountainDecoder();
     decoder.init(original.length, blockSize);
-    let seed = 0x811c9dc5;
-    for (let i = 0; i < Math.min(original.length, 1024); i++) {
-      seed ^= original[i];
-      seed = Math.imul(seed, 0x01000193);
-    }
-    decoder.setBaseSeed(seed >>> 0);
 
     // Generate symbols with non-sequential IDs (simulate random loss)
     const ids: number[] = [];

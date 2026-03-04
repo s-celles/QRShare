@@ -117,7 +117,9 @@ export class LTFountainEncoder implements FountainEncoder {
   init(data: Uint8Array, blockSize: number): void {
     this.blockSize = blockSize;
     this.blocks = [];
-    this.baseSeed = hashSeed(data);
+    // Use fixed baseSeed=0 so encoder and decoder always agree.
+    // Symbol ID already provides sufficient randomization via PRNG(symbolId * 2654435761).
+    this.baseSeed = 0;
 
     const k = Math.ceil(data.length / blockSize);
     for (let i = 0; i < k; i++) {

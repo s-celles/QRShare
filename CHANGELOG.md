@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-04
+
 ### Added
 
+- Version number displayed in the header next to the app title
+- Visual separation of file transfer modes (Share, QR Code, WebRTC) on the landing page with labeled sub-groups
 - TOML import/export for all application settings (theme, language, WebRTC) via Settings page
 - Theme preference now persists across page reloads via localStorage
 - Configurable WebRTC signaling strategies: enable/disable strategies, reorder priority, edit per-strategy relay URLs, and choose between parallel race or sequential fallback connection mode

@@ -103,6 +103,33 @@ bun run package
 - **WebRTC**: [Trystero](https://github.com/dmotz/trystero) (Nostr strategy)
 - **Language**: TypeScript (strict mode)
 
+## Releasing a New Version
+
+1. **Bump the version** in `package.json` and `src/version.ts`
+2. **Update `CHANGELOG.md`**: move entries from `[Unreleased]` into a new `[X.Y.Z] - YYYY-MM-DD` section
+3. **Run checks**:
+   ```bash
+   bun test
+   bun run build
+   ```
+4. **Commit** the version bump:
+   ```bash
+   git add package.json src/version.ts CHANGELOG.md
+   git commit -m "chore: release vX.Y.Z"
+   ```
+5. **Tag** the release:
+   ```bash
+   git tag vX.Y.Z
+   ```
+6. **Push** commit and tag:
+   ```bash
+   git push && git push --tags
+   ```
+7. **(Optional) Create a GitHub Release** from the tag:
+   ```bash
+   gh release create vX.Y.Z --title "vX.Y.Z" --notes-from-tag
+   ```
+
 ## License
 
 [GPL-3.0-or-later](LICENSE)

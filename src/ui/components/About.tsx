@@ -3,6 +3,7 @@ import { signal } from "@preact/signals";
 import { navigate } from "../router";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { t } from "../i18n";
+import { APP_VERSION } from "../../version";
 
 const siteQR = signal<string | null>(null);
 
@@ -39,7 +40,7 @@ export function About() {
         </p>
 
         <div class="about-info">
-          <p><strong>QRShare</strong> v0.1.0</p>
+          <p><strong>QRShare</strong> v{APP_VERSION}</p>
           <p>{t("about.description")}</p>
           <p>{t("about.license")}</p>
           <p>

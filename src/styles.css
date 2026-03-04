@@ -75,6 +75,13 @@ nav {
   font-weight: 700;
 }
 
+.app-version {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+
 .nav-actions {
   display: flex;
   gap: 0.5rem;

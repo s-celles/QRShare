@@ -2,12 +2,19 @@ import type { StrategyName } from "./strategies";
 
 export type ConnectionMode = "parallel" | "sequential";
 
+export interface IceServerConfig {
+  urls: string | string[];
+  username?: string;
+  credential?: string;
+}
+
 export interface RoomConfig {
   appId: string;
   relayRedundancy: number;
   strategies?: StrategyName[];
   relayUrls?: Partial<Record<StrategyName, string[]>>;
   connectionMode?: ConnectionMode;
+  iceServers?: IceServerConfig[];
 }
 
 export interface TransferMetadata {

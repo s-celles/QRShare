@@ -1,12 +1,18 @@
 import { signal, effect } from "@preact/signals";
 import { ALL_STRATEGIES, DEFAULT_RELAY_URLS, getDefaultMqttRelayUrls, type StrategyName } from "./strategies";
-import type { ConnectionMode, RoomConfig } from "./types";
+import type { ConnectionMode, IceServerConfig, RoomConfig } from "./types";
 
 export interface StrategySettings {
   enabledStrategies: StrategyName[];
   relayUrls: Record<StrategyName, string[]>;
   connectionMode: ConnectionMode;
+  iceServers: IceServerConfig[];
 }
+
+export const DEFAULT_ICE_SERVERS: IceServerConfig[] = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+];
 
 export const DEFAULT_STRATEGY_SETTINGS: StrategySettings = {
   enabledStrategies: ["nostr", "torrent", "mqtt"],
@@ -16,6 +22,7 @@ export const DEFAULT_STRATEGY_SETTINGS: StrategySettings = {
     mqtt: DEFAULT_RELAY_URLS.mqtt, // [] at module load; populated lazily
   },
   connectionMode: "parallel",
+  iceServers: DEFAULT_ICE_SERVERS,
 };
 
 /** Load mqtt default relay URLs lazily and patch defaults + current settings. */
@@ -51,6 +58,7 @@ function loadSettings(): StrategySettings {
       },
       connectionMode:
         parsed.connectionMode === "sequential" ? "sequential" : "parallel",
+      iceServers: Array.isArray(parsed.iceServers) ? parsed.iceServers : DEFAULT_ICE_SERVERS,
     };
   } catch {
     return DEFAULT_STRATEGY_SETTINGS;
@@ -76,6 +84,7 @@ export function buildRoomConfig(): RoomConfig {
     strategies: s.enabledStrategies,
     relayUrls: s.relayUrls,
     connectionMode: s.connectionMode,
+    iceServers: s.iceServers,
   };
 }
 
@@ -83,5 +92,6 @@ export function resetStrategySettings(): void {
   strategySettings.value = {
     ...DEFAULT_STRATEGY_SETTINGS,
     relayUrls: { ...DEFAULT_STRATEGY_SETTINGS.relayUrls },
+    iceServers: [...DEFAULT_ICE_SERVERS],
   };
 }

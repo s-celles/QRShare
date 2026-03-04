@@ -241,6 +241,16 @@ export const fr: Record<string, string> = {
   "webrtcSettings.relayUrlsHint.mqtt": "Valeurs par d\u00e9faut de la biblioth\u00e8que Trystero. Modifiez pour utiliser des courtiers MQTT personnalis\u00e9s.",
   "webrtcSettings.moveUp": "D\u00e9placer {strategy} vers le haut",
   "webrtcSettings.moveDown": "D\u00e9placer {strategy} vers le bas",
+  "webrtcSettings.iceServers": "Serveurs ICE (STUN/TURN)",
+  "webrtcSettings.iceServersHint": "Les serveurs STUN aident \u00e0 la travers\u00e9e NAT. Les serveurs TURN relaient le trafic lorsque les connexions P2P directes sont bloqu\u00e9es (ex. WiFi invit\u00e9 avec isolation AP).",
+  "webrtcSettings.stunServers": "Serveurs STUN (un par ligne)",
+  "webrtcSettings.stunPlaceholder": "stun:stun.l.google.com:19302",
+  "webrtcSettings.turnUrl": "URL du serveur TURN",
+  "webrtcSettings.turnUrlPlaceholder": "turn:votre-serveur.com:3478",
+  "webrtcSettings.turnUsername": "Nom d\u2019utilisateur",
+  "webrtcSettings.turnPassword": "Mot de passe",
+  "webrtcSettings.addTurn": "Ajouter un serveur TURN",
+  "webrtcSettings.removeTurn": "Supprimer",
   "webrtcSettings.resetDefaults": "R\u00e9initialiser les valeurs par d\u00e9faut",
 
   // About

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-03-04
+
+### Added
+
+- ICE server configuration (STUN/TURN) in WebRTC settings for networks with AP isolation (e.g. guest WiFi on mesh routers)
+- Default Google STUN servers for NAT traversal
+- TURN server support with URL, username, and credential fields
+- TOML import/export support for ICE server configuration
+
 ## [0.1.1] - 2026-03-04
 
 ### Added

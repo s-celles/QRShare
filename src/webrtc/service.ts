@@ -33,12 +33,38 @@ function generateRoomId(): string {
 
 function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: string): JoinRoomConfig {
   const relayUrls = config.relayUrls?.[adapter.name];
-  return {
+  const joinConfig: JoinRoomConfig = {
     appId: config.appId,
     password: roomId,
     relayRedundancy: config.relayRedundancy,
     relayUrls: relayUrls?.length ? relayUrls : undefined,
   };
+
+  const iceServers = config.iceServers ?? [];
+  if (iceServers.length > 0) {
+    const getUrl = (s: { urls: string | string[] }) =>
+      Array.isArray(s.urls) ? s.urls[0] : s.urls;
+    const stunServers = iceServers.filter((s) => getUrl(s)?.startsWith("stun:"));
+    const turnServers = iceServers.filter((s) => {
+      const u = getUrl(s);
+      return u?.startsWith("turn:") || u?.startsWith("turns:");
+    });
+
+    if (stunServers.length > 0 || turnServers.length > 0) {
+      joinConfig.rtcConfig = {
+        iceServers: stunServers.map((s) => ({ urls: s.urls })),
+      };
+    }
+    if (turnServers.length > 0) {
+      joinConfig.turnConfig = turnServers.map((s) => ({
+        urls: s.urls,
+        username: s.username,
+        credential: s.credential,
+      }));
+    }
+  }
+
+  return joinConfig;
 }
 
 export class WebRTCService {

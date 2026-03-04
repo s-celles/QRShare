@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   DEFAULT_STRATEGY_SETTINGS,
+  DEFAULT_ICE_SERVERS,
   buildRoomConfig,
   resetStrategySettings,
   strategySettings,
@@ -54,6 +55,7 @@ describe("WebRTC settings", () => {
           mqtt: [],
         },
         connectionMode: "sequential",
+        iceServers: DEFAULT_ICE_SERVERS,
       };
       const config = buildRoomConfig();
       expect(config.strategies).toEqual(["torrent"]);
@@ -71,6 +73,7 @@ describe("WebRTC settings", () => {
         enabledStrategies: ["mqtt"],
         relayUrls: { nostr: [], torrent: [], mqtt: ["wss://test"] },
         connectionMode: "sequential",
+        iceServers: DEFAULT_ICE_SERVERS,
       };
       resetStrategySettings();
       expect(strategySettings.value.enabledStrategies).toEqual(

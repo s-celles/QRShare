@@ -9,6 +9,8 @@ export interface JoinRoomConfig {
   password: string;
   relayRedundancy: number;
   relayUrls?: string[];
+  rtcConfig?: { iceServers: Array<{ urls: string | string[] }> };
+  turnConfig?: Array<{ urls: string | string[]; username?: string; credential?: string }>;
 }
 
 export interface StrategyAdapter {

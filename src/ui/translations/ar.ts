@@ -241,6 +241,16 @@ export const ar: Record<string, string> = {
   "webrtcSettings.relayUrlsHint.mqtt": "\u0627\u0644\u0642\u064a\u0645 \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a\u0629 \u0645\u0646 \u0645\u0643\u062a\u0628\u0629 Trystero. \u0639\u062f\u0651\u0644 \u0644\u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0648\u0633\u0637\u0627\u0621 MQTT \u0645\u062e\u0635\u0635\u064a\u0646.",
   "webrtcSettings.moveUp": "نقل {strategy} لأعلى",
   "webrtcSettings.moveDown": "نقل {strategy} لأسفل",
+  "webrtcSettings.iceServers": "خوادم ICE (STUN/TURN)",
+  "webrtcSettings.iceServersHint": "تساعد خوادم STUN في اجتياز NAT. تقوم خوادم TURN بترحيل حركة المرور عندما تكون اتصالات P2P المباشرة محظورة (مثل شبكة WiFi للضيوف مع عزل AP).",
+  "webrtcSettings.stunServers": "خوادم STUN (واحد لكل سطر)",
+  "webrtcSettings.stunPlaceholder": "stun:stun.l.google.com:19302",
+  "webrtcSettings.turnUrl": "عنوان URL لخادم TURN",
+  "webrtcSettings.turnUrlPlaceholder": "turn:your-server.com:3478",
+  "webrtcSettings.turnUsername": "اسم المستخدم",
+  "webrtcSettings.turnPassword": "كلمة المرور",
+  "webrtcSettings.addTurn": "إضافة خادم TURN",
+  "webrtcSettings.removeTurn": "حذف",
   "webrtcSettings.resetDefaults": "إعادة التعيين إلى الافتراضي",
 
   // About

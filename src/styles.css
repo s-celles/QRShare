@@ -697,6 +697,53 @@ section > button:hover {
   opacity: 0.8;
 }
 
+.turn-server-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.turn-credentials {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.turn-remove-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.turn-remove-btn:hover {
+  opacity: 1;
+}
+
+.turn-add-btn {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.turn-add-btn:hover {
+  border-color: var(--accent);
+}
+
 /* About */
 .about-content {
   text-align: center;

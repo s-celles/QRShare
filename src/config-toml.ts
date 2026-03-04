@@ -1,8 +1,9 @@
 import type { Theme } from "./ui/theme";
 import type { LocalePreference } from "./ui/i18n";
 import type { StrategySettings } from "./webrtc/settings";
+import { DEFAULT_ICE_SERVERS } from "./webrtc/settings";
 import type { StrategyName } from "./webrtc/strategies";
-import type { ConnectionMode } from "./webrtc/types";
+import type { ConnectionMode, IceServerConfig } from "./webrtc/types";
 
 export interface AppConfig {
   app: { theme: Theme; language: LocalePreference };
@@ -41,6 +42,36 @@ export function configToToml(config: AppConfig): string {
     }
   }
 
+  if (config.webrtc.iceServers.length > 0) {
+    lines.push("");
+    lines.push("[webrtc.ice]");
+    for (const server of config.webrtc.iceServers) {
+      const url = Array.isArray(server.urls) ? server.urls[0] : server.urls;
+      if (url.startsWith("stun:")) {
+        lines.push(`stun = [${config.webrtc.iceServers
+          .filter((s) => {
+            const u = Array.isArray(s.urls) ? s.urls[0] : s.urls;
+            return u.startsWith("stun:");
+          })
+          .map((s) => quote(Array.isArray(s.urls) ? s.urls[0] : s.urls))
+          .join(", ")}]`);
+        break;
+      }
+    }
+    const turnServers = config.webrtc.iceServers.filter((s) => {
+      const u = Array.isArray(s.urls) ? s.urls[0] : s.urls;
+      return u.startsWith("turn:") || u.startsWith("turns:");
+    });
+    for (const turn of turnServers) {
+      const url = Array.isArray(turn.urls) ? turn.urls[0] : turn.urls;
+      lines.push("");
+      lines.push("[[webrtc.ice.turn]]");
+      lines.push(`urls = ${quote(url)}`);
+      if (turn.username) lines.push(`username = ${quote(turn.username)}`);
+      if (turn.credential) lines.push(`credential = ${quote(turn.credential)}`);
+    }
+  }
+
   lines.push("");
   return lines.join("\n");
 }
@@ -73,14 +104,46 @@ export function tomlToConfig(toml: string): AppConfig {
     mqtt: extractUrls(relays.mqtt),
   };
 
+  const ice = (webrtc.ice ?? {}) as Record<string, unknown>;
+  const iceServers = parseIceServers(ice);
+
   return {
     app: { theme, language },
     webrtc: {
       enabledStrategies: strategies.length > 0 ? strategies : ["nostr", "torrent", "mqtt"],
       relayUrls,
       connectionMode: mode,
+      iceServers,
     },
   };
+}
+
+function parseIceServers(ice: Record<string, unknown>): IceServerConfig[] {
+  const servers: IceServerConfig[] = [];
+
+  // STUN servers: stun = ["stun:...", ...]
+  const stunList = Array.isArray(ice.stun) ? ice.stun : [];
+  for (const url of stunList) {
+    if (typeof url === "string") servers.push({ urls: url });
+  }
+
+  // TURN servers: [[webrtc.ice.turn]] array of tables
+  const turnList = Array.isArray(ice.turn) ? ice.turn : [];
+  for (const turn of turnList) {
+    if (typeof turn === "object" && turn !== null) {
+      const t = turn as Record<string, unknown>;
+      const urls = typeof t.urls === "string" ? t.urls : "";
+      if (urls) {
+        servers.push({
+          urls,
+          ...(typeof t.username === "string" ? { username: t.username } : {}),
+          ...(typeof t.credential === "string" ? { credential: t.credential } : {}),
+        });
+      }
+    }
+  }
+
+  return servers.length > 0 ? servers : DEFAULT_ICE_SERVERS;
 }
 
 function extractUrls(obj: Record<string, unknown> | undefined): string[] {

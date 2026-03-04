@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { configToToml, tomlToConfig, type AppConfig } from "@/config-toml";
+import { DEFAULT_ICE_SERVERS } from "@/webrtc/settings";
 
 const FULL_CONFIG: AppConfig = {
   app: { theme: "dark", language: "fr" },
@@ -11,6 +12,7 @@ const FULL_CONFIG: AppConfig = {
       mqtt: ["wss://test.mosquitto.org:8081/mqtt"],
     },
     connectionMode: "parallel",
+    iceServers: DEFAULT_ICE_SERVERS,
   },
 };
 
@@ -28,6 +30,7 @@ describe("configToToml / tomlToConfig", () => {
         enabledStrategies: ["nostr"],
         relayUrls: { nostr: ["wss://relay.example.com"], torrent: [], mqtt: [] },
         connectionMode: "sequential",
+        iceServers: DEFAULT_ICE_SERVERS,
       },
     };
     const toml = configToToml(config);
@@ -157,6 +160,7 @@ strategies = ["invalid1", "invalid2"]
         enabledStrategies: ["nostr"],
         relayUrls: { nostr: [], torrent: [], mqtt: [] },
         connectionMode: "parallel",
+        iceServers: DEFAULT_ICE_SERVERS,
       },
     };
     const toml = configToToml(config);

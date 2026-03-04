@@ -24,5 +24,6 @@ export function applyConfig(config: AppConfig): void {
       mqtt: [...config.webrtc.relayUrls.mqtt],
     },
     connectionMode: config.webrtc.connectionMode,
+    iceServers: config.webrtc.iceServers.map((s) => ({ ...s })),
   };
 }

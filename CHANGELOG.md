@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-03-04
+
+### Fixed
+
+- TURN server add button not showing new entry in WebRTC settings
+
 ## [0.1.2] - 2026-03-04
 
 ### Added

@@ -124,6 +124,8 @@ export const en: Record<string, string> = {
   "receiver.setupText": "Point your camera at the sender's QR code animation.",
   "receiver.startScanning": "Start Scanning",
   "receiver.startScanningAria": "Start scanning QR codes",
+  "receiver.scanned": "Scanned",
+  "receiver.decoded": "Decoded",
   "receiver.symbols": "Symbols",
   "receiver.file": "File",
   "receiver.speed": "Speed",

@@ -124,6 +124,8 @@ export const ar: Record<string, string> = {
   "receiver.setupText": "وجّه الكاميرا نحو رسوم QR المتحركة للمرسل.",
   "receiver.startScanning": "بدء المسح",
   "receiver.startScanningAria": "بدء مسح رموز QR",
+  "receiver.scanned": "الممسوحة",
+  "receiver.decoded": "المفككة",
   "receiver.symbols": "الرموز",
   "receiver.file": "الملف",
   "receiver.speed": "السرعة",

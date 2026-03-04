@@ -16,6 +16,7 @@ const shareService = new ShareService();
 
 const uniqueSymbols = signal(0);
 const neededSymbols = signal(0);
+const scannedFrames = signal(0);
 const filename = signal("");
 const receivedFileSize = signal(0);
 const receivedSha256 = signal("");
@@ -68,6 +69,7 @@ export function ReceiverView() {
     isComplete.value = false;
     uniqueSymbols.value = 0;
     neededSymbols.value = 0;
+    scannedFrames.value = 0;
     scanStartTime.value = Date.now();
 
     try {
@@ -95,6 +97,7 @@ export function ReceiverView() {
           case "progress":
             uniqueSymbols.value = msg.uniqueSymbols;
             neededSymbols.value = msg.neededSymbols;
+            scannedFrames.value = msg.scannedFrames;
             break;
           case "metadata":
             filename.value = msg.filename;
@@ -255,7 +258,11 @@ export function ReceiverView() {
 
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">{t("receiver.symbols")}</span>
+              <span class="stat-label">{t("receiver.scanned")}</span>
+              <span class="stat-value">{scannedFrames.value}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">{t("receiver.decoded")}</span>
               <span class="stat-value">
                 {uniqueSymbols.value} / {neededSymbols.value || "?"}
               </span>

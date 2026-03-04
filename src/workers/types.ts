@@ -19,7 +19,7 @@ export type DecodeWorkerInput =
 
 // Decode Worker -> Main thread messages
 export type DecodeWorkerOutput =
-  | { type: "progress"; uniqueSymbols: number; neededSymbols: number; metadataHash: string }
+  | { type: "progress"; uniqueSymbols: number; neededSymbols: number; scannedFrames: number; metadataHash: string }
   | { type: "metadata"; filename: string; fileSize: number }
   | { type: "complete"; file: ArrayBuffer; filename: string; sha256: string; verified: boolean }
   | { type: "error"; message: string };

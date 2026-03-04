@@ -121,6 +121,7 @@ async function processFrame(imageData: ImageData): Promise<void> {
           type: "progress",
           uniqueSymbols: status.received,
           neededSymbols: status.needed,
+          scannedFrames: receivedSymbolIds.size,
           metadataHash: metadataHashHex,
         });
       } else if (status.kind === "complete") {

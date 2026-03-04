@@ -1,5 +1,5 @@
 import { signal, effect } from "@preact/signals";
-import { ALL_STRATEGIES, DEFAULT_RELAY_URLS, type StrategyName } from "./strategies";
+import { ALL_STRATEGIES, DEFAULT_RELAY_URLS, getDefaultMqttRelayUrls, type StrategyName } from "./strategies";
 import type { ConnectionMode, RoomConfig } from "./types";
 
 export interface StrategySettings {
@@ -11,12 +11,26 @@ export interface StrategySettings {
 export const DEFAULT_STRATEGY_SETTINGS: StrategySettings = {
   enabledStrategies: ["nostr", "torrent", "mqtt"],
   relayUrls: {
-    nostr: [],
-    torrent: DEFAULT_RELAY_URLS.torrent ?? [],
-    mqtt: [],
+    nostr: DEFAULT_RELAY_URLS.nostr,
+    torrent: DEFAULT_RELAY_URLS.torrent,
+    mqtt: DEFAULT_RELAY_URLS.mqtt, // [] at module load; populated lazily
   },
   connectionMode: "parallel",
 };
+
+/** Load mqtt default relay URLs lazily and patch defaults + current settings. */
+export async function ensureMqttDefaults(): Promise<void> {
+  if (DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt.length > 0) return;
+  const urls = await getDefaultMqttRelayUrls();
+  DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt = urls;
+  // If the user hasn't customized mqtt relays, patch the live signal too
+  if (strategySettings.value.relayUrls.mqtt.length === 0) {
+    strategySettings.value = {
+      ...strategySettings.value,
+      relayUrls: { ...strategySettings.value.relayUrls, mqtt: urls },
+    };
+  }
+}
 
 function loadSettings(): StrategySettings {
   if (typeof localStorage === "undefined") return DEFAULT_STRATEGY_SETTINGS;
@@ -31,9 +45,9 @@ function loadSettings(): StrategySettings {
       enabledStrategies:
         valid.length > 0 ? valid : DEFAULT_STRATEGY_SETTINGS.enabledStrategies,
       relayUrls: {
-        nostr: parsed.relayUrls?.nostr ?? [],
+        nostr: parsed.relayUrls?.nostr ?? DEFAULT_STRATEGY_SETTINGS.relayUrls.nostr,
         torrent: parsed.relayUrls?.torrent ?? DEFAULT_STRATEGY_SETTINGS.relayUrls.torrent,
-        mqtt: parsed.relayUrls?.mqtt ?? [],
+        mqtt: parsed.relayUrls?.mqtt ?? DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt,
       },
       connectionMode:
         parsed.connectionMode === "sequential" ? "sequential" : "parallel",
@@ -66,5 +80,8 @@ export function buildRoomConfig(): RoomConfig {
 }
 
 export function resetStrategySettings(): void {
-  strategySettings.value = { ...DEFAULT_STRATEGY_SETTINGS };
+  strategySettings.value = {
+    ...DEFAULT_STRATEGY_SETTINGS,
+    relayUrls: { ...DEFAULT_STRATEGY_SETTINGS.relayUrls },
+  };
 }

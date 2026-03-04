@@ -1,6 +1,6 @@
 import type { Room } from "trystero";
-import { joinRoom as joinNostr } from "trystero/nostr";
-import { joinRoom as joinTorrent } from "trystero/torrent";
+import { joinRoom as joinNostr, defaultRelayUrls as nostrRelayUrls } from "trystero/nostr";
+import { joinRoom as joinTorrent, defaultRelayUrls as torrentRelayUrls } from "trystero/torrent";
 
 export type StrategyName = "nostr" | "torrent" | "mqtt";
 
@@ -16,13 +16,18 @@ export interface StrategyAdapter {
   joinRoom: (config: JoinRoomConfig, roomId: string) => Room;
 }
 
-export const DEFAULT_RELAY_URLS: Partial<Record<StrategyName, string[]>> = {
-  torrent: [
-    "wss://tracker.webtorrent.dev",
-    "wss://tracker.openwebtorrent.com",
-    "wss://tracker.files.fm:7073/announce",
-  ],
+/** Default relay URLs imported from Trystero at build time. */
+export const DEFAULT_RELAY_URLS: Record<StrategyName, string[]> = {
+  nostr: nostrRelayUrls,
+  torrent: torrentRelayUrls,
+  mqtt: [], // loaded lazily, see getDefaultMqttRelayUrls()
 };
+
+/** Load mqtt default relay URLs on demand (avoids bundling mqtt statically). */
+export async function getDefaultMqttRelayUrls(): Promise<string[]> {
+  const { defaultRelayUrls } = await import("trystero/mqtt");
+  return defaultRelayUrls;
+}
 
 const nostrAdapter: StrategyAdapter = {
   name: "nostr",

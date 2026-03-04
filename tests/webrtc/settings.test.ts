@@ -24,9 +24,14 @@ describe("WebRTC settings", () => {
     expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.torrent[0]).toMatch(/^wss:\/\//);
   });
 
-  it("default settings have empty nostr and mqtt relay URLs", () => {
-    expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.nostr).toEqual([]);
-    expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt).toEqual([]);
+  it("default settings have nostr relay URLs", () => {
+    expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.nostr.length).toBeGreaterThan(0);
+    expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.nostr[0]).toMatch(/^wss:\/\//);
+  });
+
+  it("default settings have mqtt relay URLs entry (lazy-loaded)", () => {
+    expect(DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt).toBeDefined();
+    expect(Array.isArray(DEFAULT_STRATEGY_SETTINGS.relayUrls.mqtt)).toBe(true);
   });
 
   it("buildRoomConfig produces a valid RoomConfig", () => {

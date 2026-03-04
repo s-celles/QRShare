@@ -1,8 +1,10 @@
+import { useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { t } from "../i18n";
 import {
   strategySettings,
   resetStrategySettings,
+  ensureMqttDefaults,
   type StrategySettings,
 } from "@/webrtc/settings";
 import { ALL_STRATEGIES, type StrategyName } from "@/webrtc/strategies";
@@ -17,6 +19,8 @@ function moveStrategy(list: StrategyName[], index: number, direction: -1 | 1): S
 }
 
 export function WebRTCSettings() {
+  useEffect(() => { ensureMqttDefaults(); }, []);
+
   const settings = strategySettings.value;
 
   const updateSettings = (partial: Partial<StrategySettings>) => {
@@ -139,9 +143,7 @@ export function WebRTCSettings() {
                     placeholder={t("webrtcSettings.relayUrlsPlaceholder")}
                   />
                   <p class="settings-hint">
-                    {name === "torrent"
-                      ? t("webrtcSettings.relayUrlsHintTorrent")
-                      : t("webrtcSettings.relayUrlsHintDefault")}
+                    {t(`webrtcSettings.relayUrlsHint.${name}`)}
                   </p>
                 </div>
               )}

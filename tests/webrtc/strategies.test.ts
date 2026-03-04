@@ -45,10 +45,17 @@ describe("WebRTC strategies", () => {
     );
   });
 
-  it("DEFAULT_RELAY_URLS has torrent trackers", () => {
-    expect(DEFAULT_RELAY_URLS.torrent).toBeDefined();
-    expect(DEFAULT_RELAY_URLS.torrent!.length).toBeGreaterThan(0);
-    expect(DEFAULT_RELAY_URLS.torrent![0]).toMatch(/^wss:\/\//);
+  it("DEFAULT_RELAY_URLS has relay URLs for static strategies", () => {
+    for (const name of DEFAULT_STRATEGIES) {
+      expect(DEFAULT_RELAY_URLS[name]).toBeDefined();
+      expect(DEFAULT_RELAY_URLS[name].length).toBeGreaterThan(0);
+      expect(DEFAULT_RELAY_URLS[name][0]).toMatch(/^wss:\/\//);
+    }
+  });
+
+  it("DEFAULT_RELAY_URLS has mqtt entry (lazy-loaded)", () => {
+    expect(DEFAULT_RELAY_URLS.mqtt).toBeDefined();
+    expect(Array.isArray(DEFAULT_RELAY_URLS.mqtt)).toBe(true);
   });
 
   it("adapters do not carry defaultRelayUrls", async () => {

@@ -178,7 +178,7 @@ function IceServersGroup({
   const stunServers = iceServers.filter((s) => getUrl(s).startsWith("stun:"));
   const turnServers = iceServers.filter((s) => {
     const u = getUrl(s);
-    return u.startsWith("turn:") || u.startsWith("turns:");
+    return !u.startsWith("stun:");
   });
 
   const stunText = stunServers.map((s) => getUrl(s)).join("\n");

@@ -124,6 +124,8 @@ export const ar: Record<string, string> = {
   "receiver.startScanningAria": "بدء مسح رموز QR",
   "receiver.symbols": "الرموز",
   "receiver.file": "الملف",
+  "receiver.speed": "السرعة",
+  "receiver.elapsed": "المنقضي",
   "receiver.transferProgress": "تقدم النقل",
   "receiver.stopScanning": "إيقاف المسح",
   "receiver.transferComplete": "اكتمل النقل",

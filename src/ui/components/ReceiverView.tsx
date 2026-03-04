@@ -26,6 +26,7 @@ const error = signal<string | null>(null);
 const downloadUrl = signal<string | null>(null);
 const cameraError = signal<string | null>(null);
 const receivedFiles = signal<ReceivedFile[]>([]);
+const scanStartTime = signal(0);
 
 export function ReceiverView() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -67,6 +68,7 @@ export function ReceiverView() {
     isComplete.value = false;
     uniqueSymbols.value = 0;
     neededSymbols.value = 0;
+    scanStartTime.value = Date.now();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -193,6 +195,21 @@ export function ReceiverView() {
       ? Math.min(100, (uniqueSymbols.value / neededSymbols.value) * 100)
       : 0;
 
+  const elapsedSec = isScanning.value
+    ? (Date.now() - scanStartTime.value) / 1000
+    : 0;
+  const bytesReceived =
+    neededSymbols.value > 0
+      ? (uniqueSymbols.value / neededSymbols.value) * receivedFileSize.value
+      : 0;
+  const speedBytesPerSec = elapsedSec > 0 ? bytesReceived / elapsedSec : 0;
+
+  const formatSpeed = (bps: number): string => {
+    if (bps >= 1024 * 1024) return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
+    if (bps >= 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
+    return `${bps.toFixed(0)} B/s`;
+  };
+
   return (
     <section aria-label={t("receiver.section")}>
       <div class="view-header">
@@ -249,6 +266,16 @@ export function ReceiverView() {
                 <span class="stat-value">{filename.value}</span>
               </div>
             )}
+            {receivedFileSize.value > 0 && (
+              <div class="stat">
+                <span class="stat-label">{t("receiver.speed")}</span>
+                <span class="stat-value">{formatSpeed(speedBytesPerSec)}</span>
+              </div>
+            )}
+            <div class="stat">
+              <span class="stat-label">{t("receiver.elapsed")}</span>
+              <span class="stat-value">{elapsedSec.toFixed(0)}s</span>
+            </div>
           </div>
 
           <div

@@ -124,6 +124,8 @@ export const fr: Record<string, string> = {
   "receiver.startScanningAria": "D\u00e9marrer le scan des QR codes",
   "receiver.symbols": "Symboles",
   "receiver.file": "Fichier",
+  "receiver.speed": "Débit",
+  "receiver.elapsed": "Écoulé",
   "receiver.transferProgress": "Progression du transfert",
   "receiver.stopScanning": "Arr\u00eater le scan",
   "receiver.transferComplete": "Transfert termin\u00e9",

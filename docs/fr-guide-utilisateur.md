@@ -133,7 +133,7 @@ sequenceDiagram
 1. Appuyez sur **Recevoir (QR)**
 2. Appuyez sur **Démarrer le scan**
 3. Pointez la caméra vers le QR code animé de l'appareil émetteur
-4. La barre de progression montre l'avancement du transfert
+4. La barre de progression montre l'avancement du transfert, ainsi que le débit et le temps écoulé
 5. Une fois terminé, le fichier se télécharge automatiquement
 
 ---

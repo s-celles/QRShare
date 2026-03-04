@@ -133,7 +133,7 @@ sequenceDiagram
 1. Tap **Receive (QR)**
 2. Tap **Start Scanning**
 3. Point the camera at the animated QR code on the sending device
-4. The progress bar shows transfer progress
+4. The progress bar shows transfer progress, along with transfer speed and elapsed time
 5. Once complete, the file downloads automatically
 
 ---

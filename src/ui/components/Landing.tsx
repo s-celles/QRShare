@@ -34,7 +34,9 @@ export function Landing() {
       <div class="section-divider" />
 
       <h2>{t("landing.fileTransfer")}</h2>
-      <div class="mode-grid" role="group" aria-label={t("landing.transferGroup")}>
+
+      <h3 class="mode-group-title">{t("landing.shareGroup")}</h3>
+      <div class="mode-grid" role="group" aria-label={t("landing.shareGroup")}>
         <button
           class="mode-btn mode-btn--full"
           onClick={() => navigate("/send/share")}
@@ -46,7 +48,10 @@ export function Landing() {
           <span class="mode-label">{t("landing.sendShareTitle")}</span>
           <span class="mode-desc">{t("landing.sendShareDesc")}</span>
         </button>
+      </div>
 
+      <h3 class="mode-group-title">{t("landing.qrGroup")}</h3>
+      <div class="mode-grid" role="group" aria-label={t("landing.qrGroup")}>
         <button
           class="mode-btn"
           onClick={() => navigate("/send/qr")}
@@ -70,7 +75,10 @@ export function Landing() {
           <span class="mode-label">{t("landing.receiveQRTitle")}</span>
           <span class="mode-desc">{t("landing.receiveQRDesc")}</span>
         </button>
+      </div>
 
+      <h3 class="mode-group-title">{t("landing.webrtcGroup")}</h3>
+      <div class="mode-grid" role="group" aria-label={t("landing.webrtcGroup")}>
         <button
           class="mode-btn"
           onClick={() => navigate("/receive/webrtc")}

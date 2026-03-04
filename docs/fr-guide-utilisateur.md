@@ -182,8 +182,41 @@ En haut de chaque page :
 - Bouton soleil/lune — Basculer entre thème clair et sombre
 - **?** — Guide utilisateur
 - **i** — Page « À propos »
-- Roue dentée — Paramètres (choix de la langue et du thème)
+- Roue dentée — Paramètres (langue, thème, paramètres WebRTC)
 - **← Retour** — Retour à la page d'accueil (présent sur chaque sous-page)
+
+---
+
+## Paramètres WebRTC
+
+Accès via **Paramètres → Paramètres WebRTC** (ou directement à `/#/settings/webrtc`).
+
+### Mode de connexion
+
+- **Parallèle** (par défaut) — Toutes les stratégies activées sont essayées simultanément. La première à établir une connexion gagne. C'est l'approche la plus rapide.
+- **Séquentiel** — Les stratégies sont essayées une par une dans l'ordre configuré. En cas d'échec (timeout de 10 secondes), la suivante est essayée. Utile si vous souhaitez privilégier une stratégie spécifique.
+
+### Stratégies de signalisation
+
+QRShare utilise plusieurs stratégies de signalisation pour aider deux appareils à se trouver pour le transfert WebRTC :
+
+| Stratégie | Protocole | Description |
+|-----------|-----------|-------------|
+| **nostr** | Relais Nostr | Réseau de relais décentralisé |
+| **torrent** | Trackers BitTorrent | Protocole tracker WebTorrent |
+| **mqtt** | Courtiers MQTT | Protocole de messagerie léger |
+
+Pour chaque stratégie vous pouvez :
+
+- **Activer/désactiver** via la case à cocher
+- **Réordonner** avec les flèches haut/bas (l'ordre est important en mode séquentiel)
+- **Modifier les URL des relais** (une par ligne) pour utiliser des serveurs personnalisés
+
+Au moins une stratégie doit rester activée. Laissez les URL des relais vides pour utiliser les valeurs par défaut.
+
+### Réinitialisation
+
+Cliquez sur **Réinitialiser les valeurs par défaut** pour restaurer tous les paramètres WebRTC à leurs valeurs d'origine.
 
 ---
 

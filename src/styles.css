@@ -577,6 +577,108 @@ section > button:hover {
   margin-top: 0.25rem;
 }
 
+.settings-field textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+/* WebRTC Strategy Settings */
+.strategy-item {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.strategy-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.strategy-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.strategy-header label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.strategy-reorder {
+  margin-inline-start: auto;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.strategy-reorder-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  cursor: pointer;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.strategy-reorder-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.strategy-reorder-btn:hover:not(:disabled) {
+  background: var(--bg-surface);
+}
+
+.strategy-relays {
+  margin-top: 0.5rem;
+  padding-inline-start: 1.5rem;
+}
+
+.strategy-relays label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.strategy-relays textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: monospace;
+  font-size: 0.8rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.strategy-reset-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.strategy-reset-btn:hover {
+  opacity: 0.8;
+}
+
 /* About */
 .about-content {
   text-align: center;

@@ -214,6 +214,27 @@ export const ar: Record<string, string> = {
   "settings.languageFr": "(fr) Français",
   "settings.languageAr": "(ar) العربية",
   "settings.languageCurrent": "الحالية: {lang}",
+  "settings.webrtc": "اتصال WebRTC",
+  "settings.webrtcHint": "تكوين استراتيجيات الإشارات وخوادم الترحيل ووضع الاتصال.",
+  "settings.webrtcOpen": "إعدادات WebRTC",
+  "settings.webrtcAria": "فتح إعدادات اتصال WebRTC",
+
+  // WebRTC Settings
+  "webrtcSettings.section": "إعدادات WebRTC",
+  "webrtcSettings.heading": "إعدادات WebRTC",
+  "webrtcSettings.connectionMode": "وضع الاتصال",
+  "webrtcSettings.modeParallel": "متوازي (سباق جميع الاستراتيجيات)",
+  "webrtcSettings.modeParallelHint": "تجربة جميع الاستراتيجيات المفعلة في وقت واحد. أول اتصال ناجح يفوز.",
+  "webrtcSettings.modeSequential": "تسلسلي (احتياطي)",
+  "webrtcSettings.modeSequentialHint": "تجربة الاستراتيجيات بالترتيب. في حالة الفشل، الانتقال إلى التالية.",
+  "webrtcSettings.strategies": "استراتيجيات الإشارات",
+  "webrtcSettings.relayUrls": "عناوين URL للترحيل (واحد لكل سطر)",
+  "webrtcSettings.relayUrlsPlaceholder": "wss://relay.example.com",
+  "webrtcSettings.relayUrlsHintTorrent": "الافتراضي: wss://tracker.webtorrent.dev, wss://tracker.openwebtorrent.com, wss://tracker.files.fm:7073/announce",
+  "webrtcSettings.relayUrlsHintDefault": "اتركه فارغًا لاستخدام القيم الافتراضية.",
+  "webrtcSettings.moveUp": "نقل {strategy} لأعلى",
+  "webrtcSettings.moveDown": "نقل {strategy} لأسفل",
+  "webrtcSettings.resetDefaults": "إعادة التعيين إلى الافتراضي",
 
   // About
   "about.section": "حول QRShare",

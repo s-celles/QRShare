@@ -10,6 +10,7 @@ import { ScannerView } from "./components/ScannerView";
 import { CreatorView } from "./components/CreatorView";
 import { GuideView } from "./components/GuideView";
 import { Settings } from "./components/Settings";
+import { WebRTCSettings } from "./components/WebRTCSettings";
 import { About } from "./components/About";
 import { WebShareSenderView } from "./components/WebShareSenderView";
 
@@ -36,6 +37,8 @@ function RouteView() {
       return <GuideView />;
     case "/settings":
       return <Settings />;
+    case "/settings/webrtc":
+      return <WebRTCSettings />;
     case "/about":
       return <About />;
     default:

@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   DEFAULT_STRATEGIES,
   ALL_STRATEGIES,
+  DEFAULT_RELAY_URLS,
   getAdapter,
   type StrategyName,
 } from "@/webrtc/strategies";
@@ -42,5 +43,16 @@ describe("WebRTC strategies", () => {
     await expect(getAdapter("unknown" as StrategyName)).rejects.toThrow(
       "Unknown strategy: unknown",
     );
+  });
+
+  it("DEFAULT_RELAY_URLS has torrent trackers", () => {
+    expect(DEFAULT_RELAY_URLS.torrent).toBeDefined();
+    expect(DEFAULT_RELAY_URLS.torrent!.length).toBeGreaterThan(0);
+    expect(DEFAULT_RELAY_URLS.torrent![0]).toMatch(/^wss:\/\//);
+  });
+
+  it("adapters do not carry defaultRelayUrls", async () => {
+    const adapter = await getAdapter("torrent");
+    expect((adapter as unknown as Record<string, unknown>).defaultRelayUrls).toBeUndefined();
   });
 });

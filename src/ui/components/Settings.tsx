@@ -53,6 +53,19 @@ export function Settings() {
           <p class="settings-hint">{t("settings.themeCurrent", { theme: effectiveTheme.value })}</p>
         </div>
       </div>
+      <div class="settings-group">
+        <h3>{t("settings.webrtc")}</h3>
+        <div class="settings-field">
+          <p class="settings-hint">{t("settings.webrtcHint")}</p>
+          <button
+            class="start-btn"
+            onClick={() => navigate("/settings/webrtc")}
+            aria-label={t("settings.webrtcAria")}
+          >
+            {t("settings.webrtcOpen")}
+          </button>
+        </div>
+      </div>
     </section>
   );
 }

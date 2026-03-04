@@ -11,6 +11,7 @@ export type Route =
   | "/send/share"
   | "/guide"
   | "/settings"
+  | "/settings/webrtc"
   | "/about";
 
 const VALID_ROUTES: ReadonlySet<string> = new Set([
@@ -24,6 +25,7 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/send/share",
   "/guide",
   "/settings",
+  "/settings/webrtc",
   "/about",
 ]);
 

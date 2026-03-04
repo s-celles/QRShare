@@ -6,6 +6,7 @@ import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
 import { ShareService } from "@/share/service";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
+import { buildRoomConfig } from "@/webrtc/settings";
 import { t } from "../i18n";
 
 const copyRoomIdFeedback = signal(false);
@@ -105,7 +106,7 @@ export function WebRTCReceiverView() {
     try {
       error.value = null;
       console.log("[webrtc-receiver] Creating receiver...");
-      const result = await svc.createReceiver();
+      const result = await svc.createReceiver(buildRoomConfig());
       console.log("[webrtc-receiver] Room created, ID:", result.roomId);
       roomId.value = result.roomId;
       isWaiting.value = true;

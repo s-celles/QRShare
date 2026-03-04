@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { selfId } from "trystero/nostr";
 import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
-import { getAdapter, ALL_STRATEGIES, type StrategyName, type JoinRoomConfig } from "./strategies";
+import { getAdapter, ALL_STRATEGIES, type StrategyName, type StrategyAdapter, type JoinRoomConfig } from "./strategies";
 import {
   type RoomConfig,
   type BatchMetadata,
@@ -14,6 +14,8 @@ import {
   DEFAULT_ROOM_CONFIG,
   ROOM_ID_LENGTH,
 } from "./types";
+
+const STRATEGY_TIMEOUT = 10_000;
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -27,6 +29,16 @@ function generateRoomId(): string {
   return Array.from(values)
     .map((v) => chars[v % chars.length])
     .join("");
+}
+
+function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: string): JoinRoomConfig {
+  const relayUrls = config.relayUrls?.[adapter.name];
+  return {
+    appId: config.appId,
+    password: roomId,
+    relayRedundancy: config.relayRedundancy,
+    relayUrls: relayUrls?.length ? relayUrls : undefined,
+  };
 }
 
 export class WebRTCService {
@@ -54,16 +66,23 @@ export class WebRTCService {
 
     const strategies = config.strategies ?? ALL_STRATEGIES;
     const adapters = await Promise.all(strategies.map(getAdapter));
+    const mode = config.connectionMode ?? "parallel";
 
+    if (mode === "sequential") {
+      return this.createReceiverSequential(roomId, config, adapters);
+    }
+    return this.createReceiverParallel(roomId, config, adapters);
+  }
+
+  private createReceiverParallel(
+    roomId: string,
+    config: RoomConfig,
+    adapters: StrategyAdapter[],
+  ): { roomId: string } {
     const rooms: { strategy: StrategyName; room: Room }[] = [];
     for (const adapter of adapters) {
       try {
-        const joinConfig: JoinRoomConfig = {
-          appId: config.appId,
-          password: roomId,
-          relayRedundancy: config.relayRedundancy,
-          relayUrls: adapter.defaultRelayUrls,
-        };
+        const joinConfig = buildJoinConfig(config, adapter, roomId);
         const room = adapter.joinRoom(joinConfig, roomId);
         rooms.push({ strategy: adapter.name, room });
       } catch (err) {
@@ -111,7 +130,6 @@ export class WebRTCService {
           status: r.strategy === strategy ? "connected" : "cancelled",
         }));
 
-        // Clean up losing rooms
         for (const other of rooms) {
           if (other.strategy !== strategy) {
             other.room.leave();
@@ -119,7 +137,6 @@ export class WebRTCService {
         }
         this.activeRooms = [{ strategy, room }];
 
-        // Set up actions on the winning room
         this.setupReceiverActions(room);
       });
 
@@ -133,6 +150,81 @@ export class WebRTCService {
     }
 
     return { roomId };
+  }
+
+  private async createReceiverSequential(
+    roomId: string,
+    config: RoomConfig,
+    adapters: StrategyAdapter[],
+  ): Promise<{ roomId: string }> {
+    this.strategyAttempts.value = adapters.map((a) => ({
+      strategy: a.name,
+      status: "connecting" as const,
+    }));
+
+    for (let i = 0; i < adapters.length; i++) {
+      const adapter = adapters[i];
+
+      this.strategyAttempts.value = adapters.map((a, j) => ({
+        strategy: a.name,
+        status: j < i ? "failed" : j === i ? "connecting" : ("connecting" as const),
+      }));
+
+      try {
+        const joinConfig = buildJoinConfig(config, adapter, roomId);
+        const room = adapter.joinRoom(joinConfig, roomId);
+        this.activeRooms = [{ strategy: adapter.name, room }];
+
+        console.log("[webrtc] Receiver trying strategy:", adapter.name, "room:", roomId);
+
+        const connected = await new Promise<{ peerId: string } | null>((resolve) => {
+          const timeout = setTimeout(() => {
+            room.leave();
+            resolve(null);
+          }, STRATEGY_TIMEOUT);
+
+          room.onPeerJoin((peerId) => {
+            clearTimeout(timeout);
+            resolve({ peerId });
+          });
+        });
+
+        if (connected) {
+          this.room = room;
+          this.activeStrategy.value = adapter.name;
+          this.remotePeerId = connected.peerId;
+          this.state.value = "confirming";
+          this.deriveConfirmationCode();
+
+          this.strategyAttempts.value = adapters.map((a, j) => ({
+            strategy: a.name,
+            status: j < i ? "failed" : j === i ? "connected" : "cancelled",
+          }));
+
+          room.onPeerLeave((peerId) => {
+            if (this.room === room && this.state.value !== "complete") {
+              console.log("[webrtc] Peer left:", peerId);
+              this.state.value = "error";
+              this.error.value = "Peer disconnected";
+            }
+          });
+
+          this.setupReceiverActions(room);
+          return { roomId };
+        }
+      } catch (err) {
+        console.warn(`[webrtc] Strategy ${adapter.name} failed:`, err);
+      }
+
+      this.strategyAttempts.value = this.strategyAttempts.value.map((a, j) =>
+        j === i ? { ...a, status: "failed" as const } : a,
+      );
+    }
+
+    this.state.value = "error";
+    this.error.value = "All signaling strategies failed to connect.";
+    this.activeRooms = [];
+    throw new Error("All signaling strategies failed");
   }
 
   private setupReceiverActions(room: Room): void {
@@ -198,17 +290,27 @@ export class WebRTCService {
 
     const strategies = config.strategies ?? ALL_STRATEGIES;
     const adapters = await Promise.all(strategies.map(getAdapter));
+    const mode = config.connectionMode ?? "parallel";
 
+    if (mode === "sequential") {
+      return this.connectSequential(roomId, config, adapters);
+    }
+    return this.connectParallel(roomId, config, adapters);
+  }
+
+  private connectParallel(
+    roomId: string,
+    config: RoomConfig,
+    adapters: StrategyAdapter[],
+  ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       let settled = false;
 
       const rooms: { strategy: StrategyName; room: Room }[] = [];
       for (const adapter of adapters) {
         try {
-          const room = adapter.joinRoom(
-            { appId: config.appId, password: roomId, relayRedundancy: config.relayRedundancy },
-            roomId,
-          );
+          const joinConfig = buildJoinConfig(config, adapter, roomId);
+          const room = adapter.joinRoom(joinConfig, roomId);
           rooms.push({ strategy: adapter.name, room });
         } catch (err) {
           console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);
@@ -270,7 +372,6 @@ export class WebRTCService {
             status: r.strategy === strategy ? "connected" : "cancelled",
           }));
 
-          // Clean up losing rooms
           for (const other of rooms) {
             if (other.strategy !== strategy) {
               other.room.leave();
@@ -290,6 +391,85 @@ export class WebRTCService {
         });
       }
     });
+  }
+
+  private async connectSequential(
+    roomId: string,
+    config: RoomConfig,
+    adapters: StrategyAdapter[],
+  ): Promise<void> {
+    this.strategyAttempts.value = adapters.map((a) => ({
+      strategy: a.name,
+      status: "connecting" as const,
+    }));
+
+    for (let i = 0; i < adapters.length; i++) {
+      const adapter = adapters[i];
+
+      this.strategyAttempts.value = adapters.map((a, j) => ({
+        strategy: a.name,
+        status: j < i ? "failed" : j === i ? "connecting" : ("connecting" as const),
+      }));
+
+      try {
+        const joinConfig = buildJoinConfig(config, adapter, roomId);
+        const room = adapter.joinRoom(joinConfig, roomId);
+        this.activeRooms = [{ strategy: adapter.name, room }];
+
+        console.log("[webrtc] Sender trying strategy:", adapter.name, "room:", roomId);
+
+        const connected = await new Promise<{ peerId: string } | null>((resolve) => {
+          const timeout = setTimeout(() => {
+            room.leave();
+            resolve(null);
+          }, STRATEGY_TIMEOUT);
+
+          room.onPeerJoin((peerId) => {
+            clearTimeout(timeout);
+            resolve({ peerId });
+          });
+        });
+
+        if (connected) {
+          this.room = room;
+          this.activeStrategy.value = adapter.name;
+          this.remotePeerId = connected.peerId;
+          this.state.value = "confirming";
+          this.deriveConfirmationCode();
+
+          this.strategyAttempts.value = adapters.map((a, j) => ({
+            strategy: a.name,
+            status: j < i ? "failed" : j === i ? "connected" : "cancelled",
+          }));
+
+          room.onPeerLeave((peerId) => {
+            if (this.room === room && this.state.value !== "complete") {
+              console.log("[webrtc] Peer left:", peerId);
+              this.state.value = "error";
+              this.error.value = "Peer disconnected";
+            }
+          });
+
+          return;
+        }
+      } catch (err) {
+        console.warn(`[webrtc] Strategy ${adapter.name} failed:`, err);
+      }
+
+      this.strategyAttempts.value = this.strategyAttempts.value.map((a, j) =>
+        j === i ? { ...a, status: "failed" as const } : a,
+      );
+    }
+
+    this.activeRooms = [];
+    this.state.value = "error";
+    this.error.value =
+      "Connection timed out. Make sure the receiver is still waiting and try again.";
+    this.strategyAttempts.value = adapters.map((a) => ({
+      strategy: a.name,
+      status: "failed",
+    }));
+    throw new Error("All signaling strategies failed");
   }
 
   private deriveConfirmationCode(): void {

@@ -14,8 +14,15 @@ export interface JoinRoomConfig {
 export interface StrategyAdapter {
   name: StrategyName;
   joinRoom: (config: JoinRoomConfig, roomId: string) => Room;
-  defaultRelayUrls?: string[];
 }
+
+export const DEFAULT_RELAY_URLS: Partial<Record<StrategyName, string[]>> = {
+  torrent: [
+    "wss://tracker.webtorrent.dev",
+    "wss://tracker.openwebtorrent.com",
+    "wss://tracker.files.fm:7073/announce",
+  ],
+};
 
 const nostrAdapter: StrategyAdapter = {
   name: "nostr",
@@ -25,11 +32,6 @@ const nostrAdapter: StrategyAdapter = {
 const torrentAdapter: StrategyAdapter = {
   name: "torrent",
   joinRoom: joinTorrent,
-  defaultRelayUrls: [
-    "wss://tracker.webtorrent.dev",
-    "wss://tracker.openwebtorrent.com",
-    "wss://tracker.files.fm:7073/announce",
-  ],
 };
 
 const STATIC_STRATEGIES: Record<string, StrategyAdapter> = {

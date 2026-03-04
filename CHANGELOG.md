@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Configurable WebRTC signaling strategies: enable/disable strategies, reorder priority, edit per-strategy relay URLs, and choose between parallel race or sequential fallback connection mode
+- WebRTC Settings page (`/#/settings/webrtc`) with connection mode selector, strategy toggles with reorder buttons, and per-strategy relay URL editor
+- Settings link from main Settings page to WebRTC Settings
 - Multi-strategy signaling fallback for WebRTC peer discovery: parallel race across Nostr relays, BitTorrent trackers, and MQTT brokers
 - Strategy adapter layer (`src/webrtc/strategies.ts`) with static imports for Nostr/Torrent and dynamic import for MQTT
 - UI displays active signaling strategies during connection and which strategy succeeded

@@ -2,6 +2,8 @@ import { describe, expect, it } from "bun:test";
 import {
   DEFAULT_ROOM_CONFIG,
   ROOM_ID_LENGTH,
+  type RoomConfig,
+  type ConnectionMode,
   type BatchMetadata,
   type MultiFileProgress,
   type StrategyAttemptStatus,
@@ -34,6 +36,31 @@ describe("WebRTC types", () => {
     };
     expect(attempt.strategy).toBe("nostr");
     expect(attempt.status).toBe("connecting");
+  });
+
+  it("RoomConfig supports optional relayUrls", () => {
+    const config: RoomConfig = {
+      appId: "test",
+      relayRedundancy: 1,
+      relayUrls: { torrent: ["wss://example.com"] },
+    };
+    expect(config.relayUrls?.torrent).toEqual(["wss://example.com"]);
+  });
+
+  it("RoomConfig supports connectionMode", () => {
+    const config: RoomConfig = {
+      appId: "test",
+      relayRedundancy: 1,
+      connectionMode: "sequential",
+    };
+    expect(config.connectionMode).toBe("sequential");
+  });
+
+  it("ConnectionMode type accepts valid values", () => {
+    const parallel: ConnectionMode = "parallel";
+    const sequential: ConnectionMode = "sequential";
+    expect(parallel).toBe("parallel");
+    expect(sequential).toBe("sequential");
   });
 
   it("MultiFileProgress has correct shape", () => {

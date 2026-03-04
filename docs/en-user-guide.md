@@ -181,8 +181,41 @@ At the top of every page:
 - **QRShare** (left) — Return to the home page
 - Sun/moon button — Toggle between light and dark theme
 - **i** — About page
-- Gear icon — Settings (theme selection)
+- Gear icon — Settings (theme, language, WebRTC settings)
 - **← Back** — Return to the home page (present on every sub-page)
+
+---
+
+## WebRTC Settings
+
+Access via **Settings → WebRTC Settings** (or directly at `/#/settings/webrtc`).
+
+### Connection Mode
+
+- **Parallel** (default) — All enabled strategies are tried simultaneously. The first to establish a connection wins. This is the fastest approach.
+- **Sequential** — Strategies are tried one by one in the configured order. If one fails (10-second timeout), the next is tried. This is useful if you want to prefer a specific strategy.
+
+### Signaling Strategies
+
+QRShare uses multiple signaling strategies to help two devices find each other for WebRTC file transfer:
+
+| Strategy | Protocol | Description |
+|----------|----------|-------------|
+| **nostr** | Nostr relays | Decentralized relay network |
+| **torrent** | BitTorrent trackers | WebTorrent tracker protocol |
+| **mqtt** | MQTT brokers | Lightweight messaging protocol |
+
+For each strategy you can:
+
+- **Enable/disable** it using the checkbox
+- **Reorder** it using the up/down arrows (order matters in sequential mode)
+- **Edit relay URLs** (one per line) to use custom servers
+
+At least one strategy must remain enabled. Leave relay URLs empty to use library defaults.
+
+### Reset
+
+Click **Reset to Defaults** to restore all WebRTC settings to their original values.
 
 ---
 

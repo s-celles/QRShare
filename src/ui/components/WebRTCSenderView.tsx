@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
 import { pendingFile } from "../shared-file";
+import { buildRoomConfig } from "@/webrtc/settings";
 import { t } from "../i18n";
 
 const progress = signal<TransferProgress | null>(null);
@@ -123,7 +124,7 @@ export function WebRTCSenderView() {
       error.value = null;
       isConnecting.value = true;
       console.log("[webrtc-sender] Connecting to room:", id.trim());
-      await svc.connectToRoom(id.trim());
+      await svc.connectToRoom(id.trim(), buildRoomConfig());
       console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
       isConnected.value = true;
     } catch (err) {

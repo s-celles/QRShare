@@ -214,6 +214,27 @@ export const en: Record<string, string> = {
   "settings.languageFr": "(fr) Fran\u00e7ais",
   "settings.languageAr": "(ar) \u0627\u0644\u0639\u0631\u0628\u064a\u0629",
   "settings.languageCurrent": "Current: {lang}",
+  "settings.webrtc": "WebRTC Connection",
+  "settings.webrtcHint": "Configure signaling strategies, relay servers, and connection mode.",
+  "settings.webrtcOpen": "WebRTC Settings",
+  "settings.webrtcAria": "Open WebRTC connection settings",
+
+  // WebRTC Settings
+  "webrtcSettings.section": "WebRTC Settings",
+  "webrtcSettings.heading": "WebRTC Settings",
+  "webrtcSettings.connectionMode": "Connection Mode",
+  "webrtcSettings.modeParallel": "Parallel (race all strategies)",
+  "webrtcSettings.modeParallelHint": "Try all enabled strategies simultaneously. The first to connect wins.",
+  "webrtcSettings.modeSequential": "Sequential (fallback)",
+  "webrtcSettings.modeSequentialHint": "Try strategies in order. If one fails, fall back to the next.",
+  "webrtcSettings.strategies": "Signaling Strategies",
+  "webrtcSettings.relayUrls": "Relay URLs (one per line)",
+  "webrtcSettings.relayUrlsPlaceholder": "wss://relay.example.com",
+  "webrtcSettings.relayUrlsHintTorrent": "Default: wss://tracker.webtorrent.dev, wss://tracker.openwebtorrent.com, wss://tracker.files.fm:7073/announce",
+  "webrtcSettings.relayUrlsHintDefault": "Leave empty to use library defaults.",
+  "webrtcSettings.moveUp": "Move {strategy} up",
+  "webrtcSettings.moveDown": "Move {strategy} down",
+  "webrtcSettings.resetDefaults": "Reset to Defaults",
 
   // About
   "about.section": "About QRShare",

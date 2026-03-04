@@ -1,9 +1,13 @@
 import type { StrategyName } from "./strategies";
 
+export type ConnectionMode = "parallel" | "sequential";
+
 export interface RoomConfig {
   appId: string;
   relayRedundancy: number;
   strategies?: StrategyName[];
+  relayUrls?: Partial<Record<StrategyName, string[]>>;
+  connectionMode?: ConnectionMode;
 }
 
 export interface TransferMetadata {

@@ -214,6 +214,27 @@ export const fr: Record<string, string> = {
   "settings.languageFr": "(fr) Fran\u00e7ais",
   "settings.languageAr": "(ar) \u0627\u0644\u0639\u0631\u0628\u064a\u0629",
   "settings.languageCurrent": "Actuelle : {lang}",
+  "settings.webrtc": "Connexion WebRTC",
+  "settings.webrtcHint": "Configurer les strat\u00e9gies de signalisation, les serveurs relais et le mode de connexion.",
+  "settings.webrtcOpen": "Param\u00e8tres WebRTC",
+  "settings.webrtcAria": "Ouvrir les param\u00e8tres de connexion WebRTC",
+
+  // WebRTC Settings
+  "webrtcSettings.section": "Param\u00e8tres WebRTC",
+  "webrtcSettings.heading": "Param\u00e8tres WebRTC",
+  "webrtcSettings.connectionMode": "Mode de connexion",
+  "webrtcSettings.modeParallel": "Parall\u00e8le (toutes les strat\u00e9gies en course)",
+  "webrtcSettings.modeParallelHint": "Essayer toutes les strat\u00e9gies activ\u00e9es simultan\u00e9ment. La premi\u00e8re \u00e0 se connecter gagne.",
+  "webrtcSettings.modeSequential": "S\u00e9quentiel (repli)",
+  "webrtcSettings.modeSequentialHint": "Essayer les strat\u00e9gies dans l\u2019ordre. En cas d\u2019\u00e9chec, passer \u00e0 la suivante.",
+  "webrtcSettings.strategies": "Strat\u00e9gies de signalisation",
+  "webrtcSettings.relayUrls": "URL des relais (une par ligne)",
+  "webrtcSettings.relayUrlsPlaceholder": "wss://relai.exemple.com",
+  "webrtcSettings.relayUrlsHintTorrent": "Par d\u00e9faut : wss://tracker.webtorrent.dev, wss://tracker.openwebtorrent.com, wss://tracker.files.fm:7073/announce",
+  "webrtcSettings.relayUrlsHintDefault": "Laisser vide pour utiliser les valeurs par d\u00e9faut.",
+  "webrtcSettings.moveUp": "D\u00e9placer {strategy} vers le haut",
+  "webrtcSettings.moveDown": "D\u00e9placer {strategy} vers le bas",
+  "webrtcSettings.resetDefaults": "R\u00e9initialiser les valeurs par d\u00e9faut",
 
   // About
   "about.section": "\u00c0 propos de QRShare",

@@ -236,6 +236,22 @@ export function SenderView() {
               <option value="high_reliability">{t("sender.presetHighReliability")}</option>
             </select>
           </div>
+
+          <div class="fps-control">
+            <label htmlFor="blocksize-slider">
+              {t("sender.blockSize", { size: blockSizeValue.value })}
+            </label>
+            <input
+              id="blocksize-slider"
+              type="range"
+              min="50"
+              max="1000"
+              step="10"
+              value={blockSizeValue.value}
+              onInput={(e) => { blockSizeValue.value = Number((e.target as HTMLInputElement).value); }}
+              aria-label={t("sender.adjustBlockSize")}
+            />
+          </div>
         </div>
       )}
 
@@ -296,23 +312,6 @@ export function SenderView() {
               value={fps.value}
               onInput={handleFpsChange}
               aria-label={t("sender.adjustFrameRate")}
-            />
-          </div>
-
-          <div class="fps-control">
-            <label htmlFor="blocksize-slider">
-              {t("sender.blockSize", { size: blockSizeValue.value })}
-            </label>
-            <input
-              id="blocksize-slider"
-              type="range"
-              min="50"
-              max="1000"
-              step="10"
-              value={blockSizeValue.value}
-              onInput={(e) => { blockSizeValue.value = Number((e.target as HTMLInputElement).value); }}
-              aria-label={t("sender.adjustBlockSize")}
-              disabled={isEncoding.value}
             />
           </div>
 

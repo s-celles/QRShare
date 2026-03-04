@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { hashSha256, truncatedHash } from "@/crypto/hash";
 import { compress, decompress } from "@/compression/compression";
-import { serializeFrame, serializeMetadataFrame, parseFrame, PROTOCOL_VERSION, HEADER_SIZE, type Frame, type MetadataFrame } from "@/protocol/frame";
+import { serializeFrame, parseFrame, getFrameOverhead, PROTOCOL_VERSION, type Frame } from "@/protocol/frame";
 import { LTFountainEncoder, LTFountainDecoder } from "@/codec/lt-adapter";
 import { getMaxPayloadBytes } from "@/qr/renderer";
 
@@ -26,31 +26,16 @@ describe("E2E roundtrip pipeline", () => {
     // 3. Fountain encode
     const preset = "balanced" as const;
     const maxPayload = getMaxPayloadBytes(preset);
-    const blockSize = maxPayload - HEADER_SIZE;
+    const filenameBytes = new TextEncoder().encode(filename);
+    const overhead = getFrameOverhead(filenameBytes.length);
+    const blockSize = maxPayload - overhead;
 
     const encoder = new LTFountainEncoder();
     encoder.init(compressed.data, blockSize);
     const K = encoder.getSourceBlockCount();
 
-    // 4. Create metadata frame
-    const metaFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: metaHash,
-      sourceBlockCount: K,
-      blockSize,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
-      symbolId: 0,
-      payload: new Uint8Array([]),
-      filename,
-      fileSize: originalData.length,
-      sha256,
-    };
-    const metadataBytes = serializeMetadataFrame(metaFrame);
-
-    // 5. Generate data frames (symbolId starts at 1)
-    const allFrameBytes: Uint8Array[] = [metadataBytes];
+    // 4. Generate data frames (every frame embeds metadata, v3 protocol)
+    const allFrameBytes: Uint8Array[] = [];
     for (let id = 0; id < K * 3; id++) {
       const symbol = encoder.encode(id);
       const frame: Frame = {
@@ -62,19 +47,20 @@ describe("E2E roundtrip pipeline", () => {
         compressedSize: compressed.data.length,
         compressionId: compressed.algorithm,
         symbolId: id + 1,
+        filename,
+        fileSize: originalData.length,
+        sha256,
         payload: symbol,
       };
       allFrameBytes.push(serializeFrame(frame));
     }
 
-    // 6. Verify each frame fits within QR max payload
+    // 5. Verify each frame fits within QR max payload
     for (const frameBytes of allFrameBytes) {
       expect(frameBytes.length).toBeLessThanOrEqual(maxPayload);
     }
 
     // === RECEIVER PIPELINE ===
-    // Simulate receiving frames by parsing them back (QR scan would produce the same bytes)
-
     let recvFilename = "";
     let recvFileSize = 0;
     let recvSha256 = new Uint8Array(0);
@@ -84,33 +70,27 @@ describe("E2E roundtrip pipeline", () => {
     let decodedData: Uint8Array | null = null;
     let recvCompressionId: 0x00 | 0x01 = 0x00;
 
-    // Both encoder and decoder use baseSeed=0, no manual seed needed.
-
     for (const frameBytes of allFrameBytes) {
       const parsed = parseFrame(frameBytes);
 
-      // Initialize decoder from the first frame (any kind — like CAScad)
-      if (!decoderInitialized && (parsed.kind === "metadata" || parsed.kind === "data")) {
+      if (parsed.kind !== "data") continue;
+
+      // Extract metadata from first frame (v3: every frame has it)
+      if (!decoderInitialized) {
         const frame = parsed.frame;
         decoder.init(frame.compressedSize, frame.blockSize);
         recvCompressionId = frame.compressionId;
+        recvFilename = frame.filename;
+        recvFileSize = frame.fileSize;
+        recvSha256 = new Uint8Array(frame.sha256);
         decoderInitialized = true;
       }
 
-      if (parsed.kind === "metadata") {
-        recvFilename = parsed.frame.filename;
-        recvFileSize = parsed.frame.fileSize;
-        recvSha256 = new Uint8Array(parsed.frame.sha256);
-        continue;
-      }
-
-      if (parsed.kind === "data" && decoderInitialized) {
-        const blockId = parsed.frame.symbolId - 1; // convert back
-        const status = decoder.addSymbol(blockId, parsed.frame.payload);
-        if (status.kind === "complete") {
-          decodedData = decoder.recover();
-          break;
-        }
+      const blockId = parsed.frame.symbolId - 1; // convert back
+      const status = decoder.addSymbol(blockId, parsed.frame.payload);
+      if (status.kind === "complete") {
+        decodedData = decoder.recover();
+        break;
       }
     }
 
@@ -118,14 +98,14 @@ describe("E2E roundtrip pipeline", () => {
     expect(recvFilename).toBe("test.txt");
     expect(recvFileSize).toBe(originalData.length);
 
-    // 7. Decompress
+    // 6. Decompress
     const decompressed = decompress(decodedData!, recvCompressionId);
 
-    // 8. Verify SHA-256
+    // 7. Verify SHA-256
     const recvHash = await hashSha256(decompressed);
     expect(toHex(recvHash)).toBe(toHex(recvSha256));
 
-    // 9. Verify byte-identical
+    // 8. Verify byte-identical
     expect(decompressed).toEqual(originalData);
 
     encoder.free();
@@ -147,35 +127,11 @@ describe("E2E roundtrip pipeline", () => {
     encoder.init(compressed.data, blockSize);
     const K = encoder.getSourceBlockCount();
 
-    const metaFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: metaHash,
-      sourceBlockCount: K,
-      blockSize,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
-      symbolId: 0,
-      payload: new Uint8Array([]),
-      filename,
-      fileSize: originalData.length,
-      sha256,
-    };
-
-    const metadataBytes = serializeMetadataFrame(metaFrame);
-
     const decoder = new LTFountainDecoder();
 
-    // Parse metadata — decoder can also init from data frames now
-    const metaParsed = parseFrame(metadataBytes);
-    expect(metaParsed.kind).toBe("metadata");
-    if (metaParsed.kind === "metadata") {
-      // Both encoder and decoder use baseSeed=0, no manual seed needed.
-      decoder.init(metaParsed.frame.compressedSize, metaParsed.frame.blockSize);
-    }
-
-    // Feed symbols
+    // Feed frames — every frame has metadata (v3)
     let decodedData: Uint8Array | null = null;
+    let decoderInitialized = false;
     for (let id = 0; id < K * 5; id++) {
       const symbol = encoder.encode(id);
       const frame: Frame = {
@@ -187,11 +143,18 @@ describe("E2E roundtrip pipeline", () => {
         compressedSize: compressed.data.length,
         compressionId: compressed.algorithm,
         symbolId: id + 1,
+        filename,
+        fileSize: originalData.length,
+        sha256,
         payload: symbol,
       };
       const serialized = serializeFrame(frame);
       const parsed = parseFrame(serialized);
       if (parsed.kind === "data") {
+        if (!decoderInitialized) {
+          decoder.init(parsed.frame.compressedSize, parsed.frame.blockSize);
+          decoderInitialized = true;
+        }
         const blockId = parsed.frame.symbolId - 1;
         const status = decoder.addSymbol(blockId, parsed.frame.payload);
         if (status.kind === "complete") {

@@ -1,11 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
   serializeFrame,
-  serializeMetadataFrame,
   parseFrame,
   PROTOCOL_VERSION,
   type Frame,
-  type MetadataFrame,
 } from "@/protocol/frame";
 import { compress, decompress } from "@/compression/compression";
 
@@ -20,6 +18,9 @@ describe("Frame Protocol extended tests", () => {
       compressedSize: 64,
       compressionId: 0x00,
       symbolId: 1,
+      filename: "empty.bin",
+      fileSize: 64,
+      sha256: new Uint8Array(32),
       payload: new Uint8Array(0),
     };
     const serialized = serializeFrame(frame);
@@ -27,6 +28,7 @@ describe("Frame Protocol extended tests", () => {
     expect(result.kind).toBe("data");
     if (result.kind === "data") {
       expect(result.frame.payload.length).toBe(0);
+      expect(result.frame.filename).toBe("empty.bin");
     }
   });
 
@@ -40,6 +42,9 @@ describe("Frame Protocol extended tests", () => {
       compressedSize: 256000,
       compressionId: 0x01,
       symbolId: 0xFFFFFFFF, // max uint32
+      filename: "large-id.bin",
+      fileSize: 300000,
+      sha256: new Uint8Array(32).fill(0x42),
       payload: new Uint8Array([42]),
     };
     const serialized = serializeFrame(frame);
@@ -50,8 +55,8 @@ describe("Frame Protocol extended tests", () => {
     }
   });
 
-  it("metadata frame with no-compression algorithm (0x00)", () => {
-    const metadataFrame: MetadataFrame = {
+  it("frame with no-compression algorithm (0x00)", () => {
+    const frame: Frame = {
       version: PROTOCOL_VERSION,
       flags: 0x00,
       metadataHash: new Uint8Array([0x11, 0x22, 0x33, 0x44]),
@@ -59,18 +64,19 @@ describe("Frame Protocol extended tests", () => {
       blockSize: 128,
       compressedSize: 5000,
       compressionId: 0x00,
-      symbolId: 0,
-      payload: new Uint8Array([]),
+      symbolId: 1,
       filename: "data.bin",
       fileSize: 5000,
       sha256: new Uint8Array(32).fill(0xFF),
+      payload: new Uint8Array([1, 2, 3]),
     };
-    const serialized = serializeMetadataFrame(metadataFrame);
+    const serialized = serializeFrame(frame);
     const result = parseFrame(serialized);
-    expect(result.kind).toBe("metadata");
-    if (result.kind === "metadata") {
+    expect(result.kind).toBe("data");
+    if (result.kind === "data") {
       expect(result.frame.compressionId).toBe(0x00);
       expect(result.frame.compressedSize).toBe(5000);
+      expect(result.frame.filename).toBe("data.bin");
     }
   });
 
@@ -84,6 +90,9 @@ describe("Frame Protocol extended tests", () => {
       compressedSize: 9999,
       compressionId: 0x01,
       symbolId: 5,
+      filename: "test.bin",
+      fileSize: 10000,
+      sha256: new Uint8Array(32).fill(0xDD),
       payload: new Uint8Array([1, 2, 3]),
     };
     const serialized = serializeFrame(frame);

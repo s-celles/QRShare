@@ -1,12 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import {
   serializeFrame,
-  serializeMetadataFrame,
   parseFrame,
+  getFrameOverhead,
   PROTOCOL_VERSION,
-  HEADER_SIZE,
+  BASE_HEADER_SIZE,
   type Frame,
-  type MetadataFrame,
 } from "@/protocol/frame";
 
 describe("FrameProtocol", () => {
@@ -19,11 +18,14 @@ describe("FrameProtocol", () => {
     compressedSize: 50000,
     compressionId: 0x01,
     symbolId: 42,
+    filename: "sample.bin",
+    fileSize: 60000,
+    sha256: new Uint8Array(32).fill(0xCC),
     payload: new Uint8Array([1, 2, 3, 4, 5]),
   };
 
   describe("serializeFrame / parseFrame roundtrip", () => {
-    it("roundtrips a data frame", () => {
+    it("roundtrips a data frame with embedded metadata", () => {
       const serialized = serializeFrame(sampleFrame);
       const result = parseFrame(serialized);
       expect(result.kind).toBe("data");
@@ -36,13 +38,18 @@ describe("FrameProtocol", () => {
         expect(result.frame.compressedSize).toBe(50000);
         expect(result.frame.compressionId).toBe(0x01);
         expect(result.frame.symbolId).toBe(42);
+        expect(result.frame.filename).toBe("sample.bin");
+        expect(result.frame.fileSize).toBe(60000);
+        expect(result.frame.sha256).toEqual(new Uint8Array(32).fill(0xCC));
         expect(result.frame.payload).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
       }
     });
 
     it("serializes to expected binary size", () => {
       const serialized = serializeFrame(sampleFrame);
-      expect(serialized.length).toBe(HEADER_SIZE + sampleFrame.payload.length);
+      const filenameLen = new TextEncoder().encode(sampleFrame.filename).length;
+      const expectedSize = getFrameOverhead(filenameLen) + sampleFrame.payload.length;
+      expect(serialized.length).toBe(expectedSize);
     });
 
     it("uses little-endian for multi-byte fields", () => {
@@ -55,6 +62,9 @@ describe("FrameProtocol", () => {
         compressedSize: 0x05060708,
         compressionId: 0x00,
         symbolId: 0x090A0B0C,
+        filename: "",
+        fileSize: 0,
+        sha256: new Uint8Array(32),
         payload: new Uint8Array([]),
       };
       const serialized = serializeFrame(frame);
@@ -79,45 +89,45 @@ describe("FrameProtocol", () => {
     });
   });
 
-  describe("metadata frame", () => {
-    const metadataFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: new Uint8Array([0x11, 0x22, 0x33, 0x44]),
-      sourceBlockCount: 50,
-      blockSize: 512,
-      compressedSize: 10000,
-      compressionId: 0x01,
-      symbolId: 0,
-      payload: new Uint8Array([]),
-      filename: "test.txt",
-      fileSize: 12345,
-      sha256: new Uint8Array(32).fill(0xAB),
-    };
-
-    it("roundtrips a metadata frame", () => {
-      const serialized = serializeMetadataFrame(metadataFrame);
+  describe("metadata embedded in frame", () => {
+    it("roundtrips a frame with metadata fields", () => {
+      const frame: Frame = {
+        version: PROTOCOL_VERSION,
+        flags: 0x00,
+        metadataHash: new Uint8Array([0x11, 0x22, 0x33, 0x44]),
+        sourceBlockCount: 50,
+        blockSize: 512,
+        compressedSize: 10000,
+        compressionId: 0x01,
+        symbolId: 1,
+        filename: "test.txt",
+        fileSize: 12345,
+        sha256: new Uint8Array(32).fill(0xAB),
+        payload: new Uint8Array([10, 20, 30]),
+      };
+      const serialized = serializeFrame(frame);
       const result = parseFrame(serialized);
-      expect(result.kind).toBe("metadata");
-      if (result.kind === "metadata") {
+      expect(result.kind).toBe("data");
+      if (result.kind === "data") {
         expect(result.frame.filename).toBe("test.txt");
         expect(result.frame.fileSize).toBe(12345);
         expect(result.frame.compressedSize).toBe(10000);
         expect(result.frame.compressionId).toBe(0x01);
         expect(result.frame.sha256).toEqual(new Uint8Array(32).fill(0xAB));
-        expect(result.frame.symbolId).toBe(0);
+        expect(result.frame.symbolId).toBe(1);
+        expect(result.frame.payload).toEqual(new Uint8Array([10, 20, 30]));
       }
     });
 
     it("handles unicode filenames", () => {
-      const frame: MetadataFrame = {
-        ...metadataFrame,
+      const frame: Frame = {
+        ...sampleFrame,
         filename: "日本語ファイル.pdf",
       };
-      const serialized = serializeMetadataFrame(frame);
+      const serialized = serializeFrame(frame);
       const result = parseFrame(serialized);
-      expect(result.kind).toBe("metadata");
-      if (result.kind === "metadata") {
+      expect(result.kind).toBe("data");
+      if (result.kind === "data") {
         expect(result.frame.filename).toBe("日本語ファイル.pdf");
       }
     });
@@ -142,11 +152,11 @@ describe("FrameProtocol", () => {
     });
   });
 
-  it("PROTOCOL_VERSION is 0x02", () => {
-    expect(PROTOCOL_VERSION).toBe(0x02);
+  it("PROTOCOL_VERSION is 0x03", () => {
+    expect(PROTOCOL_VERSION).toBe(0x03);
   });
 
-  it("HEADER_SIZE is 19 bytes", () => {
-    expect(HEADER_SIZE).toBe(19);
+  it("BASE_HEADER_SIZE is 19 bytes", () => {
+    expect(BASE_HEADER_SIZE).toBe(19);
   });
 });

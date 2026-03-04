@@ -112,6 +112,8 @@ export const en: Record<string, string> = {
   "sender.elapsed": "Elapsed",
   "sender.frameRate": "Frame Rate: {fps} FPS",
   "sender.adjustFrameRate": "Adjust frame rate",
+  "sender.blockSize": "Block Size: {size} B",
+  "sender.adjustBlockSize": "Adjust block size",
   "sender.stopEncoding": "Stop encoding",
   "sender.fileTooLarge": "File too large ({size} MB). Maximum is 50 MB.",
   "sender.totalTooLarge": "Total size too large ({size} MB). Maximum is 50 MB.",

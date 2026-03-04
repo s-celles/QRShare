@@ -112,6 +112,8 @@ export const ar: Record<string, string> = {
   "sender.elapsed": "المنقضي",
   "sender.frameRate": "معدل الإطارات: {fps} إطار/ثانية",
   "sender.adjustFrameRate": "ضبط معدل الإطارات",
+  "sender.blockSize": "حجم الكتلة: {size} بايت",
+  "sender.adjustBlockSize": "ضبط حجم الكتلة",
   "sender.stopEncoding": "إيقاف الترميز",
   "sender.fileTooLarge": "الملف كبير جدًا ({size} ميغابايت). الحد الأقصى 50 ميغابايت.",
   "sender.totalTooLarge": "الحجم الإجمالي كبير جدًا ({size} ميغابايت). الحد الأقصى 50 ميغابايت.",

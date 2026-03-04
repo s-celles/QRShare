@@ -3,18 +3,16 @@ import { compress } from "@/compression/compression";
 import { LTCodecFactory } from "@/codec/lt-adapter";
 import {
   serializeFrame,
-  serializeMetadataFrame,
+  getFrameOverhead,
   PROTOCOL_VERSION,
-  HEADER_SIZE,
   type Frame,
-  type MetadataFrame,
 } from "@/protocol/frame";
 import { getMaxPayloadBytes, getPresetConfig } from "@/qr/renderer";
 import type { EncodingPreset } from "@/qr/renderer";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "./types";
 
 let running = false;
-let currentFps = 12;
+let currentFps = 2;
 
 function post(msg: EncodeWorkerOutput): void {
   self.postMessage(msg);
@@ -30,6 +28,7 @@ async function startEncoding(
   file: ArrayBuffer,
   filename: string,
   preset: EncodingPreset,
+  userBlockSize: number,
 ): Promise<void> {
   running = true;
 
@@ -45,23 +44,23 @@ async function startEncoding(
     const compressed = compress(fileData);
     console.log("[encode-worker] Compressed:", fileData.length, "->", compressed.data.length, "bytes");
 
-    // Step 3: Init fountain encoder
-    // Always use LT codec for QR transfers to ensure cross-device compatibility.
-    // Wirehair (WASM) may not be available on all devices, causing codec mismatch.
-    const factory = new LTCodecFactory();
-    const encoder = await factory.createEncoder();
-
+    // Step 3: Compute block size
     const maxPayload = getMaxPayloadBytes(preset);
-    // Reserve header bytes from max payload
-    let blockSize = Math.max(1, maxPayload - HEADER_SIZE);
+    const filenameBytes = new TextEncoder().encode(filename);
+    const overhead = getFrameOverhead(filenameBytes.length);
+    const maxBlockSize = Math.max(1, maxPayload - overhead);
+    let blockSize = Math.min(userBlockSize, maxBlockSize);
 
-    // Wirehair requires at least 2 source blocks (k >= 2).
-    // For small payloads, reduce blockSize to ensure this.
+    // Wirehair/LT requires at least 2 source blocks (k >= 2).
     const dataLen = compressed.data.length;
     if (dataLen > 0 && dataLen < blockSize * 2) {
       blockSize = Math.max(1, Math.floor(dataLen / 2));
     }
 
+    // Step 4: Init fountain encoder
+    // Always use LT codec for QR transfers to ensure cross-device compatibility.
+    const factory = new LTCodecFactory();
+    const encoder = await factory.createEncoder();
     encoder.init(compressed.data, blockSize);
     const k = encoder.getSourceBlockCount();
     console.log("[encode-worker] Fountain encoder ready, k:", k, "blockSize:", blockSize, "maxPayload:", maxPayload);
@@ -75,46 +74,12 @@ async function startEncoding(
       filename,
     });
 
-    // Step 4: Build a metadata frame padded to blockSize so it generates
-    // the same QR version/density as data frames (no visual flicker).
-    const metadataFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: metaHash,
-      sourceBlockCount: k,
-      blockSize,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
-      symbolId: 0,
-      payload: new Uint8Array(0),
-      filename,
-      fileSize: fileData.length,
-      sha256: sha256Full,
-    };
-    const metaFrameBytes = serializeMetadataFrame(metadataFrame, blockSize);
-
     // Step 5: Generate frames indefinitely.
-    // Every frame header contains compressedSize + compressionId,
-    // so the decoder initializes from ANY frame (like CAScad).
-    // Metadata frames (padded to same size) are interleaved periodically
-    // so the receiver learns filename, fileSize, and sha256.
-    const METADATA_INTERVAL = 30;
+    // Every frame embeds metadata (filename, fileSize, sha256) — no separate metadata frames.
     let frameNumber = 0;
     let symbolId = 0;
 
     while (running) {
-      // Periodically send a padded metadata frame for filename/sha256
-      if (symbolId % METADATA_INTERVAL === 0) {
-        const buf = new ArrayBuffer(metaFrameBytes.byteLength);
-        new Uint8Array(buf).set(metaFrameBytes);
-        post({ type: "frame", frameBytes: buf, symbolId: 0, frameNumber });
-        frameNumber++;
-
-        const delay = Math.max(1, Math.round(1000 / currentFps));
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        if (!running) break;
-      }
-
       const symbolData = encoder.encode(symbolId);
 
       const frame: Frame = {
@@ -125,7 +90,10 @@ async function startEncoding(
         blockSize,
         compressedSize: compressed.data.length,
         compressionId: compressed.algorithm,
-        symbolId: symbolId + 1, // symbolId 0 is reserved for metadata
+        symbolId: symbolId + 1, // symbolId 0 was reserved in v2, keep >= 1
+        filename,
+        fileSize: fileData.length,
+        sha256: sha256Full,
         payload: symbolData,
       };
 
@@ -155,8 +123,8 @@ self.onmessage = (event: MessageEvent<EncodeWorkerInput>) => {
 
   switch (msg.type) {
     case "start":
-      currentFps = getPresetConfig(msg.preset).targetFps;
-      startEncoding(msg.file, msg.filename, msg.preset);
+      currentFps = msg.fps ?? getPresetConfig(msg.preset).targetFps;
+      startEncoding(msg.file, msg.filename, msg.preset, msg.blockSize ?? 250);
       break;
     case "set_fps":
       currentFps = msg.fps;

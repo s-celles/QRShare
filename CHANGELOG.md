@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Protocol v3**: metadata (filename, file size, SHA-256) is now embedded in every QR frame instead of separate metadata frames, ensuring reliable transfer even when frames are missed
+- Default QR transfer frame rate changed to 2 FPS and block size to 250 bytes for more reliable camera scanning
+
 ### Added
 
+- Adjustable frame rate slider (1–30 FPS) in QR sender view
+- Adjustable block size slider (50–1000 bytes) in QR sender view
 - Transfer speed (throughput) and elapsed time display in QR code receiver view
 - Build hash (git short commit) displayed next to version number in header and About page
 
 ### Fixed
 
+- QR transfer: filename missing and file size incorrect on receiver due to metadata frames not being scanned
+- QR transfer: integrity falsely reported as corrupted because SHA-256 was not received before decoding completed
 - QR transfer corruption: force LT codec (pure JS) in QR workers to prevent codec mismatch when sender and receiver have different WASM support
 - LT fountain codec baseSeed mismatch between encoder and decoder causing data corruption and hash verification failures
 

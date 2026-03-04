@@ -112,6 +112,8 @@ export const fr: Record<string, string> = {
   "sender.elapsed": "\u00c9coul\u00e9",
   "sender.frameRate": "Fr\u00e9quence : {fps} IPS",
   "sender.adjustFrameRate": "Ajuster la fr\u00e9quence d\u2019images",
+  "sender.blockSize": "Taille de bloc : {size} o",
+  "sender.adjustBlockSize": "Ajuster la taille de bloc",
   "sender.stopEncoding": "Arr\u00eater l\u2019encodage",
   "sender.fileTooLarge": "Fichier trop volumineux ({size} Mo). Maximum 50 Mo.",
   "sender.totalTooLarge": "Taille totale trop importante ({size} Mo). Maximum 50 Mo.",

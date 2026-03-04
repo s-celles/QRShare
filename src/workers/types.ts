@@ -2,7 +2,7 @@ import type { EncodingPreset } from "@/qr/renderer";
 
 // Main thread -> Encode Worker messages
 export type EncodeWorkerInput =
-  | { type: "start"; file: ArrayBuffer; filename: string; preset: EncodingPreset }
+  | { type: "start"; file: ArrayBuffer; filename: string; preset: EncodingPreset; blockSize?: number; fps?: number }
   | { type: "set_fps"; fps: number }
   | { type: "stop" };
 

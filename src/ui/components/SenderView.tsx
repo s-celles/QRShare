@@ -10,7 +10,8 @@ import { t } from "../i18n";
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 const preset = signal<EncodingPreset>("balanced");
-const fps = signal(12);
+const fps = signal(2);
+const blockSizeValue = signal(250);
 const currentFrame = signal<string | null>(null);
 const frameNumber = signal(0);
 const totalBlocks = signal(0);
@@ -86,6 +87,8 @@ export function SenderView() {
         file: buffer,
         filename,
         preset: preset.value,
+        blockSize: blockSizeValue.value,
+        fps: fps.value,
       } satisfies EncodeWorkerInput);
     },
     [],
@@ -288,11 +291,28 @@ export function SenderView() {
             <input
               id="fps-slider"
               type="range"
-              min="2"
+              min="1"
               max="30"
               value={fps.value}
               onInput={handleFpsChange}
               aria-label={t("sender.adjustFrameRate")}
+            />
+          </div>
+
+          <div class="fps-control">
+            <label htmlFor="blocksize-slider">
+              {t("sender.blockSize", { size: blockSizeValue.value })}
+            </label>
+            <input
+              id="blocksize-slider"
+              type="range"
+              min="50"
+              max="1000"
+              step="10"
+              value={blockSizeValue.value}
+              onInput={(e) => { blockSizeValue.value = Number((e.target as HTMLInputElement).value); }}
+              aria-label={t("sender.adjustBlockSize")}
+              disabled={isEncoding.value}
             />
           </div>
 

@@ -24,21 +24,21 @@ const PRESETS: Record<EncodingPreset, PresetConfig> = {
     maxVersion: 25,
     correctionLevel: correction.L,
     correctionLabel: "L",
-    targetFps: 15,
+    targetFps: 2,
   },
   balanced: {
     minVersion: 1,
     maxVersion: 20,
     correctionLevel: correction.M,
     correctionLabel: "M",
-    targetFps: 12,
+    targetFps: 2,
   },
   high_reliability: {
     minVersion: 1,
     maxVersion: 15,
     correctionLevel: correction.Q,
     correctionLabel: "Q",
-    targetFps: 8,
+    targetFps: 2,
   },
 };
 

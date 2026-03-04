@@ -124,10 +124,13 @@ sequenceDiagram
 1. Tap **Send (QR)**
 2. Drop a file or click to choose one (50 MB maximum)
 3. Choose an encoding mode:
-   - **High Speed** — Fast, suited for good scanning conditions
-   - **Balanced** — Trade-off between speed and reliability
-   - **High Reliability** — Slower but very reliable
+   - **High Speed** — Larger QR codes, suited for good scanning conditions
+   - **Balanced** — Trade-off between capacity and reliability
+   - **High Reliability** — Smaller QR codes, very reliable
 4. An animated QR code appears on screen — do not close the page
+5. Adjust transfer parameters if needed:
+   - **Frame Rate** slider (1–30 FPS, default: 2) — Lower values give the camera more time to scan each frame
+   - **Block Size** slider (50–1000 bytes, default: 250) — Smaller blocks produce simpler QR codes that are easier to scan
 
 **On the receiving device:**
 1. Tap **Receive (QR)**

@@ -124,10 +124,13 @@ sequenceDiagram
 1. Appuyez sur **Envoyer (QR)**
 2. Déposez un fichier ou cliquez pour en choisir un (50 Mo maximum)
 3. Choisissez un mode d'encodage :
-   - **Haute vitesse** — Rapide, adapté aux bonnes conditions de scan
-   - **Équilibré** — Compromis entre vitesse et fiabilité
-   - **Haute fiabilité** — Lent mais très fiable
+   - **Haute vitesse** — QR codes plus grands, adapté aux bonnes conditions de scan
+   - **Équilibré** — Compromis entre capacité et fiabilité
+   - **Haute fiabilité** — QR codes plus petits, très fiable
 4. Un QR code animé s'affiche à l'écran — ne fermez pas la page
+5. Ajustez les paramètres de transfert si nécessaire :
+   - **Fréquence d'images** (1–30 FPS, par défaut : 2) — Des valeurs plus basses donnent plus de temps à la caméra pour scanner chaque image
+   - **Taille de bloc** (50–1000 octets, par défaut : 250) — Des blocs plus petits produisent des QR codes plus simples, plus faciles à scanner
 
 **Sur l'appareil qui reçoit :**
 1. Appuyez sur **Recevoir (QR)**

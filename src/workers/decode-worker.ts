@@ -13,8 +13,8 @@ let scanner: ZBarQRScanner | null = null;
 let decoder: FountainDecoder | null = null;
 
 // State tracking
-let metadataReceived = false;
 let decoderReady = false;
+let metadataSent = false;
 let expectedFilename = "";
 let expectedFileSize = 0;
 let expectedSha256 = new Uint8Array(0);
@@ -72,10 +72,10 @@ async function processFrame(imageData: ImageData): Promise<void> {
       return;
     }
 
-    // Initialize decoder from ANY frame (data or metadata) — like CAScad.
-    // compressedSize and compressionId are in every frame header (v2 protocol).
-    if (!decoderReady && (parseResult.kind === "data" || parseResult.kind === "metadata")) {
-      const frame = parseResult.frame;
+    const frame = parseResult.frame;
+
+    // Initialize decoder from ANY frame (v3: every frame has full metadata)
+    if (!decoderReady) {
       await initDecoder(
         frame.compressedSize,
         frame.blockSize,
@@ -84,32 +84,28 @@ async function processFrame(imageData: ImageData): Promise<void> {
       );
     }
 
-    // Handle metadata frame — extract filename, fileSize, sha256 for UI
-    if (parseResult.kind === "metadata") {
-      if (!metadataReceived) {
-        metadataReceived = true;
-        expectedFilename = parseResult.frame.filename;
-        expectedFileSize = parseResult.frame.fileSize;
-        expectedSha256 = new Uint8Array(parseResult.frame.sha256);
+    // Extract metadata from every frame (v3: embedded in all frames)
+    if (!metadataSent) {
+      metadataSent = true;
+      expectedFilename = frame.filename;
+      expectedFileSize = frame.fileSize;
+      expectedSha256 = new Uint8Array(frame.sha256);
 
-        post({
-          type: "metadata",
-          filename: expectedFilename,
-          fileSize: expectedFileSize,
-        });
-      }
-      return;
+      post({
+        type: "metadata",
+        filename: expectedFilename,
+        fileSize: expectedFileSize,
+      });
     }
 
-    // Handle data frame — decoder is always ready at this point
-    if (parseResult.kind === "data" && decoderReady && decoder) {
+    // Handle data frame
+    if (decoderReady && decoder) {
       // Validate metadata hash matches
-      if (!arraysEqual(parseResult.frame.metadataHash, expectedMetadataHash)) {
-        return; // Hash mismatch, ignore this frame
+      if (!arraysEqual(frame.metadataHash, expectedMetadataHash)) {
+        return;
       }
 
-      const frameSymbolId = parseResult.frame.symbolId;
-      // Convert frame symbolId back to encoder blockId (frame offsets by +1)
+      const frameSymbolId = frame.symbolId;
       const blockId = frameSymbolId - 1;
 
       // Deduplicate
@@ -118,7 +114,7 @@ async function processFrame(imageData: ImageData): Promise<void> {
       }
       receivedSymbolIds.add(blockId);
 
-      const status = decoder.addSymbol(blockId, parseResult.frame.payload);
+      const status = decoder.addSymbol(blockId, frame.payload);
 
       if (status.kind === "need_more") {
         post({
@@ -128,17 +124,11 @@ async function processFrame(imageData: ImageData): Promise<void> {
           metadataHash: metadataHashHex,
         });
       } else if (status.kind === "complete") {
-        // Recover data
         const compressedData = decoder.recover();
-
-        // Decompress
         const fileData = decompress(compressedData, compressionAlgorithm);
 
-        // Verify SHA-256 if metadata was received
         const actualHash = await hashSha256(fileData);
-        const verified = metadataReceived
-          ? arraysEqual(actualHash, expectedSha256)
-          : false;
+        const verified = arraysEqual(actualHash, expectedSha256);
 
         post({
           type: "complete",

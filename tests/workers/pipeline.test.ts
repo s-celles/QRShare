@@ -4,12 +4,10 @@ import { compress, decompress } from "@/compression/compression";
 import { getCodecFactory } from "@/codec/factory";
 import {
   serializeFrame,
-  serializeMetadataFrame,
   parseFrame,
+  getFrameOverhead,
   PROTOCOL_VERSION,
-  HEADER_SIZE,
   type Frame,
-  type MetadataFrame,
 } from "@/protocol/frame";
 import { renderQR } from "@/qr/renderer";
 
@@ -37,25 +35,7 @@ describe("Encode/Decode Pipeline", () => {
     const k = encoder.getSourceBlockCount();
     expect(k).toBeGreaterThan(0);
 
-    // Metadata frame
-    const metadataFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: metaHash,
-      sourceBlockCount: k,
-      blockSize,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
-      symbolId: 0,
-      payload: new Uint8Array(0),
-      filename,
-      fileSize: fileData.length,
-      sha256,
-    };
-    const metaBytes = serializeMetadataFrame(metadataFrame);
-    expect(metaBytes.length).toBeGreaterThan(HEADER_SIZE);
-
-    // Data frames
+    // Data frames (v3: every frame has metadata)
     for (let i = 0; i < 3; i++) {
       const symbolData = encoder.encode(i);
       const frame: Frame = {
@@ -67,10 +47,15 @@ describe("Encode/Decode Pipeline", () => {
         compressedSize: compressed.data.length,
         compressionId: compressed.algorithm,
         symbolId: i + 1,
+        filename,
+        fileSize: fileData.length,
+        sha256,
         payload: symbolData,
       };
       const frameBytes = serializeFrame(frame);
-      expect(frameBytes.length).toBe(HEADER_SIZE + symbolData.length);
+      const filenameLen = new TextEncoder().encode(filename).length;
+      const expectedSize = getFrameOverhead(filenameLen) + symbolData.length;
+      expect(frameBytes.length).toBe(expectedSize);
 
       // Render QR
       const bitmap = renderQR(frameBytes, "balanced");
@@ -83,6 +68,7 @@ describe("Encode/Decode Pipeline", () => {
   it("full receiver pipeline: parse frame → fountain decode → decompress → verify", async () => {
     const original = new Uint8Array(800);
     for (let i = 0; i < 800; i++) original[i] = (i * 7 + 3) % 256;
+    const filename = "test.bin";
 
     // Sender side
     const sha256 = await hashSha256(original);
@@ -95,41 +81,15 @@ describe("Encode/Decode Pipeline", () => {
     encoder.init(compressed.data, blockSize);
     const k = encoder.getSourceBlockCount();
 
-    // Serialize metadata frame
-    const metadataFrame: MetadataFrame = {
-      version: PROTOCOL_VERSION,
-      flags: 0x00,
-      metadataHash: metaHash,
-      sourceBlockCount: k,
-      blockSize,
-      compressedSize: compressed.data.length,
-      compressionId: compressed.algorithm,
-      symbolId: 0,
-      payload: new Uint8Array(0),
-      filename: "test.bin",
-      fileSize: original.length,
-      sha256,
-    };
-    const metaFrameBytes = serializeMetadataFrame(metadataFrame);
-
-    // Receiver side: parse metadata frame
-    const metaResult = parseFrame(metaFrameBytes);
-    expect(metaResult.kind).toBe("metadata");
-    if (metaResult.kind !== "metadata") throw new Error("Expected metadata");
-
-    expect(metaResult.frame.filename).toBe("test.bin");
-    expect(metaResult.frame.fileSize).toBe(original.length);
-
-    // Initialize decoder
+    // Initialize decoder from first frame (v3: every frame has metadata)
     const decoder = await factory.createDecoder();
-    decoder.init(metaResult.frame.compressedSize, metaResult.frame.blockSize);
+    let decoderInitialized = false;
 
     // Send fountain symbols until decode completes
-    // Use symbolId starting from 1 (0 is reserved for metadata frame)
     let status;
     for (let blockId = 0; blockId < k + 10; blockId++) {
       const symbolData = encoder.encode(blockId);
-      const frameSymbolId = blockId + 1; // offset for frame protocol
+      const frameSymbolId = blockId + 1;
       const frame: Frame = {
         version: PROTOCOL_VERSION,
         flags: 0x00,
@@ -139,6 +99,9 @@ describe("Encode/Decode Pipeline", () => {
         compressedSize: compressed.data.length,
         compressionId: compressed.algorithm,
         symbolId: frameSymbolId,
+        filename,
+        fileSize: original.length,
+        sha256,
         payload: symbolData,
       };
 
@@ -148,7 +111,14 @@ describe("Encode/Decode Pipeline", () => {
       expect(parseResult.kind).toBe("data");
       if (parseResult.kind !== "data") continue;
 
-      // Decoder must use the same blockId the encoder used
+      // Initialize decoder from first frame
+      if (!decoderInitialized) {
+        decoder.init(parseResult.frame.compressedSize, parseResult.frame.blockSize);
+        expect(parseResult.frame.filename).toBe("test.bin");
+        expect(parseResult.frame.fileSize).toBe(original.length);
+        decoderInitialized = true;
+      }
+
       status = decoder.addSymbol(blockId, parseResult.frame.payload);
       if (status.kind === "complete") break;
     }
@@ -159,7 +129,7 @@ describe("Encode/Decode Pipeline", () => {
     const recoveredCompressed = decoder.recover();
     const recovered = decompress(
       recoveredCompressed,
-      metaResult.frame.compressionId,
+      compressed.algorithm,
     );
 
     // Verify SHA-256

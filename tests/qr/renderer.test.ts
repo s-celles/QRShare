@@ -8,25 +8,25 @@ import {
 
 describe("QR Renderer Service", () => {
   describe("preset configurations", () => {
-    it("high_speed: version 25, ECC L, 15 FPS", () => {
+    it("high_speed: version 25, ECC L, 2 FPS", () => {
       const config = getPresetConfig("high_speed");
       expect(config.maxVersion).toBe(25);
       expect(config.correctionLabel).toBe("L");
-      expect(config.targetFps).toBe(15);
+      expect(config.targetFps).toBe(2);
     });
 
-    it("balanced: version 20, ECC M, 12 FPS", () => {
+    it("balanced: version 20, ECC M, 2 FPS", () => {
       const config = getPresetConfig("balanced");
       expect(config.maxVersion).toBe(20);
       expect(config.correctionLabel).toBe("M");
-      expect(config.targetFps).toBe(12);
+      expect(config.targetFps).toBe(2);
     });
 
-    it("high_reliability: version 15, ECC Q, 8 FPS", () => {
+    it("high_reliability: version 15, ECC Q, 2 FPS", () => {
       const config = getPresetConfig("high_reliability");
       expect(config.maxVersion).toBe(15);
       expect(config.correctionLabel).toBe("Q");
-      expect(config.targetFps).toBe(8);
+      expect(config.targetFps).toBe(2);
     });
   });
 

@@ -299,15 +299,3 @@ export class LTCodecFactory implements FountainCodecFactory {
     return false;
   }
 }
-
-/**
- * Simple hash of data to produce a numeric seed.
- */
-function hashSeed(data: Uint8Array): number {
-  let hash = 0x811c9dc5; // FNV offset basis
-  for (let i = 0; i < Math.min(data.length, 1024); i++) {
-    hash ^= data[i];
-    hash = Math.imul(hash, 0x01000193); // FNV prime
-  }
-  return hash >>> 0;
-}

@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Transfer speed (throughput) and elapsed time display in QR code receiver view
+- Build hash (git short commit) displayed next to version number in header and About page
+
+### Fixed
+
+- QR transfer corruption: force LT codec (pure JS) in QR workers to prevent codec mismatch when sender and receiver have different WASM support
+- LT fountain codec baseSeed mismatch between encoder and decoder causing data corruption and hash verification failures
 
 ## [0.1.3] - 2026-03-04
 

@@ -82,6 +82,12 @@ nav {
   vertical-align: middle;
 }
 
+.build-hash {
+  font-family: monospace;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
 .nav-actions {
   display: flex;
   gap: 0.5rem;

@@ -10,6 +10,10 @@ import { Glob } from "bun";
 const ROOT = join(import.meta.dir, "..");
 const DIST = join(ROOT, "dist");
 
+// Get git commit hash for build metadata
+const gitResult = Bun.spawnSync(["git", "rev-parse", "--short", "HEAD"], { cwd: ROOT });
+const buildHash = gitResult.exitCode === 0 ? gitResult.stdout.toString().trim() : "unknown";
+
 // Clean dist
 if (existsSync(DIST)) {
   const rmResult = Bun.spawnSync(["rm", "-rf", DIST]);
@@ -28,6 +32,9 @@ const mainResult = await Bun.build({
   minify: true,
   target: "browser",
   naming: "[name].[hash].[ext]",
+  define: {
+    __BUILD_HASH__: JSON.stringify(buildHash),
+  },
 });
 if (!mainResult.success) {
   console.error("Main build failed:", mainResult.logs);

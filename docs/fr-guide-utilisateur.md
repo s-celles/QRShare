@@ -178,7 +178,7 @@ sequenceDiagram
 
 En haut de chaque page :
 
-- **QRShare** (à gauche) — Retour à la page d'accueil
+- **QRShare** (à gauche) — Retour à la page d'accueil. Le numéro de version et le hash de build sont affichés à côté du titre
 - Bouton soleil/lune — Basculer entre thème clair et sombre
 - **?** — Guide utilisateur
 - **i** — Page « À propos »

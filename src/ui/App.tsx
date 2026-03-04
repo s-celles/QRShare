@@ -1,7 +1,7 @@
 import { currentRoute } from "./router";
 import { toggleTheme, effectiveTheme } from "./theme";
 import { t, locale } from "./i18n";
-import { APP_VERSION } from "../version";
+import { APP_VERSION, BUILD_HASH } from "../version";
 import { Landing } from "./components/Landing";
 import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
@@ -59,7 +59,7 @@ export function App() {
             class="logo-link"
             aria-label={t("app.home")}
           >
-            <h1>QRShare <span class="app-version">v{APP_VERSION}</span></h1>
+            <h1>QRShare <span class="app-version">v{APP_VERSION} <span class="build-hash">({BUILD_HASH})</span></span></h1>
           </a>
           <div class="nav-actions">
             <button

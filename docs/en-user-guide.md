@@ -178,7 +178,7 @@ sequenceDiagram
 
 At the top of every page:
 
-- **QRShare** (left) — Return to the home page
+- **QRShare** (left) — Return to the home page. The version number and build hash are shown next to the title
 - Sun/moon button — Toggle between light and dark theme
 - **i** — About page
 - Gear icon — Settings (theme, language, WebRTC settings)

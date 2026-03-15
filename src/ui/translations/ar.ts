@@ -284,7 +284,23 @@ export const ar: Record<string, string> = {
   "shareSender.filesShared": "تمت مشاركة {count} ملفات",
   "shareSender.doneAria": "تم، العودة إلى الصفحة الرئيسية",
 
+  // Text sharing
+  "text.contentTypeFile": "\u0645\u0644\u0641",
+  "text.contentTypeText": "\u0646\u0635",
+  "text.placeholder": "\u0627\u0643\u062a\u0628 \u0623\u0648 \u0627\u0644\u0635\u0642 \u0631\u0633\u0627\u0644\u062a\u0643 \u0647\u0646\u0627...",
+  "text.charCount": "{count} / {max}",
+  "text.enterText": "\u0623\u062f\u062e\u0644 \u0646\u0635\u064b\u0627 \u0644\u0644\u0625\u0631\u0633\u0627\u0644",
+  "text.copyToClipboard": "\u0646\u0633\u062e \u0625\u0644\u0649 \u0627\u0644\u062d\u0627\u0641\u0638\u0629",
+  "text.copied": "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e!",
+  "text.downloadAsFile": "\u062a\u0646\u0632\u064a\u0644 \u0643\u0645\u0644\u0641",
+  "text.shareText": "\u0645\u0634\u0627\u0631\u0643\u0629",
+  "text.clipboardFailed": "\u062a\u0639\u0630\u0631 \u0627\u0644\u0646\u0633\u062e \u0625\u0644\u0649 \u0627\u0644\u062d\u0627\u0641\u0638\u0629",
+  "text.receivedMessage": "\u0631\u0633\u0627\u0644\u0629 \u0645\u0633\u062a\u0644\u0645\u0629",
+  "text.shareSuccess": "\u062a\u0645\u062a \u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0646\u0635 \u0628\u0646\u062c\u0627\u062d",
+  "text.shareNow": "\u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0622\u0646",
+  "text.readyToShare": "\u062c\u0627\u0647\u0632 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629",
+
   // Guide
-  "guide.section": "دليل المستخدم",
-  "guide.heading": "دليل المستخدم",
+  "guide.section": "\u062f\u0644\u064a\u0644 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645",
+  "guide.heading": "\u062f\u0644\u064a\u0644 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645",
 };

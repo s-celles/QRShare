@@ -2,7 +2,7 @@ import { hashSha256 } from "@/crypto/hash";
 import { decompress } from "@/compression/compression";
 import type { CompressionAlgorithm } from "@/compression/compression";
 import { LTCodecFactory } from "@/codec/lt-adapter";
-import { parseFrame } from "@/protocol/frame";
+import { parseFrame, decodeFlags } from "@/protocol/frame";
 import type { FountainDecoder } from "@/codec/types";
 import { ZBarQRScanner } from "@/qr/scanner";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "./types";
@@ -19,6 +19,7 @@ let expectedFilename = "";
 let expectedFileSize = 0;
 let expectedSha256 = new Uint8Array(0);
 let compressionAlgorithm: CompressionAlgorithm = 0x00;
+let contentIsText = false;
 let metadataHashHex = "";
 let expectedMetadataHash = new Uint8Array(0);
 const receivedSymbolIds = new Set<number>();
@@ -90,6 +91,7 @@ async function processFrame(imageData: ImageData): Promise<void> {
       expectedFilename = frame.filename;
       expectedFileSize = frame.fileSize;
       expectedSha256 = new Uint8Array(frame.sha256);
+      contentIsText = decodeFlags(frame.flags).isText;
 
       post({
         type: "metadata",
@@ -137,6 +139,7 @@ async function processFrame(imageData: ImageData): Promise<void> {
           filename: expectedFilename || "download",
           sha256: toHex(actualHash),
           verified,
+          isText: contentIsText,
         });
 
         running = false;

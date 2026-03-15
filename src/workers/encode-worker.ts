@@ -5,6 +5,7 @@ import {
   serializeFrame,
   getFrameOverhead,
   PROTOCOL_VERSION,
+  encodeFlags,
   type Frame,
 } from "@/protocol/frame";
 import { getMaxPayloadBytes, getPresetConfig } from "@/qr/renderer";
@@ -23,6 +24,8 @@ function toHex(bytes: Uint8Array): string {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+let isTextContent = false;
 
 async function startEncoding(
   file: ArrayBuffer,
@@ -84,7 +87,7 @@ async function startEncoding(
 
       const frame: Frame = {
         version: PROTOCOL_VERSION,
-        flags: 0x00,
+        flags: encodeFlags({ isText: isTextContent }),
         metadataHash: metaHash,
         sourceBlockCount: k,
         blockSize,
@@ -124,6 +127,7 @@ self.onmessage = (event: MessageEvent<EncodeWorkerInput>) => {
   switch (msg.type) {
     case "start":
       currentFps = msg.fps ?? getPresetConfig(msg.preset).targetFps;
+      isTextContent = msg.isText ?? false;
       startEncoding(msg.file, msg.filename, msg.preset, msg.blockSize ?? 250);
       break;
     case "set_fps":

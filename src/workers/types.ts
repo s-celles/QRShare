@@ -2,7 +2,7 @@ import type { EncodingPreset } from "@/qr/renderer";
 
 // Main thread -> Encode Worker messages
 export type EncodeWorkerInput =
-  | { type: "start"; file: ArrayBuffer; filename: string; preset: EncodingPreset; blockSize?: number; fps?: number }
+  | { type: "start"; file: ArrayBuffer; filename: string; preset: EncodingPreset; blockSize?: number; fps?: number; isText?: boolean }
   | { type: "set_fps"; fps: number }
   | { type: "stop" };
 
@@ -21,5 +21,5 @@ export type DecodeWorkerInput =
 export type DecodeWorkerOutput =
   | { type: "progress"; uniqueSymbols: number; neededSymbols: number; scannedFrames: number; metadataHash: string }
   | { type: "metadata"; filename: string; fileSize: number }
-  | { type: "complete"; file: ArrayBuffer; filename: string; sha256: string; verified: boolean }
+  | { type: "complete"; file: ArrayBuffer; filename: string; sha256: string; verified: boolean; isText: boolean }
   | { type: "error"; message: string };

@@ -29,9 +29,13 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/about",
 ]);
 
+export const hashParams = signal<URLSearchParams>(new URLSearchParams());
+
 function getRouteFromHash(): Route {
-  const hash = window.location.hash.slice(1) || "/";
-  return VALID_ROUTES.has(hash) ? (hash as Route) : "/";
+  const raw = window.location.hash.slice(1) || "/";
+  const [path, query] = raw.split("?", 2);
+  hashParams.value = new URLSearchParams(query || "");
+  return VALID_ROUTES.has(path) ? (path as Route) : "/";
 }
 
 export const currentRoute = signal<Route>(

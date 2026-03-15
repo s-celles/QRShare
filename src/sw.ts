@@ -38,6 +38,32 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
+  // Handle Share Target POST requests
+  if (request.method === "POST") {
+    event.respondWith(
+      (async () => {
+        const formData = await request.formData();
+        const text = formData.get("text") as string | null;
+        const files = formData.getAll("file") as File[];
+
+        // Build redirect URL with shared content
+        const url = new URL("./", self.location.origin);
+        if (files.length > 0 && files[0].size > 0) {
+          // File share — redirect to share sender (existing behavior)
+          url.hash = "/send/share";
+        } else if (text) {
+          // Text share — redirect with text in hash params
+          url.hash = `/send/qr?text=${encodeURIComponent(text)}`;
+        } else {
+          url.hash = "/";
+        }
+
+        return Response.redirect(url.toString(), 303);
+      })(),
+    );
+    return;
+  }
+
   // Only handle GET requests
   if (request.method !== "GET") return;
 

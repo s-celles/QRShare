@@ -4,6 +4,10 @@ export type ShareResult =
   | { kind: "unsupported" }
   | { kind: "fallback_url"; url: string };
 
+export type ClipboardResult =
+  | { kind: "copied" }
+  | { kind: "failed"; reason: string };
+
 export class ShareService {
   isShareSupported(): boolean {
     return typeof navigator !== "undefined" && "share" in navigator;
@@ -52,6 +56,34 @@ export class ShareService {
         return { kind: "cancelled" };
       }
       return { kind: "unsupported" };
+    }
+  }
+
+  async shareText(text: string, title?: string): Promise<ShareResult> {
+    if (!this.isShareSupported()) {
+      return { kind: "unsupported" };
+    }
+
+    try {
+      await navigator.share({ text, title });
+      return { kind: "shared" };
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return { kind: "cancelled" };
+      }
+      return { kind: "unsupported" };
+    }
+  }
+
+  async copyToClipboard(text: string): Promise<ClipboardResult> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return { kind: "copied" };
+    } catch (err) {
+      return {
+        kind: "failed",
+        reason: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 }

@@ -2,11 +2,15 @@ import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { ShareService } from "@/share/service";
-import { pendingFile } from "../shared-file";
+import { pendingFile, pendingText } from "../shared-file";
+import { ContentTypeToggle } from "./ContentTypeToggle";
+import { TextInputArea } from "./TextInputArea";
 import { t } from "../i18n";
 
 const shareService = new ShareService();
 
+const contentType = signal<"file" | "text">("file");
+const textInput = signal("");
 const selectedFiles = signal<File[]>([]);
 const error = signal<string | null>(null);
 const isShared = signal(false);
@@ -18,6 +22,12 @@ export function WebShareSenderView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const pt = pendingText.value;
+    if (pt) {
+      pendingText.value = null;
+      contentType.value = "text";
+      textInput.value = pt;
+    }
     const pending = pendingFile.value;
     if (pending) {
       preloadedFile.value = pending;
@@ -93,6 +103,28 @@ export function WebShareSenderView() {
     }
   }, []);
 
+  const handleShareText = useCallback(async () => {
+    const text = textInput.value.trim();
+    if (!text) return;
+
+    if (shareService.isShareSupported()) {
+      const result = await shareService.shareText(text);
+      if (result.kind === "shared") {
+        isShared.value = true;
+        return;
+      }
+      if (result.kind === "cancelled") return;
+    }
+
+    // Fallback: copy to clipboard
+    const clipResult = await shareService.copyToClipboard(text);
+    if (clipResult.kind === "copied") {
+      isShared.value = true;
+    } else {
+      error.value = t("text.clipboardFailed");
+    }
+  }, []);
+
   const handleShareSelected = useCallback(() => {
     doShare(selectedFiles.value);
   }, [doShare]);
@@ -118,6 +150,8 @@ export function WebShareSenderView() {
     error.value = null;
     isShared.value = false;
     preloadedFile.value = null;
+    contentType.value = "file";
+    textInput.value = "";
     navigate("/");
   }, []);
 
@@ -142,38 +176,63 @@ export function WebShareSenderView() {
 
       {!isShared.value && !hasFiles && (
         <div class="sender-setup">
-          <div
-            class="drop-zone"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onClick={() => fileInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            aria-label={t("shareSender.selectFiles")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") fileInputRef.current?.click();
-            }}
-          >
-            <p>{t("shareSender.dropZone")}</p>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            class="sr-only"
-            onChange={handleInputChange}
-            aria-label={t("common.fileInput")}
+          <ContentTypeToggle
+            value={contentType.value}
+            onChange={(type) => { contentType.value = type; }}
           />
 
-          {preloadedFile.value && (
-            <button
-              class="start-btn"
-              onClick={handleSharePreloaded}
-              style={{ marginTop: "1rem" }}
-              aria-label={t("shareSender.shareFile", { filename: preloadedFile.value.filename })}
-            >
-              {t("shareSender.shareFile", { filename: preloadedFile.value.filename })}
-            </button>
+          {contentType.value === "text" ? (
+            <>
+              <TextInputArea
+                value={textInput.value}
+                onChange={(text) => { textInput.value = text; }}
+              />
+              <button
+                class="start-btn"
+                onClick={handleShareText}
+                disabled={textInput.value.trim().length === 0}
+                style={{ marginTop: "0.5rem" }}
+                aria-label={t("text.shareNow")}
+              >
+                {t("text.shareNow")}
+              </button>
+            </>
+          ) : (
+            <>
+              <div
+                class="drop-zone"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => fileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                aria-label={t("shareSender.selectFiles")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") fileInputRef.current?.click();
+                }}
+              >
+                <p>{t("shareSender.dropZone")}</p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                class="sr-only"
+                onChange={handleInputChange}
+                aria-label={t("common.fileInput")}
+              />
+
+              {preloadedFile.value && (
+                <button
+                  class="start-btn"
+                  onClick={handleSharePreloaded}
+                  style={{ marginTop: "1rem" }}
+                  aria-label={t("shareSender.shareFile", { filename: preloadedFile.value.filename })}
+                >
+                  {t("shareSender.shareFile", { filename: preloadedFile.value.filename })}
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

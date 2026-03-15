@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-03-15
+
 ### Changed
 
 - **Protocol v3**: metadata (filename, file size, SHA-256) is now embedded in every QR frame instead of separate metadata frames, ensuring reliable transfer even when frames are missed
@@ -14,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Text message sharing across all transfer methods (QR, WebRTC, Web Share) with File/Text toggle
+- TextInputArea component with multi-line input, live character count, and 100K character limit
+- TextResultView component for inline text display with Copy to Clipboard, Download as File, and Share actions
+- Protocol FLAG_TEXT (bit 0 of flags byte) for text content type discrimination in QR frames
+- ShareService.shareText() and ShareService.copyToClipboard() methods
+- Web Share Target support for receiving shared text from other apps
+- i18n translation keys for text sharing UI in English, French, and Arabic
 - Adjustable frame rate slider (1–30 FPS) in QR sender view
 - Adjustable block size slider (50–1000 bytes) in QR sender view
 - Transfer speed (throughput) and elapsed time display in QR code receiver view

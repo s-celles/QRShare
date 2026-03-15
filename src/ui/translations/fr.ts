@@ -284,6 +284,22 @@ export const fr: Record<string, string> = {
   "shareSender.filesShared": "{count} fichiers partag\u00e9s",
   "shareSender.doneAria": "Termin\u00e9, retour \u00e0 l\u2019accueil",
 
+  // Text sharing
+  "text.contentTypeFile": "Fichier",
+  "text.contentTypeText": "Texte",
+  "text.placeholder": "Saisissez ou collez votre message ici\u2026",
+  "text.charCount": "{count} / {max}",
+  "text.enterText": "Entrez du texte \u00e0 envoyer",
+  "text.copyToClipboard": "Copier dans le presse-papiers",
+  "text.copied": "Copi\u00e9 !",
+  "text.downloadAsFile": "T\u00e9l\u00e9charger en fichier",
+  "text.shareText": "Partager",
+  "text.clipboardFailed": "Impossible de copier dans le presse-papiers",
+  "text.receivedMessage": "Message re\u00e7u",
+  "text.shareSuccess": "Texte partag\u00e9 avec succ\u00e8s",
+  "text.shareNow": "Partager maintenant",
+  "text.readyToShare": "Pr\u00eat \u00e0 partager",
+
   // Guide
   "guide.section": "Guide utilisateur",
   "guide.heading": "Guide utilisateur",

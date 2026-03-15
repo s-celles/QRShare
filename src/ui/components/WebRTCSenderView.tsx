@@ -3,10 +3,14 @@ import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
-import { pendingFile } from "../shared-file";
+import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
+import { ContentTypeToggle } from "./ContentTypeToggle";
+import { TextInputArea } from "./TextInputArea";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { t } from "../i18n";
 
+const contentType = signal<"file" | "text">("file");
+const textInput = signal("");
 const progress = signal<TransferProgress | null>(null);
 const error = signal<string | null>(null);
 const roomIdInput = signal("");
@@ -32,6 +36,13 @@ export function WebRTCSenderView() {
 
   useEffect(() => {
     serviceRef.current = new WebRTCService();
+    // Capture pending text
+    const pt = pendingText.value;
+    if (pt) {
+      pendingText.value = null;
+      contentType.value = "text";
+      textInput.value = pt;
+    }
     // Capture pending file from CreatorView
     const pending = pendingFile.value;
     if (pending) {
@@ -191,6 +202,29 @@ export function WebRTCSenderView() {
     isSending.value = false;
   }, []);
 
+  const handleSendText = useCallback(async () => {
+    const svc = serviceRef.current;
+    const text = textInput.value.trim();
+    if (!svc || !text) return;
+
+    isSending.value = true;
+    selectedFileNames.value = [TEXT_FILENAME];
+    totalFiles.value = 1;
+    currentFileIndex.value = 0;
+
+    try {
+      const buffer = textToBuffer(text);
+      const file = new File([buffer], TEXT_FILENAME, { type: TEXT_MIME_TYPE });
+      await svc.sendFile(file, (p) => {
+        progress.value = p;
+      });
+      isComplete.value = true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : String(err);
+    }
+    isSending.value = false;
+  }, []);
+
   const handleInputChange = useCallback(
     (e: Event) => {
       const target = e.target as HTMLInputElement;
@@ -212,6 +246,8 @@ export function WebRTCSenderView() {
     currentFileIndex.value = 0;
     selectedFileNames.value = [];
     preloadedFile.value = null;
+    contentType.value = "file";
+    textInput.value = "";
     navigate("/");
   }, []);
 
@@ -299,32 +335,53 @@ export function WebRTCSenderView() {
             {code}
           </p>
           <p>{t("webrtcSender.verifyCode")}</p>
-          <div class="file-select">
-            {preloadedFile.value && (
+          <ContentTypeToggle
+            value={contentType.value}
+            onChange={(type) => { contentType.value = type; }}
+          />
+          {contentType.value === "text" ? (
+            <div class="file-select">
+              <TextInputArea
+                value={textInput.value}
+                onChange={(text) => { textInput.value = text; }}
+              />
               <button
                 class="start-btn"
-                onClick={handleSendPreloaded}
-                aria-label={t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
+                onClick={handleSendText}
+                disabled={textInput.value.trim().length === 0}
+                aria-label={t("common.sendWebRTC")}
               >
-                {t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
+                {t("common.sendWebRTC")}
               </button>
-            )}
-            <button
-              class={preloadedFile.value ? "start-btn share-action" : "start-btn"}
-              onClick={() => fileInputRef.current?.click()}
-              aria-label={t("webrtcSender.selectFilesAria")}
-            >
-              {preloadedFile.value ? t("webrtcSender.chooseDifferent") : t("webrtcSender.selectFiles")}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              class="sr-only"
-              onChange={handleInputChange}
-              aria-label={t("common.fileInput")}
-            />
-          </div>
+            </div>
+          ) : (
+            <div class="file-select">
+              {preloadedFile.value && (
+                <button
+                  class="start-btn"
+                  onClick={handleSendPreloaded}
+                  aria-label={t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
+                >
+                  {t("webrtcSender.sendFile", { filename: preloadedFile.value.filename })}
+                </button>
+              )}
+              <button
+                class={preloadedFile.value ? "start-btn share-action" : "start-btn"}
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={t("webrtcSender.selectFilesAria")}
+              >
+                {preloadedFile.value ? t("webrtcSender.chooseDifferent") : t("webrtcSender.selectFiles")}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                class="sr-only"
+                onChange={handleInputChange}
+                aria-label={t("common.fileInput")}
+              />
+            </div>
+          )}
         </div>
       )}
 

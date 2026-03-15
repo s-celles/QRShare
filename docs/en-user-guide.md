@@ -6,9 +6,9 @@ QRShare is a web application that lets you:
 
 1. **Scan a QR code** using your device's camera
 2. **Create a QR code** from any text or web address
-3. **Share a file** to any app via the native share dialog
-4. **Send a file** to another device via animated QR codes (no internet required)
-5. **Send a file** peer-to-peer via WebRTC (internet required)
+3. **Share a file or text** to any app via the native share dialog
+4. **Send a file or text** to another device via animated QR codes (no internet required)
+5. **Send a file or text** peer-to-peer via WebRTC (internet required)
 
 The application runs directly in your browser with nothing to install. It is available at:
 **https://s-celles.github.io/QRShare/**
@@ -240,6 +240,34 @@ You can back up and restore all QRShare settings (theme, language, and WebRTC co
 4. All settings are applied immediately
 
 This is useful for sharing your configuration across devices or restoring settings after clearing browser data.
+
+---
+
+## Sharing Text Messages
+
+All three transfer methods (Share, QR, WebRTC) support sending text messages in addition to files. When entering a sender view, a **File / Text** toggle at the top lets you choose what to send.
+
+### Sending Text
+
+1. Select any sender mode (Share, QR, or WebRTC)
+2. Switch the toggle from **File** to **Text**
+3. Type or paste your message into the text area (up to 100,000 characters)
+4. The character count is displayed below the input
+5. Tap the send/share button
+
+For QR mode, short text is encoded as a standard QR code. Longer text uses the same fountain code pipeline as files.
+
+### Receiving Text
+
+When another device sends a text message, the receiver automatically detects it and displays the text inline instead of triggering a file download. Three action buttons are available:
+
+- **Copy to Clipboard** — Copies the text to your clipboard
+- **Download as File** — Saves the text as a `.txt` file
+- **Share** — Opens the native share dialog (if supported)
+
+### Sharing Text from Other Apps
+
+If QRShare is installed as a PWA, you can share text from other apps directly to QRShare via the system share sheet. QRShare will open in sender mode with the text pre-filled.
 
 ---
 

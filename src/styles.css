@@ -1123,3 +1123,100 @@ section > button:hover {
   text-align: start;
   opacity: 0.8;
 }
+
+/* Content Type Toggle */
+.content-type-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle-option {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: var(--bg-surface);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-option:first-child {
+  border-inline-end: 1px solid var(--border);
+}
+
+.toggle-option.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.toggle-option:hover:not(.active) {
+  background: var(--border);
+}
+
+/* Text Input Area */
+.text-input-area {
+  margin-bottom: 0.5rem;
+}
+
+.text-input-textarea {
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+}
+
+.text-input-textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.text-char-count {
+  text-align: end;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+/* Text Result View */
+.text-result-view {
+  text-align: start;
+}
+
+.text-result-content {
+  max-height: 20rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  margin-bottom: 0.75rem;
+}
+
+.text-result-pre {
+  margin: 0;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--fg);
+}
+
+.text-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

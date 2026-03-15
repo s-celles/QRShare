@@ -6,9 +6,9 @@ QRShare est une application web qui permet de :
 
 1. **Scanner un QR code** avec la caméra de votre appareil
 2. **Créer un QR code** à partir d'un texte ou d'une adresse web
-3. **Partager un fichier** vers n'importe quelle application via le dialogue de partage natif
-4. **Envoyer un fichier** à un autre appareil via des QR codes animés (sans connexion internet)
-5. **Envoyer un fichier** en pair-à-pair via WebRTC (avec connexion internet)
+3. **Partager un fichier ou du texte** vers n'importe quelle application via le dialogue de partage natif
+4. **Envoyer un fichier ou du texte** à un autre appareil via des QR codes animés (sans connexion internet)
+5. **Envoyer un fichier ou du texte** en pair-à-pair via WebRTC (avec connexion internet)
 
 L'application fonctionne directement dans votre navigateur, sans rien installer. Elle est accessible à l'adresse :
 **https://s-celles.github.io/QRShare/**
@@ -241,6 +241,34 @@ Vous pouvez sauvegarder et restaurer tous les paramètres de QRShare (thème, la
 4. Tous les paramètres sont appliqués immédiatement
 
 Cela permet de partager votre configuration entre appareils ou de restaurer vos paramètres après avoir effacé les données du navigateur.
+
+---
+
+## Partage de messages texte
+
+Les trois méthodes de transfert (Partage, QR, WebRTC) prennent en charge l'envoi de messages texte en plus des fichiers. En entrant dans une vue d'envoi, un bouton **Fichier / Texte** en haut permet de choisir le type de contenu.
+
+### Envoyer du texte
+
+1. Sélectionnez un mode d'envoi (Partage, QR ou WebRTC)
+2. Basculez le sélecteur de **Fichier** à **Texte**
+3. Saisissez ou collez votre message dans la zone de texte (jusqu'à 100 000 caractères)
+4. Le compteur de caractères s'affiche sous la zone de saisie
+5. Appuyez sur le bouton d'envoi/partage
+
+En mode QR, un texte court est encodé dans un seul QR code. Un texte plus long utilise le même pipeline de codes fontaine que les fichiers.
+
+### Recevoir du texte
+
+Lorsqu'un autre appareil envoie un message texte, le récepteur le détecte automatiquement et affiche le texte directement au lieu de déclencher un téléchargement. Trois boutons d'action sont disponibles :
+
+- **Copier dans le presse-papiers** — Copie le texte dans votre presse-papiers
+- **Télécharger en fichier** — Enregistre le texte en fichier `.txt`
+- **Partager** — Ouvre le dialogue de partage natif (si disponible)
+
+### Partager du texte depuis d'autres applications
+
+Si QRShare est installée en tant que PWA, vous pouvez partager du texte depuis d'autres applications directement vers QRShare via le menu de partage du système. QRShare s'ouvrira en mode envoi avec le texte pré-rempli.
 
 ---
 

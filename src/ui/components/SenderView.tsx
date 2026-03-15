@@ -4,11 +4,16 @@ import { navigate } from "../router";
 import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
-import { pendingFile } from "../shared-file";
+import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME } from "../shared-file";
+import { hashParams } from "../router";
+import { ContentTypeToggle } from "./ContentTypeToggle";
+import { TextInputArea } from "./TextInputArea";
 import { t } from "../i18n";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
+const contentType = signal<"file" | "text">("file");
+const textInput = signal("");
 const preset = signal<EncodingPreset>("balanced");
 const fps = signal(2);
 const blockSizeValue = signal(250);
@@ -42,7 +47,7 @@ export function SenderView() {
   useEffect(() => cleanup, [cleanup]);
 
   const startEncoding = useCallback(
-    (buffer: ArrayBuffer, filename: string) => {
+    (buffer: ArrayBuffer, filename: string, isText = false) => {
       error.value = null;
       isEncoding.value = true;
       startTime.value = Date.now();
@@ -89,21 +94,50 @@ export function SenderView() {
         preset: preset.value,
         blockSize: blockSizeValue.value,
         fps: fps.value,
+        isText,
       } satisfies EncodeWorkerInput);
     },
     [],
   );
 
-  // Auto-start encoding if a pending file was passed from CreatorView
+  const handleSendText = useCallback(() => {
+    const text = textInput.value.trim();
+    if (!text) return;
+    const buffer = textToBuffer(text);
+    selectedFiles.value = [TEXT_FILENAME];
+    startEncoding(buffer, TEXT_FILENAME, true);
+  }, [startEncoding]);
+
+  // Auto-start encoding if a pending file/text was passed from another view
   const pendingHandled = useRef(false);
   useEffect(() => {
     if (pendingHandled.current) return;
+
+    // Check for shared text via URL hash params (Web Share Target)
+    const sharedText = hashParams.value.get("text");
+    if (sharedText) {
+      pendingHandled.current = true;
+      contentType.value = "text";
+      textInput.value = sharedText;
+      // Clean up the URL
+      window.location.hash = "/send/qr";
+      return;
+    }
+
+    const pt = pendingText.value;
+    if (pt) {
+      pendingHandled.current = true;
+      pendingText.value = null;
+      contentType.value = "text";
+      textInput.value = pt;
+      return;
+    }
     const pending = pendingFile.value;
     if (pending) {
       pendingHandled.current = true;
       pendingFile.value = null;
       selectedFiles.value = [pending.filename];
-      startEncoding(pending.buffer, pending.filename);
+      startEncoding(pending.buffer, pending.filename, pending.isText ?? false);
     }
   });
 
@@ -200,27 +234,51 @@ export function SenderView() {
 
       {!isEncoding.value && (
         <div class="sender-setup">
-          <div
-            class="drop-zone"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onClick={() => fileInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            aria-label={t("sender.selectFile")}
-            onKeyDown={(e) => { if (e.key === "Enter") fileInputRef.current?.click(); }}
-          >
-            <p>{t("sender.dropZone")}</p>
-            <p class="drop-hint">{t("sender.maxSize")}</p>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            class="sr-only"
-            onChange={handleInputChange}
-            aria-label={t("common.fileInput")}
+          <ContentTypeToggle
+            value={contentType.value}
+            onChange={(type) => { contentType.value = type; }}
           />
+
+          {contentType.value === "file" ? (
+            <>
+              <div
+                class="drop-zone"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => fileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                aria-label={t("sender.selectFile")}
+                onKeyDown={(e) => { if (e.key === "Enter") fileInputRef.current?.click(); }}
+              >
+                <p>{t("sender.dropZone")}</p>
+                <p class="drop-hint">{t("sender.maxSize")}</p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                class="sr-only"
+                onChange={handleInputChange}
+                aria-label={t("common.fileInput")}
+              />
+            </>
+          ) : (
+            <>
+              <TextInputArea
+                value={textInput.value}
+                onChange={(text) => { textInput.value = text; }}
+              />
+              <button
+                class="start-btn"
+                onClick={handleSendText}
+                disabled={textInput.value.trim().length === 0}
+                aria-label={t("common.sendQR")}
+              >
+                {t("common.sendQR")}
+              </button>
+            </>
+          )}
 
           <div class="preset-selector">
             <label htmlFor="preset">{t("sender.encodingPreset")}</label>

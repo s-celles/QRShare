@@ -5,7 +5,9 @@ import { WebRTCService } from "@/webrtc/service";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
 import { ShareService } from "@/share/service";
+import { isTextMimeType } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
+import { TextResultView } from "./TextResultView";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { t } from "../i18n";
 
@@ -30,6 +32,8 @@ const isWaiting = signal(false);
 const isComplete = signal(false);
 const batchTotal = signal(0);
 const receivedFiles = signal<ReceivedFile[]>([]);
+const receivedText = signal<string | null>(null);
+const isReceivedText = signal(false);
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -56,6 +60,8 @@ export function WebRTCReceiverView() {
     isComplete.value = false;
     batchTotal.value = 0;
     receivedFiles.value = [];
+    receivedText.value = null;
+    isReceivedText.value = false;
     copyRoomIdFeedback.value = false;
   }, []);
 
@@ -81,7 +87,21 @@ export function WebRTCReceiverView() {
       const hash = await hashSha256(data);
       const isVerified = toHex(hash) === meta.sha256;
 
-      if (batchTotal.value > 0) {
+      // Check if this is text content
+      if (isTextMimeType(meta.mimeType)) {
+        verified.value = isVerified;
+        isReceivedText.value = true;
+        try {
+          receivedText.value = new TextDecoder().decode(data);
+        } catch {
+          // Fallback to file download
+          const blob = new Blob([data as BlobPart]);
+          downloadUrl.value = URL.createObjectURL(blob);
+          isReceivedText.value = false;
+        }
+        isComplete.value = true;
+        isWaiting.value = false;
+      } else if (batchTotal.value > 0) {
         // Multi-file: accumulate
         const blob = new Blob([data as BlobPart]);
         receivedFiles.value = [
@@ -294,17 +314,6 @@ export function WebRTCReceiverView() {
           <h3>{t("webrtcReceiver.transferComplete")}</h3>
           <div class="file-info">
             <p>
-              <strong>{t("receiver.fileLabel")}</strong> {metadata.value.filename}
-            </p>
-            <p>
-              <strong>{t("receiver.sizeLabel")}</strong>{" "}
-              {(metadata.value.fileSize / 1024).toFixed(1)} KB
-            </p>
-            <p>
-              <strong>{t("webrtcReceiver.sha256")}</strong>{" "}
-              <code>{metadata.value.sha256.slice(0, 16)}...</code>
-            </p>
-            <p>
               <strong>{t("webrtcReceiver.integrity")}</strong>{" "}
               {verified.value ? (
                 <span class="verified">{t("common.verified")}</span>
@@ -315,28 +324,47 @@ export function WebRTCReceiverView() {
               )}
             </p>
           </div>
-          {downloadUrl.value && (
+          {isReceivedText.value && receivedText.value != null ? (
+            <TextResultView text={receivedText.value} filename={metadata.value.filename} />
+          ) : (
             <>
-              <a
-                href={downloadUrl.value}
-                download={metadata.value.filename}
-                class="download-btn"
-              >
-                {t("webrtcReceiver.downloadFile", { filename: metadata.value.filename })}
-              </a>
-              {shareService.isShareSupported() && (
-                <button
-                  class="start-btn"
-                  style={{ marginTop: "0.5rem" }}
-                  onClick={async () => {
-                    const response = await fetch(downloadUrl.value!);
-                    const blob = await response.blob();
-                    const file = new File([blob], metadata.value!.filename, { type: blob.type });
-                    await shareService.shareFile(file);
-                  }}
-                >
-                  {t("common.share")}
-                </button>
+              <div class="file-info">
+                <p>
+                  <strong>{t("receiver.fileLabel")}</strong> {metadata.value.filename}
+                </p>
+                <p>
+                  <strong>{t("receiver.sizeLabel")}</strong>{" "}
+                  {(metadata.value.fileSize / 1024).toFixed(1)} KB
+                </p>
+                <p>
+                  <strong>{t("webrtcReceiver.sha256")}</strong>{" "}
+                  <code>{metadata.value.sha256.slice(0, 16)}...</code>
+                </p>
+              </div>
+              {downloadUrl.value && (
+                <>
+                  <a
+                    href={downloadUrl.value}
+                    download={metadata.value.filename}
+                    class="download-btn"
+                  >
+                    {t("webrtcReceiver.downloadFile", { filename: metadata.value.filename })}
+                  </a>
+                  {shareService.isShareSupported() && (
+                    <button
+                      class="start-btn"
+                      style={{ marginTop: "0.5rem" }}
+                      onClick={async () => {
+                        const response = await fetch(downloadUrl.value!);
+                        const blob = await response.blob();
+                        const file = new File([blob], metadata.value!.filename, { type: blob.type });
+                        await shareService.shareFile(file);
+                      }}
+                    >
+                      {t("common.share")}
+                    </button>
+                  )}
+                </>
               )}
             </>
           )}

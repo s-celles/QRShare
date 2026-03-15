@@ -2,6 +2,25 @@ import type { CompressionAlgorithm } from "@/compression/compression";
 
 export const PROTOCOL_VERSION = 0x03;
 
+// Flag constants for frame.flags byte
+export const FLAG_TEXT = 0x01;
+
+export interface FrameFlags {
+  readonly isText: boolean;
+}
+
+export function encodeFlags(flags: FrameFlags): number {
+  let bits = 0;
+  if (flags.isText) bits |= FLAG_TEXT;
+  return bits;
+}
+
+export function decodeFlags(flagsByte: number): FrameFlags {
+  return {
+    isText: (flagsByte & FLAG_TEXT) !== 0,
+  };
+}
+
 // v3 frame layout:
 //   Base header (19 bytes):
 //     [0]      version (1B)

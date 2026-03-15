@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
+import { TextResultView } from "./TextResultView";
 import { t } from "../i18n";
 
 interface ReceivedFile {
@@ -25,8 +26,11 @@ const isScanning = signal(false);
 const isComplete = signal(false);
 const error = signal<string | null>(null);
 const downloadUrl = signal<string | null>(null);
+const receivedBlob = signal<Blob | null>(null);
 const cameraError = signal<string | null>(null);
 const receivedFiles = signal<ReceivedFile[]>([]);
+const receivedText = signal<string | null>(null);
+const isTextContent = signal(false);
 const scanStartTime = signal(0);
 
 export function ReceiverView() {
@@ -58,6 +62,8 @@ export function ReceiverView() {
       URL.revokeObjectURL(f.url);
     }
     receivedFiles.value = [];
+    receivedText.value = null;
+    isTextContent.value = false;
     isScanning.value = false;
   }, []);
 
@@ -108,8 +114,18 @@ export function ReceiverView() {
             isScanning.value = false;
             receivedSha256.value = msg.sha256;
             verified.value = msg.verified;
+            isTextContent.value = msg.isText;
 
-            if (isZipBundle(msg.filename)) {
+            if (msg.isText) {
+              // Text content: decode and display inline
+              try {
+                receivedText.value = new TextDecoder().decode(msg.file);
+              } catch {
+                // Fallback to file download if text decoding fails
+                const blob = new Blob([msg.file]);
+                downloadUrl.value = URL.createObjectURL(blob);
+              }
+            } else if (isZipBundle(msg.filename)) {
               // Multi-file bundle: extract individual files
               try {
                 const entries = unbundleFiles(new Uint8Array(msg.file));
@@ -318,7 +334,9 @@ export function ReceiverView() {
             </p>
           </div>
 
-          {receivedFiles.value.length > 0 ? (
+          {isTextContent.value && receivedText.value != null ? (
+            <TextResultView text={receivedText.value} filename={filename.value} />
+          ) : receivedFiles.value.length > 0 ? (
             <div class="file-list">
               <p><strong>{t("receiver.filesReceived", { count: receivedFiles.value.length })}</strong></p>
               {receivedFiles.value.map((f) => (

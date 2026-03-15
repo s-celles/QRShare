@@ -284,6 +284,22 @@ export const en: Record<string, string> = {
   "shareSender.filesShared": "{count} files shared",
   "shareSender.doneAria": "Done, return to home",
 
+  // Text sharing
+  "text.contentTypeFile": "File",
+  "text.contentTypeText": "Text",
+  "text.placeholder": "Type or paste your message here...",
+  "text.charCount": "{count} / {max}",
+  "text.enterText": "Enter text to send",
+  "text.copyToClipboard": "Copy to Clipboard",
+  "text.copied": "Copied!",
+  "text.downloadAsFile": "Download as File",
+  "text.shareText": "Share",
+  "text.clipboardFailed": "Could not copy to clipboard",
+  "text.receivedMessage": "Received Message",
+  "text.shareSuccess": "Text shared successfully",
+  "text.shareNow": "Share Now",
+  "text.readyToShare": "Ready to Share",
+
   // Guide
   "guide.section": "User Guide",
   "guide.heading": "User Guide",

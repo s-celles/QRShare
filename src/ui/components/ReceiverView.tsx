@@ -26,7 +26,6 @@ const isScanning = signal(false);
 const isComplete = signal(false);
 const error = signal<string | null>(null);
 const downloadUrl = signal<string | null>(null);
-const receivedBlob = signal<Blob | null>(null);
 const cameraError = signal<string | null>(null);
 const receivedFiles = signal<ReceivedFile[]>([]);
 const receivedText = signal<string | null>(null);

@@ -3,7 +3,7 @@
   "version": "0.1.4",
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
   "type": "module",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "bun run --hot src/main.ts",
     "build": "bun run scripts/build.ts",

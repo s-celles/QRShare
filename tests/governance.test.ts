@@ -4,9 +4,9 @@ import { resolve } from "path";
 const root = resolve(import.meta.dir, "..");
 
 describe("repository governance files", () => {
-  it("has LICENSE file with GPL-3.0 text", async () => {
+  it("has LICENSE file with AGPL-3.0 text", async () => {
     const license = await Bun.file(resolve(root, "LICENSE")).text();
-    expect(license).toContain("GNU GENERAL PUBLIC LICENSE");
+    expect(license).toContain("GNU AFFERO GENERAL PUBLIC LICENSE");
     expect(license).toContain("Version 3");
   });
 

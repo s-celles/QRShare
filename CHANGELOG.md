@@ -121,6 +121,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI workflow with type-check, tests, build
 - GitHub Pages deployment on push to main
 - Accessibility audit: ARIA labels, roles, live regions, keyboard navigation, WCAG AA contrast
-- GPL-3.0-or-later license
+- AGPL-3.0-or-later license
 - Security policy (SECURITY.md)
 - 68 tests covering crypto, compression, frame protocol, fountain codecs, QR renderer, WebRTC, share service, and E2E roundtrip

@@ -265,7 +265,7 @@ export const ar: Record<string, string> = {
   "about.qrAlt": "رمز QR يشير إلى QRShare",
   "about.scanText": "امسح رمز QR هذا لفتح QRShare على جهاز آخر.",
   "about.description": "نقل ملفات بدون شبكة عبر رموز QR متحركة مع رموز نافورية، بالإضافة إلى وضع نظير إلى نظير WebRTC.",
-  "about.license": "الرخصة: GPL-3.0-or-later",
+  "about.license": "الرخصة: AGPL-3.0-or-later",
   "about.sourceCode": "الكود المصدري على GitHub",
   "about.disclaimer": "إخلاء المسؤولية:",
   "about.disclaimerText": "QRShare مخصص لمشاركة الملفات القانونية فقط. لا تستخدم هذه الأداة لنقل محتوى غير قانوني أو ضار أو محمي بحقوق النشر بدون إذن. المستخدمون وحدهم مسؤولون عن المحتوى الذي يشاركونه. لا يتحمل المؤلفون أي مسؤولية عن سوء الاستخدام.",

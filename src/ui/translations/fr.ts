@@ -265,7 +265,7 @@ export const fr: Record<string, string> = {
   "about.qrAlt": "QR code pointant vers QRShare",
   "about.scanText": "Scannez ce QR code pour ouvrir QRShare sur un autre appareil.",
   "about.description": "Transfert de fichiers hors r\u00e9seau via des QR codes anim\u00e9s avec des codes fontaine, plus un mode pair-\u00e0-pair WebRTC.",
-  "about.license": "Licence : GPL-3.0-or-later",
+  "about.license": "Licence : AGPL-3.0-or-later",
   "about.sourceCode": "Code source sur GitHub",
   "about.disclaimer": "Avertissement :",
   "about.disclaimerText": "QRShare est destin\u00e9 uniquement au partage l\u00e9gal de fichiers. N\u2019utilisez pas cet outil pour transf\u00e9rer du contenu ill\u00e9gal, nuisible ou prot\u00e9g\u00e9 par le droit d\u2019auteur sans autorisation. Les utilisateurs sont seuls responsables du contenu qu\u2019ils partagent. Les auteurs d\u00e9clinent toute responsabilit\u00e9 en cas d\u2019utilisation abusive.",

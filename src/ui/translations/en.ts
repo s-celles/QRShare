@@ -265,7 +265,7 @@ export const en: Record<string, string> = {
   "about.qrAlt": "QR code linking to QRShare",
   "about.scanText": "Scan this QR code to open QRShare on another device.",
   "about.description": "Air-gapped file transfer via animated QR codes with fountain codes, plus WebRTC P2P mode.",
-  "about.license": "License: GPL-3.0-or-later",
+  "about.license": "License: AGPL-3.0-or-later",
   "about.sourceCode": "Source code on GitHub",
   "about.disclaimer": "Disclaimer:",
   "about.disclaimerText": "QRShare is intended for lawful file sharing only. Do not use this tool to transfer illegal, harmful, or copyrighted content without proper authorization. Users are solely responsible for the content they share. The authors assume no liability for misuse.",

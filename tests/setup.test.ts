@@ -8,7 +8,7 @@ describe("project scaffolding", () => {
   it("has package.json with correct metadata", async () => {
     const pkg = await Bun.file(resolve(root, "package.json")).json();
     expect(pkg.name).toBe("qrshare");
-    expect(pkg.license).toBe("GPL-3.0-or-later");
+    expect(pkg.license).toBe("AGPL-3.0-or-later");
     expect(pkg.type).toBe("module");
   });
 

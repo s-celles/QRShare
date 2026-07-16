@@ -2,6 +2,7 @@ import { join } from "path";
 
 const distDir = join(import.meta.dir, "..", "dist");
 const port = Number(process.env.PORT) || 3000;
+const hostname = process.env.HOST || "localhost";
 
 const mimeTypes: Record<string, string> = {
   ".html": "text/html",
@@ -16,6 +17,7 @@ const mimeTypes: Record<string, string> = {
 
 Bun.serve({
   port,
+  hostname,
   async fetch(req) {
     const url = new URL(req.url);
     let pathname = url.pathname === "/" ? "/index.html" : url.pathname;
@@ -36,4 +38,4 @@ Bun.serve({
   },
 });
 
-console.log(`Serving dist/ at http://localhost:${port}`);
+console.log(`Serving dist/ at http://${hostname}:${port}`);

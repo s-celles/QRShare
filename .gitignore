@@ -25,6 +25,7 @@
 !package.json
 !bunfig.toml
 !tsconfig.json
+!justfile
 
 # Types
 !types/

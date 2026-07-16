@@ -103,6 +103,7 @@ export function Landing() {
           <span class="mode-desc">{t("landing.sendWebRTCDesc")}</span>
         </button>
       </div>
+      <p class="settings-hint">{t("landing.collabNote")}</p>
     </section>
   );
 }

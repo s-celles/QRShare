@@ -54,6 +54,7 @@ export type ConnectionState =
   | "confirming"
   | "transferring"
   | "complete"
+  | "editing" // live collaborative session; the room stays open
   | "error";
 
 export const ROOM_ID_LENGTH = 6;

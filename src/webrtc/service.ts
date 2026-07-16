@@ -17,6 +17,22 @@ import {
 
 const STRATEGY_TIMEOUT = 10_000;
 
+/**
+ * Decide how a peer-leave affects the connection state.
+ *
+ * During an `editing` (collaborative) session a peer leaving is a recoverable
+ * presence change, not a failed transfer: the local editor stays usable and edits
+ * keep accumulating in the local Y.Doc (REQ-COLLAB-031, REQ-COLLAB-032). During a
+ * completed transfer it is ignored. Otherwise it is a hard error.
+ */
+export function resolvePeerLeave(
+  state: ConnectionState,
+): { nextState: ConnectionState | null; peerOffline: boolean } {
+  if (state === "editing") return { nextState: null, peerOffline: true };
+  if (state === "complete") return { nextState: null, peerOffline: false };
+  return { nextState: "error", peerOffline: true };
+}
+
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -81,8 +97,13 @@ export class WebRTCService {
   readonly error = signal<string | null>(null);
   readonly activeStrategy = signal<StrategyName | null>(null);
   readonly strategyAttempts = signal<StrategyAttemptStatus[]>([]);
+  /** Whether the remote peer is currently connected (used in the collab editor). */
+  readonly peerOnline = signal(false);
+  /** Set when the remote peer signals they have started a collaborative session. */
+  readonly collabRequested = signal(false);
 
   private room: Room | null = null;
+  private sendCollabStart: (() => void) | null = null;
   private activeRooms: { strategy: StrategyName; room: Room }[] = [];
   private remotePeerId = "";
   private onFileReceivedCb:
@@ -158,6 +179,8 @@ export class WebRTCService {
         this.remotePeerId = peerId;
         this.state.value = "confirming";
         this.deriveConfirmationCode();
+        this.peerOnline.value = true;
+        this.setupCollabSignal(room);
 
         this.strategyAttempts.value = rooms.map((r) => ({
           strategy: r.strategy,
@@ -174,13 +197,7 @@ export class WebRTCService {
         this.setupReceiverActions(room);
       });
 
-      room.onPeerLeave((peerId) => {
-        if (this.room === room && this.state.value !== "complete") {
-          console.log("[webrtc] Peer left:", peerId);
-          this.state.value = "error";
-          this.error.value = "Peer disconnected";
-        }
-      });
+      room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
     }
 
     return { roomId };
@@ -229,19 +246,15 @@ export class WebRTCService {
           this.remotePeerId = connected.peerId;
           this.state.value = "confirming";
           this.deriveConfirmationCode();
+          this.peerOnline.value = true;
+          this.setupCollabSignal(room);
 
           this.strategyAttempts.value = adapters.map((a, j) => ({
             strategy: a.name,
             status: j < i ? "failed" : j === i ? "connected" : "cancelled",
           }));
 
-          room.onPeerLeave((peerId) => {
-            if (this.room === room && this.state.value !== "complete") {
-              console.log("[webrtc] Peer left:", peerId);
-              this.state.value = "error";
-              this.error.value = "Peer disconnected";
-            }
-          });
+          room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
 
           this.setupReceiverActions(room);
           return { roomId };
@@ -400,6 +413,8 @@ export class WebRTCService {
           this.remotePeerId = peerId;
           this.state.value = "confirming";
           this.deriveConfirmationCode();
+          this.peerOnline.value = true;
+          this.setupCollabSignal(room);
 
           this.strategyAttempts.value = rooms.map((r) => ({
             strategy: r.strategy,
@@ -416,13 +431,7 @@ export class WebRTCService {
           resolve();
         });
 
-        room.onPeerLeave((peerId) => {
-          if (this.room === room && this.state.value !== "complete") {
-            console.log("[webrtc] Peer left:", peerId);
-            this.state.value = "error";
-            this.error.value = "Peer disconnected";
-          }
-        });
+        room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
       }
     });
   }
@@ -470,19 +479,15 @@ export class WebRTCService {
           this.remotePeerId = connected.peerId;
           this.state.value = "confirming";
           this.deriveConfirmationCode();
+          this.peerOnline.value = true;
+          this.setupCollabSignal(room);
 
           this.strategyAttempts.value = adapters.map((a, j) => ({
             strategy: a.name,
             status: j < i ? "failed" : j === i ? "connected" : "cancelled",
           }));
 
-          room.onPeerLeave((peerId) => {
-            if (this.room === room && this.state.value !== "complete") {
-              console.log("[webrtc] Peer left:", peerId);
-              this.state.value = "error";
-              this.error.value = "Peer disconnected";
-            }
-          });
+          room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
 
           return;
         }
@@ -640,6 +645,58 @@ export class WebRTCService {
 
   onBatchComplete(cb: () => void): void {
     this.onBatchCompleteCb = cb;
+  }
+
+  /** Apply the peer-leave policy for the current connection state. */
+  private handlePeerLeave(room: Room, peerId: string): void {
+    if (this.room !== room) return;
+    console.log("[webrtc] Peer left:", peerId);
+    const { nextState, peerOffline } = resolvePeerLeave(this.state.value);
+    if (peerOffline) this.peerOnline.value = false;
+    if (nextState === "error") {
+      this.state.value = "error";
+      this.error.value = "Peer disconnected";
+    }
+  }
+
+  /**
+   * Register the `collab-go` action so either peer can signal that it has started
+   * a collaborative session; the remote peer converges onto the shared editor
+   * (REQ-COLLAB-005).
+   */
+  private setupCollabSignal(room: Room): void {
+    const [send, get] = room.makeAction<string>("collab-go");
+    this.sendCollabStart = () => {
+      void send("go");
+    };
+    get(() => {
+      this.collabRequested.value = true;
+    });
+  }
+
+  /**
+   * Enter the live collaborative session: keep the room open and transition to the
+   * `editing` state (never `complete`), signaling the peer to join the shared
+   * editor (REQ-COLLAB-004, REQ-COLLAB-005).
+   */
+  startCollab(): void {
+    this.sendCollabStart?.();
+    this.state.value = "editing";
+  }
+
+  /** Transition to `editing` without re-signaling the peer (used on the joining side). */
+  enterEditing(): void {
+    this.state.value = "editing";
+  }
+
+  /** Expose the live trystero room so a CollabSession can reuse the connection. */
+  getRoom(): Room | null {
+    return this.room;
+  }
+
+  /** This peer's stable site id (trystero selfId). */
+  getSelfId(): string {
+    return selfId;
   }
 
   disconnect(): void {

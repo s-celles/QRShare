@@ -7,6 +7,7 @@ import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE }
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { buildRoomConfig } from "@/webrtc/settings";
+import { enterCollab } from "@/collab/handoff";
 import { t } from "../i18n";
 
 const contentType = signal<"file" | "text">("file");
@@ -253,6 +254,14 @@ export function WebRTCSenderView() {
 
   const svc = serviceRef.current;
   const code = svc?.confirmationCode.value || "";
+  // Subscribe to the peer's collaborative-start signal.
+  const collabWanted = svc?.collabRequested.value ?? false;
+
+  useEffect(() => {
+    if (collabWanted && serviceRef.current) {
+      enterCollab(serviceRef.current, roomIdInput.value, false);
+    }
+  }, [collabWanted]);
   const pct = progress.value
     ? Math.round(
         (progress.value.bytesSent / progress.value.totalBytes) * 100,
@@ -335,6 +344,18 @@ export function WebRTCSenderView() {
             {code}
           </p>
           <p>{t("webrtcSender.verifyCode")}</p>
+          <button
+            class="start-btn"
+            style={{ marginBottom: "1rem" }}
+            onClick={() => {
+              if (serviceRef.current) {
+                enterCollab(serviceRef.current, roomIdInput.value, true);
+              }
+            }}
+            aria-label={t("collab.start")}
+          >
+            {t("collab.start")}
+          </button>
           <ContentTypeToggle
             value={contentType.value}
             onChange={(type) => { contentType.value = type; }}

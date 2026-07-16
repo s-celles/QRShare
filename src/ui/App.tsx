@@ -7,6 +7,7 @@ import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
 import { WebRTCSenderView } from "./components/WebRTCSenderView";
 import { WebRTCReceiverView } from "./components/WebRTCReceiverView";
+import { CollabEditorView } from "./components/CollabEditorView";
 import { ScannerView } from "./components/ScannerView";
 import { CreatorView } from "./components/CreatorView";
 import { GuideView } from "./components/GuideView";
@@ -32,6 +33,8 @@ function RouteView() {
       return <WebRTCSenderView />;
     case "/receive/webrtc":
       return <WebRTCReceiverView />;
+    case "/collab":
+      return <CollabEditorView />;
     case "/send/share":
       return <WebShareSenderView />;
     case "/guide":

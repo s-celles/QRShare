@@ -9,6 +9,7 @@ import { isTextMimeType } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { TextResultView } from "./TextResultView";
 import { buildRoomConfig } from "@/webrtc/settings";
+import { enterCollab } from "@/collab/handoff";
 import { t } from "../i18n";
 
 const copyRoomIdFeedback = signal(false);
@@ -142,6 +143,14 @@ export function WebRTCReceiverView() {
 
   const code = serviceRef.current?.getConfirmationCode() || "";
   const state = serviceRef.current?.state.value || "idle";
+  // Subscribe to the peer's collaborative-start signal.
+  const collabWanted = serviceRef.current?.collabRequested.value ?? false;
+
+  useEffect(() => {
+    if (collabWanted && serviceRef.current) {
+      enterCollab(serviceRef.current, roomId.value, false);
+    }
+  }, [collabWanted]);
   const pct = progress.value
     ? Math.round(
         (progress.value.bytesSent / progress.value.totalBytes) * 100,
@@ -243,6 +252,17 @@ export function WebRTCReceiverView() {
           <p>
             {t("webrtcReceiver.verifyCode")}
           </p>
+          <button
+            class="start-btn"
+            onClick={() => {
+              if (serviceRef.current) {
+                enterCollab(serviceRef.current, roomId.value, true);
+              }
+            }}
+            aria-label={t("collab.start")}
+          >
+            {t("collab.start")}
+          </button>
         </div>
       )}
 

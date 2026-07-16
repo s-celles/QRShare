@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Live collaborative text editing** over an established WebRTC connection: after connecting and verifying the confirmation code, either peer can open a shared editor at `/collab` where edits propagate live and converge automatically
+- Yjs CRDT (`Y.Doc` / `Y.Text`) wired directly onto the existing trystero DataChannel via new `doc-update`, `version`, and `sync` actions — no Yjs network provider added; concurrent same-region edits merge without data loss
+- State-vector handshake for late-join and reconnect resync (`Y.encodeStateVector` / `Y.encodeStateAsUpdate`), including version-log replay
+- Named document versions with restore, ordered by a per-peer logical (Lamport) clock with `siteId` tie-break (never wall-clock), append-only and de-duplicated by `id`
+- Local persistence via `y-indexeddb` keyed by Room ID, so reloading rejoins the same session; degrades gracefully to a no-op (session lost on reload) when IndexedDB is unavailable
+- "Export as QR" per saved version routes a snapshot's text through the existing one-way QR text pipeline (clearly labeled as a one-way snapshot, not a live channel)
+- New `editing` WebRTC session state that keeps the room open; peer-leave during editing is a recoverable presence change instead of an error
+- `collab.*` i18n keys in English, French, and Arabic; new `docs/en-collaborative-editing.md` documentation page
+- `yjs` and `y-indexeddb` dependencies; the Yjs-backed modules are lazy-imported on the `/collab` route to limit the base bundle impact (~50–100 KB added to the single-file build)
+
 ## [0.1.4] - 2026-03-15
 
 ### Changed

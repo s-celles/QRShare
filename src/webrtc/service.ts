@@ -47,7 +47,7 @@ function generateRoomId(): string {
     .join("");
 }
 
-function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: string): JoinRoomConfig {
+export function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: string): JoinRoomConfig {
   const relayUrls = config.relayUrls?.[adapter.name];
   const joinConfig: JoinRoomConfig = {
     appId: config.appId,
@@ -58,33 +58,29 @@ function buildJoinConfig(config: RoomConfig, adapter: StrategyAdapter, roomId: s
 
   const iceServers = config.iceServers ?? [];
   if (iceServers.length > 0) {
-    const getUrl = (s: { urls: string | string[] }) =>
-      Array.isArray(s.urls) ? s.urls[0] : s.urls;
-    const stunServers = iceServers.filter((s) => getUrl(s)?.startsWith("stun:"));
-    const turnServers = iceServers.filter((s) => {
-      const u = getUrl(s);
-      return u?.startsWith("turn:") || u?.startsWith("turns:");
-    });
-
-    if (stunServers.length > 0 || turnServers.length > 0) {
-      joinConfig.rtcConfig = {
-        iceServers: stunServers.map((s) => ({ urls: s.urls })),
-      };
-    }
-    if (turnServers.length > 0) {
-      joinConfig.turnConfig = turnServers.map((s) => ({
+    // Trystero builds the peer as:
+    //   new RTCPeerConnection({iceServers: defaultIceServers.concat(turnConfig || []), ...rtcConfig})
+    // `rtcConfig` is spread last, so rtcConfig.iceServers overrides both the
+    // trystero defaults and anything passed via turnConfig. It must therefore
+    // list every server ICE should use — STUN *and* TURN, credentials included.
+    joinConfig.rtcConfig = {
+      iceServers: iceServers.map((s) => ({
         urls: s.urls,
-        username: s.username,
-        credential: s.credential,
-      }));
-    }
+        ...(s.username !== undefined && { username: s.username }),
+        ...(s.credential !== undefined && { credential: s.credential }),
+      })),
+    };
   }
 
-  if (joinConfig.rtcConfig || joinConfig.turnConfig) {
+  if (joinConfig.rtcConfig) {
+    const urlsOf = (s: { urls: string | string[] }) =>
+      Array.isArray(s.urls) ? s.urls : [s.urls];
+    const isTurn = (u: string) => u.startsWith("turn:") || u.startsWith("turns:");
+    const all = joinConfig.rtcConfig.iceServers;
     console.log("[webrtc] ICE config:", {
-      stun: joinConfig.rtcConfig?.iceServers?.length ?? 0,
-      turn: joinConfig.turnConfig?.length ?? 0,
-      turnUrls: joinConfig.turnConfig?.map((t) => t.urls),
+      stun: all.filter((s) => urlsOf(s).some((u) => u.startsWith("stun:"))).length,
+      turn: all.filter((s) => urlsOf(s).some(isTurn)).length,
+      turnUrls: all.filter((s) => urlsOf(s).some(isTurn)).map((s) => s.urls),
     });
   }
 

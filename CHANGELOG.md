@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `collab.*` i18n keys in English, French, and Arabic; new `docs/en-collaborative-editing.md` documentation page
 - `yjs` and `y-indexeddb` dependencies; the Yjs-backed modules are lazy-imported on the `/collab` route to limit the base bundle impact (~50–100 KB added to the single-file build)
 
+### Fixed
+
+- **Configured TURN servers were silently ignored**, making connections fail on networks that require relaying (symmetric NAT, mobile CGNAT, UDP-blocking firewalls). Trystero spreads `rtcConfig` after its own `iceServers`, so the STUN-only `rtcConfig.iceServers` QRShare built overrode both the trystero defaults and the separately-passed `turnConfig`, and TURN never reached the `RTCPeerConnection`. STUN and TURN are now merged into a single `rtcConfig.iceServers` list with credentials preserved
+- A TURN-only ICE configuration (no STUN) previously produced an empty `iceServers` list, removing every ICE server
+
 ## [0.1.4] - 2026-03-15
 
 ### Changed

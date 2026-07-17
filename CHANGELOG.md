@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The collaborative editor's text area was far too narrow.** The `.collab-editor` textarea had no CSS rule, so it fell back to the browser's default width instead of filling the view. It now spans the full width, and the `/collab` view widens beyond the 960px app shell toward the viewport to give editing more room
+
 ## [0.2.0] - 2026-07-17
 
 ### Added

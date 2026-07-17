@@ -1220,3 +1220,48 @@ section > button:hover {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Collaborative Editor View */
+
+/* Editing is easier with more room than the 960px app shell, so this view grows
+   toward the viewport. The side gap stays wide enough to clear a scrollbar. */
+.collab-view {
+  --collab-width: max(100%, min(100vw - 3rem, 1400px));
+  width: var(--collab-width);
+  margin-inline: calc((100% - var(--collab-width)) / 2);
+}
+
+.collab-editor {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+}
+
+.collab-editor:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.char-count {
+  text-align: end;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+.char-count--limit {
+  color: #b91c1c;
+  opacity: 1;
+}
+
+[data-theme="dark"] .char-count--limit {
+  color: #fca5a5;
+}

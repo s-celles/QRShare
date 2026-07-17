@@ -124,7 +124,7 @@ export function CollabEditorView() {
   const versions = session.versions.value;
 
   return (
-    <section aria-label={t("collab.section")}>
+    <section class="collab-view" aria-label={t("collab.section")}>
       <div class="view-header">
         <button onClick={() => navigate("/")} aria-label={t("common.backToHome")}>
           {"← " + t("common.back")}
@@ -152,7 +152,7 @@ export function CollabEditorView() {
           session.setText((e.target as HTMLTextAreaElement).value);
         }}
         aria-label={t("collab.editorLabel")}
-        rows={12}
+        rows={18}
       />
 
       <p class={overLimit ? "char-count char-count--limit" : "char-count"} aria-live="polite">

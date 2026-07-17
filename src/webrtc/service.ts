@@ -3,6 +3,7 @@ import { selfId } from "trystero/nostr";
 import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
 import { getAdapter, ALL_STRATEGIES, type StrategyName, type StrategyAdapter, type JoinRoomConfig } from "./strategies";
+import { StrategyAgreement, type AgreementRoom } from "./agreement";
 import {
   type RoomConfig,
   type BatchMetadata,
@@ -99,6 +100,8 @@ export class WebRTCService {
   readonly collabRequested = signal(false);
 
   private room: Room | null = null;
+  /** Runs only in `parallel` mode; `sequential` never negotiates a strategy. */
+  private agreement: StrategyAgreement | null = null;
   private sendCollabStart: (() => void) | null = null;
   private activeRooms: { strategy: StrategyName; room: Room }[] = [];
   private remotePeerId = "";
@@ -162,41 +165,69 @@ export class WebRTCService {
       rooms.map((r) => r.strategy),
     );
 
-    let settled = false;
-
-    for (const { strategy, room } of rooms) {
-      room.onPeerJoin((peerId) => {
-        if (settled) return;
-        settled = true;
-
-        console.log("[webrtc] Peer joined via", strategy, ":", peerId);
-        this.room = room;
-        this.activeStrategy.value = strategy;
-        this.remotePeerId = peerId;
-        this.state.value = "confirming";
-        this.deriveConfirmationCode();
-        this.peerOnline.value = true;
-        this.setupCollabSignal(room);
-
-        this.strategyAttempts.value = rooms.map((r) => ({
-          strategy: r.strategy,
-          status: r.strategy === strategy ? "connected" : "cancelled",
-        }));
-
-        for (const other of rooms) {
-          if (other.strategy !== strategy) {
-            other.room.leave();
-          }
-        }
-        this.activeRooms = [{ strategy, room }];
-
-        this.setupReceiverActions(room);
-      });
-
-      room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
-    }
+    // The agreement owns every room's peer events until a strategy is agreed: it
+    // decides which one to keep and tears down the rest. Adopting our own
+    // first-to-connect here is what let the two peers disagree and kill each other.
+    this.agreement = this.startAgreement(rooms, (entry, peerId) => {
+      this.adoptStrategy(entry, peerId, rooms);
+      this.setupReceiverActions(entry.room);
+    });
 
     return { roomId };
+  }
+
+  /**
+   * Adopt the strategy agreed with the remote peer. Shared by the receiver and
+   * sender parallel paths; the losing rooms have already been left by the agreement.
+   */
+  private adoptStrategy(
+    entry: { strategy: StrategyName; room: Room },
+    peerId: string,
+    rooms: { strategy: StrategyName; room: Room }[],
+  ): void {
+    const { strategy, room } = entry;
+    console.log("[webrtc] Agreed strategy:", strategy, "peer:", peerId);
+
+    this.room = room;
+    this.activeStrategy.value = strategy;
+    this.remotePeerId = peerId;
+    this.state.value = "confirming";
+    this.deriveConfirmationCode();
+    this.peerOnline.value = true;
+    this.setupCollabSignal(room);
+
+    this.strategyAttempts.value = rooms.map((r) => ({
+      strategy: r.strategy,
+      status: r.strategy === strategy ? "connected" : "cancelled",
+    }));
+    this.activeRooms = [{ strategy, room }];
+
+    // Trystero's onPeerLeave is a single-slot assignment (`room.js:387`), so this
+    // deliberately takes the handler back from the agreement for the room we kept.
+    // Pre-agreement leaves were the agreement's business (mark the strategy dead,
+    // never an error); post-agreement leaves are `resolvePeerLeave` policy.
+    room.onPeerLeave((id) => this.handlePeerLeave(room, id));
+  }
+
+  /** Wire a `StrategyAgreement` over the joined rooms. */
+  private startAgreement(
+    rooms: { strategy: StrategyName; room: Room }[],
+    onActivate: (entry: { strategy: StrategyName; room: Room }, peerId: string) => void,
+  ): StrategyAgreement {
+    return new StrategyAgreement({
+      selfId,
+      // trystero's `Room.makeAction` generic is not structurally assignable to the
+      // narrower AgreementRoom; the shape matches at runtime (same cast as
+      // CollabEditorView uses for CollabRoom).
+      rooms: rooms.map((r) => ({
+        strategy: r.strategy,
+        room: r.room as unknown as AgreementRoom,
+      })),
+      onActivate: (strategy, _room, peerId) => {
+        const entry = rooms.find((r) => r.strategy === strategy);
+        if (entry) onActivate(entry, peerId);
+      },
+    });
   }
 
   private async createReceiverSequential(
@@ -397,38 +428,13 @@ export class WebRTCService {
         reject(new Error("Connection timed out"));
       }, 30_000);
 
-      for (const { strategy, room } of rooms) {
-        room.onPeerJoin((peerId) => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timeout);
-
-          console.log("[webrtc] Connected to peer via", strategy, ":", peerId);
-          this.room = room;
-          this.activeStrategy.value = strategy;
-          this.remotePeerId = peerId;
-          this.state.value = "confirming";
-          this.deriveConfirmationCode();
-          this.peerOnline.value = true;
-          this.setupCollabSignal(room);
-
-          this.strategyAttempts.value = rooms.map((r) => ({
-            strategy: r.strategy,
-            status: r.strategy === strategy ? "connected" : "cancelled",
-          }));
-
-          for (const other of rooms) {
-            if (other.strategy !== strategy) {
-              other.room.leave();
-            }
-          }
-          this.activeRooms = [{ strategy, room }];
-
-          resolve();
-        });
-
-        room.onPeerLeave((peerId) => this.handlePeerLeave(room, peerId));
-      }
+      this.agreement = this.startAgreement(rooms, (entry, peerId) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        this.adoptStrategy(entry, peerId, rooms);
+        resolve();
+      });
     });
   }
 
@@ -696,6 +702,8 @@ export class WebRTCService {
   }
 
   disconnect(): void {
+    this.agreement?.destroy();
+    this.agreement = null;
     for (const { room } of this.activeRooms) {
       room.leave();
     }

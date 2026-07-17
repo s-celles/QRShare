@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Both peers could disconnect each other right after connecting.** In `parallel` mode each side independently adopted the first signaling strategy whose peer joined and left every other room, with no negotiation. When two strategies connected within the same short window the two peers could settle on *different* strategies, each tearing down the room the other had kept, and both failed with "Peer disconnected". Strategy selection is now deterministic: the two peer ids elect a leader with no round trip, the leader announces its choice over the channel it keeps, and no room is torn down before the agreement. A follower whose peer never announces (`sequential` mode, or an older build) falls back to its own first still-alive strategy after a short grace period
 - **Configured TURN servers were silently ignored**, making connections fail on networks that require relaying (symmetric NAT, mobile CGNAT, UDP-blocking firewalls). Trystero spreads `rtcConfig` after its own `iceServers`, so the STUN-only `rtcConfig.iceServers` QRShare built overrode both the trystero defaults and the separately-passed `turnConfig`, and TURN never reached the `RTCPeerConnection`. STUN and TURN are now merged into a single `rtcConfig.iceServers` list with credentials preserved
 - A TURN-only ICE configuration (no STUN) previously produced an empty `iceServers` list, removing every ICE server
 

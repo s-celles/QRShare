@@ -11,6 +11,7 @@ import { TextResultView } from "./TextResultView";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab } from "@/collab/handoff";
 import { t } from "../i18n";
+import { ConnectionError } from "./ConnectionError";
 
 const copyRoomIdFeedback = signal(false);
 
@@ -172,10 +173,11 @@ export function WebRTCReceiverView() {
         <h2>{t("webrtcReceiver.heading")}</h2>
       </div>
 
-      {error.value && (
-        <div class="error-msg" role="alert">
-          {error.value}
-        </div>
+      {(error.value || serviceRef.current?.diagnosis.value) && (
+        <ConnectionError
+          diagnosis={serviceRef.current?.diagnosis.value ?? null}
+          fallback={error.value}
+        />
       )}
 
       {!isWaiting.value && !isComplete.value && (

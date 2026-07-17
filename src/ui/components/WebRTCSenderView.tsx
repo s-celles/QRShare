@@ -9,6 +9,7 @@ import { TextInputArea } from "./TextInputArea";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab } from "@/collab/handoff";
 import { t } from "../i18n";
+import { ConnectionError } from "./ConnectionError";
 
 const contentType = signal<"file" | "text">("file");
 const textInput = signal("");
@@ -277,10 +278,11 @@ export function WebRTCSenderView() {
         <h2>{t("webrtcSender.heading")}</h2>
       </div>
 
-      {error.value && (
-        <div class="error-msg" role="alert">
-          {error.value}
-        </div>
+      {(error.value || serviceRef.current?.diagnosis.value) && (
+        <ConnectionError
+          diagnosis={serviceRef.current?.diagnosis.value ?? null}
+          fallback={error.value}
+        />
       )}
 
       {!isConnecting.value && !isConnected.value && !isComplete.value && (

@@ -259,6 +259,36 @@ export const en: Record<string, string> = {
   "webrtcSettings.addTurn": "Add TURN Server",
   "webrtcSettings.removeTurn": "Remove",
   "webrtcSettings.resetDefaults": "Reset to Defaults",
+  "webrtcSettings.testIce": "Test ICE servers",
+  "webrtcSettings.testIceRunning": "Testing…",
+  "webrtcSettings.testIceStunOk": "STUN reachable — a public address was discovered.",
+  "webrtcSettings.testIceStunFail": "STUN unreachable — no public address. Direct connections will likely fail.",
+  "webrtcSettings.testIceTurnOk": "TURN works — a relay address was obtained.",
+  "webrtcSettings.testIceTurnFail": "TURN configured but no relay address was obtained. Check the URL, port and credentials.",
+  "webrtcSettings.testIceNoTurn": "No TURN server configured. Networks that need a relay will not connect.",
+  "webrtcSettings.noDefaultTurnRationale":
+    "QRShare deliberately ships no TURN relay. A relay would see who connects to whom, when, and how much data moves — even though the transfer itself stays end-to-end encrypted. Add your own below if your network needs one.",
+  "webrtcError.relayLikelyRequired":
+    "Your network appears to need a relay (TURN). No public address could be obtained, which usually means a symmetric NAT, mobile carrier NAT, or a firewall blocking UDP. QRShare ships no relay on purpose — add your own to connect.",
+  "webrtcError.turnNotWorking":
+    "Your TURN server did not respond. It is configured, but no relay address could be obtained — check its URL, port and credentials.",
+  "webrtcError.peerUnreachable":
+    "The other device could not be reached. Your own network looks fine, so make sure the other device is still waiting, then try again.",
+  "webrtcError.peerDropped": "The connection dropped — the network went away.",
+  "webrtcError.peerLeftDeliberately": "The other device left the session.",
+  "webrtcError.noStrategyInitialized":
+    "No signaling strategy could start. Check your network connection and the relay settings.",
+  "webrtcError.wrongRoomId": "The room code did not match. Rescan the QR code.",
+  "webrtcError.openTurnSettings": "Open WebRTC settings",
+  "webrtcError.details": "Connection details",
+  "webrtcError.detailsCandidates": "Candidates gathered",
+  "webrtcError.detailsStun": "STUN reachable",
+  "webrtcError.detailsTurnConfigured": "TURN configured",
+  "webrtcError.detailsTurnReachable": "TURN relay obtained",
+  "webrtcError.detailsNone": "none",
+  "webrtcError.yes": "yes",
+  "webrtcError.no": "no",
+  "webrtcError.lowConfidence": "Best guess — the cause cannot be confirmed from this device.",
 
   // About
   "about.section": "About QRShare",

@@ -2,8 +2,14 @@ import { signal } from "@preact/signals";
 import { selfId } from "trystero/nostr";
 import type { Room } from "trystero";
 import { hashSha256 } from "@/crypto/hash";
-import { getAdapter, ALL_STRATEGIES, type StrategyName, type StrategyAdapter, type JoinRoomConfig } from "./strategies";
+import { getAdapter, ALL_STRATEGIES, type StrategyName, type StrategyAdapter, type JoinRoomConfig, type JoinErrorDetails } from "./strategies";
 import { StrategyAgreement, type AgreementRoom } from "./agreement";
+import {
+  classifyFailure,
+  probeIce,
+  type ConnectionDiagnosis,
+  type IceProbeResult,
+} from "./diagnostics";
 import {
   type RoomConfig,
   type BatchMetadata,
@@ -17,6 +23,8 @@ import {
 } from "./types";
 
 const STRATEGY_TIMEOUT = 10_000;
+/** How often to sample the live peer connection state (see startPeerSampling). */
+const PEER_SAMPLE_INTERVAL_MS = 1_000;
 
 /**
  * Decide how a peer-leave affects the connection state.
@@ -99,9 +107,23 @@ export class WebRTCService {
   /** Set when the remote peer signals they have started a collaborative session. */
   readonly collabRequested = signal(false);
 
+  /**
+   * Machine-readable cause of the last failure, for the UI to translate.
+   * `error` is kept alongside it for compatibility.
+   */
+  readonly diagnosis = signal<ConnectionDiagnosis | null>(null);
+
   private room: Room | null = null;
   /** Runs only in `parallel` mode; `sequential` never negotiates a strategy. */
   private agreement: StrategyAgreement | null = null;
+  /**
+   * Last states sampled while the peer connection was still alive. By the time
+   * `onPeerLeave` fires trystero has already closed it (`room.js:61-72`), so a
+   * drop and a deliberate leave are otherwise indistinguishable.
+   */
+  private lastPeerConnectionState: RTCPeerConnectionState | undefined;
+  private lastIceConnectionState: RTCIceConnectionState | undefined;
+  private sampleTimer: ReturnType<typeof setInterval> | null = null;
   private sendCollabStart: (() => void) | null = null;
   private activeRooms: { strategy: StrategyName; room: Room }[] = [];
   private remotePeerId = "";
@@ -137,7 +159,7 @@ export class WebRTCService {
     for (const adapter of adapters) {
       try {
         const joinConfig = buildJoinConfig(config, adapter, roomId);
-        const room = adapter.joinRoom(joinConfig, roomId);
+        const room = adapter.joinRoom(joinConfig, roomId, (d) => this.handleJoinError(d));
         rooms.push({ strategy: adapter.name, room });
       } catch (err) {
         console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);
@@ -147,6 +169,7 @@ export class WebRTCService {
     if (rooms.length === 0) {
       this.state.value = "error";
       this.error.value = "All signaling strategies failed to initialize.";
+      this.diagnosis.value = classifyFailure({ outcome: "no-strategy-initialized" });
       throw new Error("All signaling strategies failed");
     }
 
@@ -207,6 +230,7 @@ export class WebRTCService {
     // Pre-agreement leaves were the agreement's business (mark the strategy dead,
     // never an error); post-agreement leaves are `resolvePeerLeave` policy.
     room.onPeerLeave((id) => this.handlePeerLeave(room, id));
+    this.startPeerSampling(room, peerId);
   }
 
   /** Wire a `StrategyAgreement` over the joined rooms. */
@@ -250,7 +274,7 @@ export class WebRTCService {
 
       try {
         const joinConfig = buildJoinConfig(config, adapter, roomId);
-        const room = adapter.joinRoom(joinConfig, roomId);
+        const room = adapter.joinRoom(joinConfig, roomId, (d) => this.handleJoinError(d));
         this.activeRooms = [{ strategy: adapter.name, room }];
 
         console.log("[webrtc] Receiver trying strategy:", adapter.name, "room:", roomId);
@@ -384,7 +408,7 @@ export class WebRTCService {
       for (const adapter of adapters) {
         try {
           const joinConfig = buildJoinConfig(config, adapter, roomId);
-          const room = adapter.joinRoom(joinConfig, roomId);
+          const room = adapter.joinRoom(joinConfig, roomId, (d) => this.handleJoinError(d));
           rooms.push({ strategy: adapter.name, room });
         } catch (err) {
           console.warn(`[webrtc] Strategy ${adapter.name} failed to join:`, err);
@@ -394,6 +418,7 @@ export class WebRTCService {
       if (rooms.length === 0) {
         this.state.value = "error";
         this.error.value = "All signaling strategies failed to initialize.";
+        this.diagnosis.value = classifyFailure({ outcome: "no-strategy-initialized" });
         reject(new Error("All signaling strategies failed"));
         return;
       }
@@ -425,6 +450,10 @@ export class WebRTCService {
           strategy: r.strategy,
           status: "failed",
         }));
+        // Nobody ever joined. Probe the local ICE path so the user is told which
+        // thing failed instead of "the receiver may not be waiting" — which is
+        // actively misleading when the real cause is a network needing a relay.
+        void this.diagnosePeerNeverJoined(config, adapters[0], roomId);
         reject(new Error("Connection timed out"));
       }, 30_000);
 
@@ -458,7 +487,7 @@ export class WebRTCService {
 
       try {
         const joinConfig = buildJoinConfig(config, adapter, roomId);
-        const room = adapter.joinRoom(joinConfig, roomId);
+        const room = adapter.joinRoom(joinConfig, roomId, (d) => this.handleJoinError(d));
         this.activeRooms = [{ strategy: adapter.name, room }];
 
         console.log("[webrtc] Sender trying strategy:", adapter.name, "room:", roomId);
@@ -510,6 +539,8 @@ export class WebRTCService {
       strategy: a.name,
       status: "failed",
     }));
+    // Same failure as the parallel timeout: nobody ever joined, on any strategy.
+    void this.diagnosePeerNeverJoined(config, adapters[0], roomId);
     throw new Error("All signaling strategies failed");
   }
 
@@ -650,15 +681,85 @@ export class WebRTCService {
   }
 
   /** Apply the peer-leave policy for the current connection state. */
+  /**
+   * Cheap safety net, not a real detector. Trystero raises this only when an
+   * offer/answer fails to decrypt (`strategy.js:104-110`), i.e. the two peers used
+   * different passwords. QRShare sets `password: roomId` and trystero derives the
+   * room topic from that same `roomId` (`strategy.js:39-42`), so two peers in the
+   * same room always derive the same key — this is expected to be unreachable here.
+   */
+  private handleJoinError(details: JoinErrorDetails): void {
+    console.warn("[webrtc] Join error:", details);
+    this.diagnosis.value = classifyFailure({ outcome: "wrong-room-id" });
+  }
+
   private handlePeerLeave(room: Room, peerId: string): void {
     if (this.room !== room) return;
     console.log("[webrtc] Peer left:", peerId);
+    this.stopPeerSampling();
     const { nextState, peerOffline } = resolvePeerLeave(this.state.value);
     if (peerOffline) this.peerOnline.value = false;
     if (nextState === "error") {
       this.state.value = "error";
       this.error.value = "Peer disconnected";
+      this.diagnosis.value = classifyFailure({
+        outcome: "peer-left",
+        lastPeerConnectionState: this.lastPeerConnectionState,
+        lastIceConnectionState: this.lastIceConnectionState,
+      });
     }
+  }
+
+  /**
+   * Poll the live RTCPeerConnection so `classifyFailure` has an input when the
+   * peer eventually goes away. Trystero hands us the real pc via `getPeers()`
+   * (`index.d.ts:66`, `room.js:349`), but only while the channel is open.
+   */
+  private startPeerSampling(room: Room, peerId: string): void {
+    this.stopPeerSampling();
+    this.lastPeerConnectionState = undefined;
+    this.lastIceConnectionState = undefined;
+    const sample = () => {
+      const pc = room.getPeers()[peerId];
+      if (!pc) return;
+      if (pc.connectionState !== "closed") {
+        this.lastPeerConnectionState = pc.connectionState;
+      }
+      if (pc.iceConnectionState !== "closed") {
+        this.lastIceConnectionState = pc.iceConnectionState;
+      }
+    };
+    sample();
+    this.sampleTimer = setInterval(sample, PEER_SAMPLE_INTERVAL_MS);
+  }
+
+  private stopPeerSampling(): void {
+    if (this.sampleTimer !== null) clearInterval(this.sampleTimer);
+    this.sampleTimer = null;
+  }
+
+  /**
+   * Nobody ever joined. Ambiguous by construction, so narrow it with a local ICE
+   * probe over exactly the servers a real connection would have used
+   * ([REQ-RELY-043]) — never speculatively, only after a failure ([REQ-RELY-047]).
+   */
+  private async diagnosePeerNeverJoined(
+    config: RoomConfig,
+    adapter: StrategyAdapter | undefined,
+    roomId: string,
+  ): Promise<void> {
+    let probe: IceProbeResult | undefined;
+    try {
+      if (adapter) {
+        const iceServers = buildJoinConfig(config, adapter, roomId).rtcConfig?.iceServers;
+        if (iceServers) probe = await probeIce(iceServers);
+      }
+    } catch (err) {
+      // Best effort: an unavailable probe just leaves the diagnosis ambiguous,
+      // which classifyFailure already handles honestly.
+      console.warn("[webrtc] ICE probe failed:", err);
+    }
+    this.diagnosis.value = classifyFailure({ outcome: "peer-never-joined", probe });
   }
 
   /**
@@ -704,6 +805,7 @@ export class WebRTCService {
   disconnect(): void {
     this.agreement?.destroy();
     this.agreement = null;
+    this.stopPeerSampling();
     for (const { room } of this.activeRooms) {
       room.leave();
     }

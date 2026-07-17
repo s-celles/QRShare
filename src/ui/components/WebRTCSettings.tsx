@@ -1,3 +1,4 @@
+import { signal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { t } from "../i18n";
@@ -8,7 +9,11 @@ import {
   type StrategySettings,
 } from "@/webrtc/settings";
 import { ALL_STRATEGIES, type StrategyName } from "@/webrtc/strategies";
+import { probeIce, type IceProbeResult } from "@/webrtc/diagnostics";
 import type { ConnectionMode, IceServerConfig } from "@/webrtc/types";
+
+const iceTestRunning = signal(false);
+const iceTestResult = signal<IceProbeResult | null>(null);
 
 function moveStrategy(list: StrategyName[], index: number, direction: -1 | 1): StrategyName[] {
   const newIndex = index + direction;
@@ -221,6 +226,7 @@ function IceServersGroup({
     <div class="settings-group">
       <h3>{t("webrtcSettings.iceServers")}</h3>
       <p class="settings-hint">{t("webrtcSettings.iceServersHint")}</p>
+      <p class="settings-hint">{t("webrtcSettings.noDefaultTurnRationale")}</p>
 
       <div class="strategy-relays">
         <label>{t("webrtcSettings.stunServers")}</label>
@@ -270,6 +276,55 @@ function IceServersGroup({
       <button class="turn-add-btn" onClick={addTurn}>
         + {t("webrtcSettings.addTurn")}
       </button>
+
+      <IceTest servers={settings.iceServers} />
+    </div>
+  );
+}
+
+/**
+ * Run the ICE probe against the servers as currently configured and say plainly
+ * what works. This is where a user with a broken TURN setup actually needs the
+ * feedback — before a transfer fails, not after.
+ */
+function IceTest({ servers }: { servers: IceServerConfig[] }) {
+  const running = iceTestRunning.value;
+  const result = iceTestResult.value;
+
+  const run = async () => {
+    iceTestRunning.value = true;
+    iceTestResult.value = null;
+    try {
+      iceTestResult.value = await probeIce(servers);
+    } catch {
+      iceTestResult.value = null;
+    } finally {
+      iceTestRunning.value = false;
+    }
+  };
+
+  return (
+    <div class="ice-test">
+      <button class="turn-add-btn" onClick={run} disabled={running}>
+        {running ? t("webrtcSettings.testIceRunning") : t("webrtcSettings.testIce")}
+      </button>
+
+      {result && (
+        <ul class="ice-test-result">
+          <li>
+            {result.stunReachable
+              ? t("webrtcSettings.testIceStunOk")
+              : t("webrtcSettings.testIceStunFail")}
+          </li>
+          <li>
+            {!result.turnConfigured
+              ? t("webrtcSettings.testIceNoTurn")
+              : result.turnReachable
+                ? t("webrtcSettings.testIceTurnOk")
+                : t("webrtcSettings.testIceTurnFail")}
+          </li>
+        </ul>
+      )}
     </div>
   );
 }

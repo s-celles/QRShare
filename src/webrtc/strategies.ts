@@ -15,9 +15,24 @@ export interface JoinRoomConfig {
   turnConfig?: Array<{ urls: string | string[]; username?: string; credential?: string }>;
 }
 
+/**
+ * Trystero fires this only when an offer/answer fails to decrypt, i.e. the two
+ * peers derived different keys from different passwords (`strategy.js:104-110`).
+ */
+export interface JoinErrorDetails {
+  error: string;
+  appId: string;
+  roomId: string;
+  peerId: string;
+}
+
 export interface StrategyAdapter {
   name: StrategyName;
-  joinRoom: (config: JoinRoomConfig, roomId: string) => Room;
+  joinRoom: (
+    config: JoinRoomConfig,
+    roomId: string,
+    onJoinError?: (details: JoinErrorDetails) => void,
+  ) => Room;
 }
 
 /** Default relay URLs imported from Trystero at build time. */
@@ -33,14 +48,26 @@ export async function getDefaultMqttRelayUrls(): Promise<string[]> {
   return defaultRelayUrls;
 }
 
+/**
+ * Trystero's per-strategy type declarations are stale about the third argument:
+ * `nostr.d.ts` / `torrent.d.ts` declare it as `manualRelayReconnection?: boolean`
+ * and `mqtt.d.ts` omits it entirely. At runtime every strategy is produced by the
+ * same factory, whose signature is `(config, roomId, onJoinError)`
+ * (`node_modules/trystero/src/strategy.js:30`, invoked at `:105`) — and
+ * `manualRelayReconnection` is read from `config` (`strategy.js:242`), never from
+ * an argument. Only the generic `index.d.ts:110-119` gets this right. These casts
+ * therefore follow the runtime, not the declaration.
+ */
+const asAdapterJoin = (fn: unknown) => fn as StrategyAdapter["joinRoom"];
+
 const nostrAdapter: StrategyAdapter = {
   name: "nostr",
-  joinRoom: joinNostr,
+  joinRoom: asAdapterJoin(joinNostr),
 };
 
 const torrentAdapter: StrategyAdapter = {
   name: "torrent",
-  joinRoom: joinTorrent,
+  joinRoom: asAdapterJoin(joinTorrent),
 };
 
 const STATIC_STRATEGIES: Record<string, StrategyAdapter> = {
@@ -50,7 +77,7 @@ const STATIC_STRATEGIES: Record<string, StrategyAdapter> = {
 
 async function loadMqttAdapter(): Promise<StrategyAdapter> {
   const { joinRoom } = await import("trystero/mqtt");
-  return { name: "mqtt", joinRoom };
+  return { name: "mqtt", joinRoom: asAdapterJoin(joinRoom) };
 }
 
 export const DEFAULT_STRATEGIES: StrategyName[] = ["nostr", "torrent"];

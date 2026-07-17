@@ -85,3 +85,33 @@ describe("WebRTC settings", () => {
     }
   });
 });
+
+describe("no default TURN server [REQ-RELY-050, REQ-RELY-051]", () => {
+  // QRShare deliberately ships no relay: a TURN server observes connection
+  // metadata (who pairs with whom, when, how much) even though DTLS keeps the
+  // payload opaque. This guard exists so one cannot be added inadvertently.
+  const urlsOf = (s: { urls: string | string[] }) =>
+    Array.isArray(s.urls) ? s.urls : [s.urls];
+
+  it("DEFAULT_ICE_SERVERS contains no turn: or turns: URL", () => {
+    for (const server of DEFAULT_ICE_SERVERS) {
+      for (const url of urlsOf(server)) {
+        expect(url.startsWith("turn:")).toBe(false);
+        expect(url.startsWith("turns:")).toBe(false);
+      }
+    }
+  });
+
+  it("the default settings blob ships no TURN either", () => {
+    for (const server of DEFAULT_STRATEGY_SETTINGS.iceServers) {
+      for (const url of urlsOf(server)) {
+        expect(url.startsWith("turn")).toBe(false);
+      }
+    }
+  });
+
+  it("the defaults do still ship STUN (direct P2P must work where it can)", () => {
+    const all = DEFAULT_ICE_SERVERS.flatMap(urlsOf);
+    expect(all.some((u) => u.startsWith("stun:"))).toBe(true);
+  });
+});

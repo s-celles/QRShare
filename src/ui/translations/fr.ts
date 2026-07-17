@@ -259,6 +259,40 @@ export const fr: Record<string, string> = {
   "webrtcSettings.addTurn": "Ajouter un serveur TURN",
   "webrtcSettings.removeTurn": "Supprimer",
   "webrtcSettings.resetDefaults": "R\u00e9initialiser les valeurs par d\u00e9faut",
+  "webrtcSettings.testIce": "Tester les serveurs ICE",
+  "webrtcSettings.testIceRunning": "Test en cours\u2026",
+  "webrtcSettings.testIceStunOk": "STUN joignable \u2014 une adresse publique a \u00e9t\u00e9 d\u00e9couverte.",
+  "webrtcSettings.testIceStunFail":
+    "STUN injoignable \u2014 aucune adresse publique. Les connexions directes \u00e9choueront probablement.",
+  "webrtcSettings.testIceTurnOk": "Le TURN fonctionne \u2014 une adresse de relais a \u00e9t\u00e9 obtenue.",
+  "webrtcSettings.testIceTurnFail":
+    "TURN configur\u00e9 mais aucune adresse de relais obtenue. V\u00e9rifiez l'URL, le port et les identifiants.",
+  "webrtcSettings.testIceNoTurn":
+    "Aucun serveur TURN configur\u00e9. Les r\u00e9seaux n\u00e9cessitant un relais ne pourront pas se connecter.",
+  "webrtcSettings.noDefaultTurnRationale":
+    "QRShare n'embarque d\u00e9lib\u00e9r\u00e9ment aucun relais TURN. Un relais verrait qui se connecte \u00e0 qui, quand, et quel volume transite \u2014 m\u00eame si le transfert lui-m\u00eame reste chiffr\u00e9 de bout en bout. Ajoutez le v\u00f4tre ci-dessous si votre r\u00e9seau en a besoin.",
+  "webrtcError.relayLikelyRequired":
+    "Votre r\u00e9seau semble n\u00e9cessiter un relais (TURN). Aucune adresse publique n'a pu \u00eatre obtenue, ce qui indique g\u00e9n\u00e9ralement un NAT sym\u00e9trique, un NAT d'op\u00e9rateur mobile, ou un pare-feu bloquant l'UDP. QRShare n'embarque aucun relais \u00e0 dessein \u2014 ajoutez le v\u00f4tre pour vous connecter.",
+  "webrtcError.turnNotWorking":
+    "Votre serveur TURN n'a pas r\u00e9pondu. Il est configur\u00e9, mais aucune adresse de relais n'a pu \u00eatre obtenue \u2014 v\u00e9rifiez son URL, son port et ses identifiants.",
+  "webrtcError.peerUnreachable":
+    "L'autre appareil n'a pas pu \u00eatre joint. Votre propre r\u00e9seau semble fonctionnel : v\u00e9rifiez que l'autre appareil est toujours en attente, puis r\u00e9essayez.",
+  "webrtcError.peerDropped": "La connexion a \u00e9t\u00e9 perdue \u2014 le r\u00e9seau a disparu.",
+  "webrtcError.peerLeftDeliberately": "L'autre appareil a quitt\u00e9 la session.",
+  "webrtcError.noStrategyInitialized":
+    "Aucune strat\u00e9gie de signalisation n'a pu d\u00e9marrer. V\u00e9rifiez votre connexion r\u00e9seau et les r\u00e9glages de relais.",
+  "webrtcError.wrongRoomId": "Le code de salon ne correspond pas. Rescannez le QR code.",
+  "webrtcError.openTurnSettings": "Ouvrir les r\u00e9glages WebRTC",
+  "webrtcError.details": "D\u00e9tails de connexion",
+  "webrtcError.detailsCandidates": "Candidats collect\u00e9s",
+  "webrtcError.detailsStun": "STUN joignable",
+  "webrtcError.detailsTurnConfigured": "TURN configur\u00e9",
+  "webrtcError.detailsTurnReachable": "Relais TURN obtenu",
+  "webrtcError.detailsNone": "aucun",
+  "webrtcError.yes": "oui",
+  "webrtcError.no": "non",
+  "webrtcError.lowConfidence":
+    "Hypoth\u00e8se la plus probable \u2014 la cause ne peut pas \u00eatre confirm\u00e9e depuis cet appareil.",
 
   // About
   "about.section": "\u00c0 propos de QRShare",

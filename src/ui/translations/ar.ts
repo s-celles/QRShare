@@ -259,6 +259,39 @@ export const ar: Record<string, string> = {
   "webrtcSettings.addTurn": "إضافة خادم TURN",
   "webrtcSettings.removeTurn": "حذف",
   "webrtcSettings.resetDefaults": "إعادة التعيين إلى الافتراضي",
+  "webrtcSettings.testIce": "اختبار خوادم ICE",
+  "webrtcSettings.testIceRunning": "جارٍ الاختبار…",
+  "webrtcSettings.testIceStunOk": "خادم STUN متاح — تم اكتشاف عنوان عام.",
+  "webrtcSettings.testIceStunFail":
+    "خادم STUN غير متاح — لا يوجد عنوان عام. من المرجح أن تفشل الاتصالات المباشرة.",
+  "webrtcSettings.testIceTurnOk": "خادم TURN يعمل — تم الحصول على عنوان ترحيل.",
+  "webrtcSettings.testIceTurnFail":
+    "تم إعداد TURN لكن لم يتم الحصول على عنوان ترحيل. تحقق من الرابط والمنفذ وبيانات الاعتماد.",
+  "webrtcSettings.testIceNoTurn":
+    "لم يتم إعداد خادم TURN. الشبكات التي تتطلب ترحيلًا لن تتمكن من الاتصال.",
+  "webrtcSettings.noDefaultTurnRationale":
+    "لا يتضمن QRShare أي خادم ترحيل TURN عن قصد. فخادم الترحيل يرى من يتصل بمن ومتى وحجم البيانات المنقولة — رغم أن النقل نفسه يبقى مشفرًا من طرف إلى طرف. أضف خادمك الخاص أدناه إذا كانت شبكتك تحتاج إليه.",
+  "webrtcError.relayLikelyRequired":
+    "يبدو أن شبكتك تحتاج إلى خادم ترحيل (TURN). لم يتم الحصول على أي عنوان عام، ما يشير عادةً إلى NAT متماثل أو NAT خاص بمشغل الهاتف أو جدار حماية يحجب UDP. لا يتضمن QRShare أي خادم ترحيل عن قصد — أضف خادمك الخاص للاتصال.",
+  "webrtcError.turnNotWorking":
+    "لم يستجب خادم TURN الخاص بك. إنه مُعد، لكن لم يتم الحصول على عنوان ترحيل — تحقق من الرابط والمنفذ وبيانات الاعتماد.",
+  "webrtcError.peerUnreachable":
+    "تعذر الوصول إلى الجهاز الآخر. تبدو شبكتك سليمة، لذا تأكد من أن الجهاز الآخر ما زال في وضع الانتظار ثم أعد المحاولة.",
+  "webrtcError.peerDropped": "انقطع الاتصال — اختفت الشبكة.",
+  "webrtcError.peerLeftDeliberately": "غادر الجهاز الآخر الجلسة.",
+  "webrtcError.noStrategyInitialized":
+    "تعذر بدء أي استراتيجية إشارات. تحقق من اتصالك بالشبكة ومن إعدادات الترحيل.",
+  "webrtcError.wrongRoomId": "رمز الغرفة غير مطابق. أعد مسح رمز QR.",
+  "webrtcError.openTurnSettings": "فتح إعدادات WebRTC",
+  "webrtcError.details": "تفاصيل الاتصال",
+  "webrtcError.detailsCandidates": "المرشحون المجمّعون",
+  "webrtcError.detailsStun": "STUN متاح",
+  "webrtcError.detailsTurnConfigured": "TURN مُعد",
+  "webrtcError.detailsTurnReachable": "تم الحصول على ترحيل TURN",
+  "webrtcError.detailsNone": "لا شيء",
+  "webrtcError.yes": "نعم",
+  "webrtcError.no": "لا",
+  "webrtcError.lowConfidence": "أفضل تقدير — لا يمكن تأكيد السبب من هذا الجهاز.",
 
   // About
   "about.section": "حول QRShare",

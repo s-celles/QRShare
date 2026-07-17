@@ -171,6 +171,15 @@ function parseToml(input: string): TomlObject {
     const line = raw.replace(/#.*$/, "").trim();
     if (!line) continue;
 
+    // Array-of-tables header: [[section.sub]] — must be tested BEFORE the plain
+    // table header, whose regex would otherwise never match it and silently drop
+    // the line, sending the keys that follow into the previous section.
+    const arrayTableMatch = line.match(/^\[\[([a-zA-Z0-9_.]+)\]\]$/);
+    if (arrayTableMatch) {
+      currentSection = pushArrayTable(root, arrayTableMatch[1].split("."));
+      continue;
+    }
+
     // Table header: [section] or [section.sub]
     const tableMatch = line.match(/^\[([a-zA-Z0-9_.]+)\]$/);
     if (tableMatch) {
@@ -190,6 +199,22 @@ function parseToml(input: string): TomlObject {
   }
 
   return root;
+}
+
+/**
+ * Append a new table to the array at `path` and return it, so the key/value lines
+ * that follow land inside that entry. This is what `[[webrtc.ice.turn]]` needs:
+ * each header starts a fresh element rather than reusing one table.
+ */
+function pushArrayTable(root: TomlObject, path: string[]): TomlObject {
+  const key = path[path.length - 1];
+  const parent = ensurePath(root, path.slice(0, -1));
+  const existing = parent[key];
+  const list = Array.isArray(existing) ? (existing as TomlObject[]) : [];
+  const entry: TomlObject = {};
+  list.push(entry);
+  parent[key] = list;
+  return entry;
 }
 
 function ensurePath(root: TomlObject, path: string[]): TomlObject {

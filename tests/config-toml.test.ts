@@ -204,3 +204,90 @@ urls = [
     ]);
   });
 });
+
+describe("TURN servers via [[webrtc.ice.turn]] array-of-tables", () => {
+  // The exporter writes `[[webrtc.ice.turn]]`, so the parser must read it back or
+  // an export/import round-trip silently drops every TURN server.
+  const withTurn = `
+[webrtc]
+mode = "parallel"
+strategies = ["nostr"]
+
+[webrtc.ice]
+stun = ["stun:stun.l.google.com:19302"]
+
+[[webrtc.ice.turn]]
+urls = "turn:turn.example.com:3478"
+username = "alice"
+credential = "s3cret"
+`;
+
+  const turnOf = (config: ReturnType<typeof tomlToConfig>) =>
+    config.webrtc.iceServers.filter((s) => String(s.urls).startsWith("turn"));
+
+  it("imports a TURN server with its credentials", () => {
+    const turn = turnOf(tomlToConfig(withTurn));
+    expect(turn).toHaveLength(1);
+    expect(turn[0]).toEqual({
+      urls: "turn:turn.example.com:3478",
+      username: "alice",
+      credential: "s3cret",
+    });
+  });
+
+  it("keeps the STUN servers alongside", () => {
+    const config = tomlToConfig(withTurn);
+    expect(config.webrtc.iceServers.some((s) => String(s.urls).startsWith("stun:"))).toBe(true);
+  });
+
+  it("imports several TURN servers", () => {
+    const config = tomlToConfig(`
+[webrtc.ice]
+stun = ["stun:a.example.com:3478"]
+
+[[webrtc.ice.turn]]
+urls = "turn:one.example.com:3478"
+username = "u1"
+credential = "c1"
+
+[[webrtc.ice.turn]]
+urls = "turns:two.example.com:5349"
+username = "u2"
+credential = "c2"
+`);
+    const turn = turnOf(config);
+    expect(turn.map((s) => s.urls)).toEqual([
+      "turn:one.example.com:3478",
+      "turns:two.example.com:5349",
+    ]);
+    expect(turn[1].username).toBe("u2");
+  });
+
+  it("survives an export -> import round-trip", () => {
+    const original = tomlToConfig(withTurn);
+    const restored = tomlToConfig(configToToml(original));
+    // Guard: without this the assertion below passes vacuously when both sides
+    // have dropped every TURN server — which is exactly the bug.
+    expect(turnOf(original)).toHaveLength(1);
+    expect(turnOf(restored)).toEqual(turnOf(original));
+  });
+
+  it("does not leak the turn keys into the ice table", () => {
+    // The old parser ignored the [[...]] header and dumped urls/username into
+    // whatever section was current — i.e. [webrtc.ice].
+    const config = tomlToConfig(withTurn);
+    expect(config.webrtc.iceServers.some((s) => s.urls === "")).toBe(false);
+  });
+
+  it("a TURN entry with no url is skipped", () => {
+    const config = tomlToConfig(`
+[webrtc.ice]
+stun = ["stun:a.example.com:3478"]
+
+[[webrtc.ice.turn]]
+username = "u"
+credential = "c"
+`);
+    expect(turnOf(config)).toHaveLength(0);
+  });
+});

@@ -33,6 +33,8 @@ function ProbeDetails({ probe }: { probe: IceProbeResult }) {
       <dd>{yn(probe.turnConfigured)}</dd>
       <dt>{t("webrtcError.detailsTurnReachable")}</dt>
       <dd>{yn(probe.turnReachable)}</dd>
+      <dt>{t("webrtcError.detailsTimedOut")}</dt>
+      <dd>{yn(probe.timedOut)}</dd>
     </dl>
   );
 }

@@ -323,6 +323,8 @@ function IceTest({ servers }: { servers: IceServerConfig[] }) {
                 ? t("webrtcSettings.testIceTurnOk")
                 : t("webrtcSettings.testIceTurnFail")}
           </li>
+          {/* A timeout means the absences above prove nothing — say so. */}
+          {result.timedOut && <li>{t("webrtcSettings.testIceTimedOut")}</li>}
         </ul>
       )}
     </div>

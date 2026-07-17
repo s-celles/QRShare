@@ -267,6 +267,7 @@ export const fr: Record<string, string> = {
   "webrtcSettings.testIceTurnOk": "Le TURN fonctionne \u2014 une adresse de relais a \u00e9t\u00e9 obtenue.",
   "webrtcSettings.testIceTurnFail":
     "TURN configur\u00e9 mais aucune adresse de relais obtenue. V\u00e9rifiez l'URL, le port et les identifiants.",
+  "webrtcSettings.testIceTimedOut": "Le test a expiré avant de terminer — le résultat ci-dessus peut être incomplet. Réessayez sur une connexion plus rapide.",
   "webrtcSettings.testIceNoTurn":
     "Aucun serveur TURN configur\u00e9. Les r\u00e9seaux n\u00e9cessitant un relais ne pourront pas se connecter.",
   "webrtcSettings.noDefaultTurnRationale":
@@ -288,6 +289,7 @@ export const fr: Record<string, string> = {
   "webrtcError.detailsStun": "STUN joignable",
   "webrtcError.detailsTurnConfigured": "TURN configur\u00e9",
   "webrtcError.detailsTurnReachable": "Relais TURN obtenu",
+  "webrtcError.detailsTimedOut": "Sonde expirée (non concluant)",
   "webrtcError.detailsNone": "aucun",
   "webrtcError.yes": "oui",
   "webrtcError.no": "non",

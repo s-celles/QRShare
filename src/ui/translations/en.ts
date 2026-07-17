@@ -265,6 +265,7 @@ export const en: Record<string, string> = {
   "webrtcSettings.testIceStunFail": "STUN unreachable — no public address. Direct connections will likely fail.",
   "webrtcSettings.testIceTurnOk": "TURN works — a relay address was obtained.",
   "webrtcSettings.testIceTurnFail": "TURN configured but no relay address was obtained. Check the URL, port and credentials.",
+  "webrtcSettings.testIceTimedOut": "The test timed out before finishing — the result above may be incomplete. Try again on a faster connection.",
   "webrtcSettings.testIceNoTurn": "No TURN server configured. Networks that need a relay will not connect.",
   "webrtcSettings.noDefaultTurnRationale":
     "QRShare deliberately ships no TURN relay. A relay would see who connects to whom, when, and how much data moves — even though the transfer itself stays end-to-end encrypted. Add your own below if your network needs one.",
@@ -285,6 +286,7 @@ export const en: Record<string, string> = {
   "webrtcError.detailsStun": "STUN reachable",
   "webrtcError.detailsTurnConfigured": "TURN configured",
   "webrtcError.detailsTurnReachable": "TURN relay obtained",
+  "webrtcError.detailsTimedOut": "Probe timed out (inconclusive)",
   "webrtcError.detailsNone": "none",
   "webrtcError.yes": "yes",
   "webrtcError.no": "no",

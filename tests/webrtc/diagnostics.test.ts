@@ -291,3 +291,62 @@ describe("probeIce [REQ-RELY-040..046]", () => {
     expect(FakePeerConnection.last!.config.iceServers).toEqual(TURN);
   });
 });
+
+describe("classifyFailure — an inconclusive probe must not be sold as fact", () => {
+  // A probe that timed out proves nothing: the relay candidate may simply not
+  // have arrived yet. Reporting "your TURN is broken" with high confidence on
+  // that basis is the exact dishonesty this module exists to avoid.
+  it("a timed-out probe downgrades turn-not-working to low confidence", () => {
+    const d = classifyFailure({
+      outcome: "peer-never-joined",
+      probe: probe({
+        candidateTypes: ["host", "srflx"],
+        stunReachable: true,
+        turnConfigured: true,
+        turnReachable: false,
+        timedOut: true,
+      }),
+    });
+    expect(d.code).toBe("turn-not-working");
+    expect(d.confidence).toBe("low");
+  });
+
+  it("a completed probe keeps turn-not-working at high confidence", () => {
+    const d = classifyFailure({
+      outcome: "peer-never-joined",
+      probe: probe({
+        candidateTypes: ["host", "srflx"],
+        stunReachable: true,
+        turnConfigured: true,
+        turnReachable: false,
+        timedOut: false,
+      }),
+    });
+    expect(d.code).toBe("turn-not-working");
+    expect(d.confidence).toBe("high");
+  });
+
+  it("a timed-out probe downgrades relay-likely-required too", () => {
+    const d = classifyFailure({
+      outcome: "peer-never-joined",
+      probe: probe({ stunReachable: false, turnConfigured: false, timedOut: true }),
+    });
+    expect(d.code).toBe("relay-likely-required");
+    expect(d.confidence).toBe("low");
+  });
+
+  it("a timed-out probe that DID obtain a relay is still conclusive about the relay", () => {
+    // We saw the relay candidate; the timeout does not unsee it.
+    const d = classifyFailure({
+      outcome: "peer-never-joined",
+      probe: probe({
+        candidateTypes: ["host", "srflx", "relay"],
+        stunReachable: true,
+        turnConfigured: true,
+        turnReachable: true,
+        timedOut: true,
+      }),
+    });
+    expect(d.code).toBe("peer-unreachable");
+  });
+});

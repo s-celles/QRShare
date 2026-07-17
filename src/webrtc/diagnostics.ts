@@ -84,16 +84,22 @@ export function classifyFailure(input: ClassifyInput): ConnectionDiagnosis {
   if (!probe) {
     return { code: "peer-unreachable", confidence: "low" };
   }
+  // A probe that timed out proves nothing about what it did *not* see: the relay
+  // candidate may simply not have arrived yet. Absence of evidence is not evidence
+  // of absence, so every conclusion drawn from a missing candidate is downgraded.
+  // (Candidates it *did* see remain valid — a timeout does not unsee them.)
+  const confidence = probe.timedOut ? "low" : "high";
+
   if (probe.turnConfigured && !probe.turnReachable) {
-    // The user configured a relay and it produced no relay candidate. High
-    // confidence and directly fixable (URL / credentials / port), so it outranks
-    // the missing-srflx signal even when both are true.
-    return { code: "turn-not-working", confidence: "high", probe };
+    // The user configured a relay and it produced no relay candidate. Directly
+    // fixable (URL / credentials / port), so it outranks the missing-srflx signal
+    // even when both are true.
+    return { code: "turn-not-working", confidence, probe };
   }
   if (!probe.stunReachable && !probe.turnConfigured) {
     // Only host candidates and no relay configured: this network cannot do direct
     // P2P and nothing is set up to relay it.
-    return { code: "relay-likely-required", confidence: "high", probe };
+    return { code: "relay-likely-required", confidence, probe };
   }
   // Local ICE looks healthy, so the failure is most likely the remote peer or
   // signaling — which we cannot see. Low confidence, deliberately.
@@ -120,7 +126,7 @@ export interface ProbeOptions {
   PeerConnection?: typeof RTCPeerConnection;
 }
 
-const PROBE_TIMEOUT_MS = 5_000;
+const PROBE_TIMEOUT_MS = 10_000;
 
 /**
  * Gather ICE candidates against a given server list and report what came back.

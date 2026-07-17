@@ -267,6 +267,7 @@ export const ar: Record<string, string> = {
   "webrtcSettings.testIceTurnOk": "خادم TURN يعمل — تم الحصول على عنوان ترحيل.",
   "webrtcSettings.testIceTurnFail":
     "تم إعداد TURN لكن لم يتم الحصول على عنوان ترحيل. تحقق من الرابط والمنفذ وبيانات الاعتماد.",
+  "webrtcSettings.testIceTimedOut": "انتهت مهلة الاختبار قبل اكتماله — قد تكون النتيجة أعلاه غير مكتملة. أعد المحاولة على اتصال أسرع.",
   "webrtcSettings.testIceNoTurn":
     "لم يتم إعداد خادم TURN. الشبكات التي تتطلب ترحيلًا لن تتمكن من الاتصال.",
   "webrtcSettings.noDefaultTurnRationale":
@@ -288,6 +289,7 @@ export const ar: Record<string, string> = {
   "webrtcError.detailsStun": "STUN متاح",
   "webrtcError.detailsTurnConfigured": "TURN مُعد",
   "webrtcError.detailsTurnReachable": "تم الحصول على ترحيل TURN",
+  "webrtcError.detailsTimedOut": "انتهت مهلة الفحص (غير حاسم)",
   "webrtcError.detailsNone": "لا شيء",
   "webrtcError.yes": "نعم",
   "webrtcError.no": "لا",

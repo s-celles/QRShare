@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-17
+
 ### Added
 
 - **Live collaborative text editing** over an established WebRTC connection: after connecting and verifying the confirmation code, either peer can open a shared editor at `/collab` where edits propagate live and converge automatically
@@ -18,9 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `editing` WebRTC session state that keeps the room open; peer-leave during editing is a recoverable presence change instead of an error
 - `collab.*` i18n keys in English, French, and Arabic; new `docs/en-collaborative-editing.md` documentation page
 - `yjs` and `y-indexeddb` dependencies; the Yjs-backed modules are lazy-imported on the `/collab` route to limit the base bundle impact (~50–100 KB added to the single-file build)
-
-### Added
-
 - **Connection failures are now diagnosed instead of guessed at.** A failed WebRTC connection is classified into a stable, translated code — `relay-likely-required`, `turn-not-working`, `peer-unreachable`, `peer-dropped`, `peer-left-deliberately`, `no-strategy-initialized` — replacing the generic "Connection timed out. Make sure the receiver is still waiting", which was actively misleading when the real cause was a network needing a relay. Causes that cannot be confirmed from this device are labelled as such rather than asserted — including when the ICE probe itself times out, in which case a missing relay candidate is reported as inconclusive rather than as proof that the TURN server is broken
 - **"Test ICE servers"** in WebRTC settings: runs a real ICE gathering round against the servers as configured and reports whether STUN is reachable, whether a TURN server is configured, and whether it actually returns a relay address — so a broken TURN setup is found before a transfer fails, not after
 - An "Open WebRTC settings" shortcut on relay-related failures, and a collapsed "Connection details" block (candidates gathered, STUN/TURN results) shown on failure only

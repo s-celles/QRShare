@@ -7,7 +7,7 @@ import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE }
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { buildRoomConfig } from "@/webrtc/settings";
-import { enterCollab } from "@/collab/handoff";
+import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
 import { ConnectionError } from "./ConnectionError";
 
@@ -52,7 +52,9 @@ export function WebRTCSenderView() {
       pendingFile.value = null;
     }
     return () => {
-      serviceRef.current?.disconnect();
+      if (shouldDisconnectOnUnmount(serviceRef.current, activeCollabService.value)) {
+        serviceRef.current?.disconnect();
+      }
       preloadedFile.value = null;
       stopScanning();
     };
@@ -236,7 +238,9 @@ export function WebRTCSenderView() {
   );
 
   const cleanup = useCallback(() => {
-    serviceRef.current?.disconnect();
+    if (shouldDisconnectOnUnmount(serviceRef.current, activeCollabService.value)) {
+      serviceRef.current?.disconnect();
+    }
     isConnecting.value = false;
     isConnected.value = false;
     isSending.value = false;

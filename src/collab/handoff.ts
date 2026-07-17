@@ -31,3 +31,29 @@ export function enterCollab(
   else service.enterEditing();
   navigate("/collab");
 }
+
+/**
+ * Whether a WebRTC view may tear its service down as it unmounts.
+ *
+ * It may not, once that service has been handed off: `enterCollab` navigates to
+ * `/collab`, which unmounts the sender/receiver view, and its cleanup would call
+ * `disconnect()` — closing the very room the editor is about to adopt and leaving
+ * `getRoom()` null. Ownership passes to the editor, which releases it via
+ * {@link leaveCollab}.
+ */
+export function shouldDisconnectOnUnmount(
+  service: WebRTCService | null,
+  handedOff: WebRTCService | null,
+): boolean {
+  return service !== null && service !== handedOff;
+}
+
+/**
+ * End the collaborative session: drop the handoff and close the connection the
+ * editor owned. Called when the editor unmounts.
+ */
+export function leaveCollab(): void {
+  activeCollabService.value?.disconnect();
+  activeCollabService.value = null;
+  activeCollabRoomId.value = "";
+}

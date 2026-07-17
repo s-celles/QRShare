@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import { navigate } from "../router";
 import { t } from "../i18n";
-import { activeCollabService, activeCollabRoomId } from "@/collab/handoff";
+import { activeCollabService, activeCollabRoomId, leaveCollab } from "@/collab/handoff";
 import { pendingText } from "../shared-file";
 import type { CollabSession, CollabRoom } from "@/collab/session";
 
@@ -77,6 +77,9 @@ export function CollabEditorView() {
       ready.value = false;
       loadError.value = null;
       versionLabel.value = "";
+      // The editor owns the connection once it has been handed off (the WebRTC
+      // view deliberately skips its own teardown), so releasing it is our job.
+      leaveCollab();
     };
   }, []);
 

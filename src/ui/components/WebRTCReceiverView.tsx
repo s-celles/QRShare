@@ -9,7 +9,7 @@ import { isTextMimeType } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { TextResultView } from "./TextResultView";
 import { buildRoomConfig } from "@/webrtc/settings";
-import { enterCollab } from "@/collab/handoff";
+import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
 import { ConnectionError } from "./ConnectionError";
 
@@ -47,7 +47,9 @@ export function WebRTCReceiverView() {
   const serviceRef = useRef<WebRTCService | null>(null);
 
   const cleanup = useCallback(() => {
-    serviceRef.current?.disconnect();
+    if (shouldDisconnectOnUnmount(serviceRef.current, activeCollabService.value)) {
+      serviceRef.current?.disconnect();
+    }
     if (downloadUrl.value) URL.revokeObjectURL(downloadUrl.value);
     for (const f of receivedFiles.value) {
       URL.revokeObjectURL(f.url);

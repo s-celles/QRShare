@@ -6,6 +6,7 @@ import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
+import { FilePreview } from "./FilePreview";
 import { t } from "../i18n";
 
 interface ReceivedFile {
@@ -360,6 +361,7 @@ export function ReceiverView() {
                 <div class="file-list-item" key={f.name}>
                   <span class="file-list-name">{f.name}</span>
                   <span class="file-list-size">{(f.size / 1024).toFixed(1)} KB</span>
+                  <FilePreview url={f.url} filename={f.name} />
                   <a href={f.url} download={f.name} class="download-btn">
                     {t("common.download")}
                   </a>
@@ -372,6 +374,7 @@ export function ReceiverView() {
                 <p><strong>{t("receiver.fileLabel")}</strong> {filename.value}</p>
                 <p><strong>{t("receiver.sizeLabel")}</strong> {(receivedFileSize.value / 1024).toFixed(1)} KB</p>
               </div>
+              <FilePreview url={downloadUrl.value} filename={filename.value} />
               <a
                 href={downloadUrl.value}
                 download={filename.value}

@@ -5,6 +5,7 @@ import { t } from "../i18n";
 import { ShareService } from "@/share/service";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
+import { FilePreview } from "./FilePreview";
 
 type CimbarMode = 68 | 67 | 66;
 
@@ -305,6 +306,7 @@ function CimbarReceiver() {
             <TextResultView text={result.text} filename={result.filename} />
           ) : (
             <div class="share-actions">
+              <FilePreview url={result.url} filename={result.filename} />
               <a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a>
               {shareService.isShareSupported() && (
                 <button class="start-btn share-action" onClick={async () => {

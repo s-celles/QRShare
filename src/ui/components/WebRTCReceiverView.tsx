@@ -9,6 +9,7 @@ import { isTextMimeType } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
+import { FilePreview } from "./FilePreview";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
@@ -329,6 +330,7 @@ export function WebRTCReceiverView() {
                     <span class="not-verified"> {t("common.hashMismatch")}</span>
                   )}
                 </div>
+                <FilePreview url={f.url} filename={f.meta.filename} mimeType={f.meta.mimeType} />
                 <a href={f.url} download={f.meta.filename} class="download-btn">
                   {t("common.download")}
                 </a>
@@ -384,6 +386,7 @@ export function WebRTCReceiverView() {
                   <code>{metadata.value.sha256.slice(0, 16)}...</code>
                 </p>
               </div>
+              <FilePreview url={downloadUrl.value!} filename={metadata.value.filename} mimeType={metadata.value.mimeType} />
               {downloadUrl.value && (
                 <>
                   <a

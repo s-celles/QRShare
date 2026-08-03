@@ -88,6 +88,34 @@ Si le texte est trop long pour la version et le niveau de correction choisis, un
 
 ---
 
+## Préparer un transfert et inviter le receveur
+
+Ce workflow permet au donneur de préparer le contenu et d'ouvrir QRShare sur le bon écran chez le receveur avant de transmettre les données.
+
+1. Sur l'accueil, appuyez sur **Préparer un transfert**.
+2. Choisissez **Fichier** ou **Texte**, puis sélectionnez un ou plusieurs fichiers ou saisissez le texte.
+3. Choisissez la politique de transfert :
+   - **Hors réseau uniquement** — seuls les modes optiques (QR statique, QR animé ou CIMBAR expérimental) sont proposés. WebRTC et le partage système sont exclus, quelle que soit la taille.
+   - **Privilégier le hors réseau** — un mode optique est recommandé, mais les modes réseau restent disponibles.
+   - **Tous les modes** — QRShare peut notamment recommander WebRTC lorsque le contenu ne tient pas dans un QR statique.
+4. Vérifiez le mode recommandé ou choisissez un autre mode autorisé. La taille n'est qu'un des critères : la politique choisie est toujours respectée.
+5. Montrez d'abord le QR code d'invitation au receveur. Ce QR contient uniquement un lien vers QRShare et ouvre directement l'écran de réception correspondant ; il ne contient pas le fichier.
+6. Quand le receveur est prêt, appuyez sur **Le receveur est prêt — commencer l'envoi**.
+
+Si plusieurs fichiers sont sélectionnés, QRShare les regroupe automatiquement dans une archive ZIP de transfert, puis les extrait chez le receveur. La sélection est limitée à 50 Mo au total ; CIMBAR est proposé jusqu'à environ 33 Mo.
+
+### Transmettre du texte par une URL
+
+Une application peut ouvrir directement le sélecteur d'envoi avec une URL de la forme :
+
+```text
+https://s-celles.github.io/QRShare/#/send?data=Bonjour&policy=prefer-airgap
+```
+
+`data` contient le texte encodé pour une URL. `policy` accepte `airgap`, `prefer-airgap` ou `any`. En l'absence d'une politique valide, QRShare privilégie le mode hors réseau. Cette méthode convient au texte ; les fichiers ne sont pas placés dans l'URL et doivent être sélectionnés localement dans **Préparer un transfert**.
+
+---
+
 ## Partager des fichiers via le partage natif
 
 Cette méthode utilise le dialogue de partage intégré à votre navigateur pour envoyer des fichiers vers n'importe quelle application compatible (messagerie, e-mail, stockage cloud, etc.).
@@ -129,7 +157,7 @@ sequenceDiagram
    - **Haute fiabilité** — QR codes plus petits, très fiable
 4. Un QR code animé s'affiche à l'écran — ne fermez pas la page
 5. Ajustez les paramètres de transfert si nécessaire :
-   - **Fréquence d'images** (1–30 FPS, par défaut : 2) — Des valeurs plus basses donnent plus de temps à la caméra pour scanner chaque image
+   - **Fréquence d'images** (1–30 FPS, par défaut : 10) — Des valeurs plus basses donnent plus de temps à la caméra pour scanner chaque image
    - **Taille de bloc** (50–1000 octets, par défaut : 250) — Des blocs plus petits produisent des QR codes plus simples, plus faciles à scanner
 
 **Sur l'appareil qui reçoit :**
@@ -255,7 +283,8 @@ précharger le fichier côté donneur.
 Le décodeur navigateur libcimbar est encore en version bêta. Utilisez une bonne
 luminosité, maximisez la matrice sur l'écran et conservez le mode QR animé
 standard comme solution de repli. La limite du protocole CIMBAR est d'environ
-33 Mo après compression.
+33 Mo après compression. Dès que le résultat est reconstruit, la zone caméra
+disparaît et l'action de téléchargement reste affichée.
 
 ---
 

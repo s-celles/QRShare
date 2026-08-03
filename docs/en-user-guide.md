@@ -88,6 +88,34 @@ If the text is too long for the selected version and error correction level, an 
 
 ---
 
+## Preparing a Transfer and Inviting the Receiver
+
+This workflow lets the sender prepare the content and open QRShare on the correct receiver screen before transmitting any payload data.
+
+1. On the home screen, tap **Prepare a transfer**.
+2. Choose **File** or **Text**, then select one or more files or enter the text.
+3. Choose the transfer policy:
+   - **Air-gapped only** — only optical modes (static QR, animated QR, or experimental CIMBAR) are offered. WebRTC and system sharing are excluded regardless of payload size.
+   - **Prefer air-gapped** — an optical mode is recommended, while network modes remain available.
+   - **Any mode** — QRShare may recommend WebRTC when the content does not fit in a static QR code.
+4. Keep the recommended mode or choose another mode allowed by the policy. Size is only one criterion; the selected policy is always respected.
+5. First show the invitation QR code to the receiver. It contains only a link to QRShare and opens the matching receive screen; it does not contain the file.
+6. When the receiver is ready, tap **The receiver is ready — start sending**.
+
+When several files are selected, QRShare automatically bundles them into a transfer ZIP archive and extracts them on the receiver. The selection is limited to 50 MB total; CIMBAR is offered up to approximately 33 MB.
+
+### Passing Text Through a URL
+
+An application can open the send chooser directly with a URL such as:
+
+```text
+https://s-celles.github.io/QRShare/#/send?data=Hello&policy=prefer-airgap
+```
+
+`data` contains URL-encoded text. `policy` accepts `airgap`, `prefer-airgap`, or `any`. If the policy is absent or invalid, QRShare defaults to preferring air-gapped transfer. This mechanism is intended for text; files are not embedded in the URL and must be selected locally in **Prepare a transfer**.
+
+---
+
 ## Sharing Files via Native Share
 
 This method uses your browser's built-in share dialog to send files to any compatible app (messaging, email, cloud storage, etc.).
@@ -129,7 +157,7 @@ sequenceDiagram
    - **High Reliability** — Smaller QR codes, very reliable
 4. An animated QR code appears on screen — do not close the page
 5. Adjust transfer parameters if needed:
-   - **Frame Rate** slider (1–30 FPS, default: 2) — Lower values give the camera more time to scan each frame
+   - **Frame Rate** slider (1–30 FPS, default: 10) — Lower values give the camera more time to scan each frame
    - **Block Size** slider (50–1000 bytes, default: 250) — Smaller blocks produce simpler QR codes that are easier to scan
 
 **On the receiving device:**
@@ -252,7 +280,8 @@ can also create the matching invitation and preload the sender's file.
 
 The libcimbar browser decoder is still beta. Use good lighting, maximize the
 matrix on the display, and keep standard animated QR as a fallback. The CIMBAR
-protocol limit is approximately 33 MB after compression.
+protocol limit is approximately 33 MB after compression. Once reconstruction
+finishes, the camera area disappears while the download action remains visible.
 
 ---
 

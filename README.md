@@ -8,6 +8,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 
 - **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. Includes camera device selection, resolution display, and scan metadata.
 - **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
+- **Guided Transfer Preparation** -- Select text or one or more files, choose a network policy, let QRShare recommend a transport, then show the receiver an invitation QR code before sending the payload.
 - **Native Share** -- Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
 - **CIMBAR Transfer (Experimental)** -- High-speed air-gapped color-barcode transfer using libcimbar WASM. The browser decoder is beta, so standard animated QR remains the compatibility fallback.
@@ -56,6 +57,16 @@ bun run package
 2. The native share dialog opens, letting you send files to any compatible app (messaging, email, cloud storage)
 3. No setup required -- uses the browser's built-in Web Share API
 
+### Prepare a Transfer
+
+1. The sender selects text or one or more files. Multiple files are bundled into a QRShare ZIP archive for transport.
+2. Choose a policy: **Air-gapped only** excludes WebRTC, **Prefer air-gapped** recommends an optical mode while keeping network modes available, and **Any mode** may recommend WebRTC.
+3. QRShare recommends a mode from the payload type, size, and policy. The sender may choose another mode that complies with the policy.
+4. The sender first shows the invitation QR code to the receiver. It contains only a link that opens QRShare on the matching receive screen; it does not contain the file itself.
+5. Once the receiver is ready, the sender starts the actual transfer.
+
+Text can also enter the chooser through `#/send?data=...&policy=...`, where `policy` is `airgap`, `prefer-airgap`, or `any`. Because URLs have practical length limits, this route is intended for text; files remain local and are selected in **Prepare a transfer**.
+
 ### QR Code Mode (Air-Gapped)
 
 1. **Sender** selects a file and encoding preset (High Speed / Balanced / High Reliability)
@@ -78,7 +89,7 @@ bun run package
 1. The sender selects a file or prepares one in QRShare
 2. libcimbar compresses and fountain-encodes it into animated color barcodes
 3. The receiver scans the animation with the beta browser decoder
-4. The reconstructed file is downloaded by the receiver
+4. Once reconstruction completes, the camera area disappears and the receiver can download the result
 
 The bundled runtime is libcimbar v0.6.7c under MPL-2.0. Files are limited to
 approximately 33 MB after compression by the upstream protocol.

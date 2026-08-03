@@ -140,6 +140,9 @@ export const fr: Record<string, string> = {
   "cimbar.detectedFrames": "Matrices d\u00e9tect\u00e9es",
   "cimbar.waitingMetadata": "En attente de la premi\u00e8re matrice",
   "cimbar.estimatedStats": "La taille re\u00e7ue et le d\u00e9bit sont estim\u00e9s \u00e0 partir de la progression des blocs fontaine.",
+  "cimbar.shareSuccess": "Partage r\u00e9ussi",
+  "cimbar.shareCancelled": "Partage annul\u00e9",
+  "cimbar.shareUnsupported": "Le partage n\u2019est pas disponible pour ce fichier sur ce navigateur.",
   "cimbar.complete": "{filename} re\u00e7u",
   "cimbar.offscreenUnsupported": "Ce navigateur ne prend pas en charge OffscreenCanvas, requis par l\u2019encodeur CIMBAR exp\u00e9rimental.",
 

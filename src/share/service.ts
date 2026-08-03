@@ -13,11 +13,11 @@ export class ShareService {
     return typeof navigator !== "undefined" && "share" in navigator;
   }
 
-  canShareFiles(): boolean {
+  canShareFiles(file?: File): boolean {
     if (!this.isShareSupported()) return false;
     try {
-      const testFile = new File([""], "test", { type: "application/octet-stream" });
-      return navigator.canShare?.({ files: [testFile] }) ?? false;
+      const candidate = file ?? new File([""], "test", { type: "application/octet-stream" });
+      return navigator.canShare?.({ files: [candidate] }) ?? false;
     } catch {
       return false;
     }
@@ -29,7 +29,7 @@ export class ShareService {
     }
 
     // Try file sharing first
-    if (this.canShareFiles()) {
+    if (this.canShareFiles(file)) {
       try {
         await navigator.share({ files: [file] });
         return { kind: "shared" };

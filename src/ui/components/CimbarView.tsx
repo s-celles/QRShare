@@ -152,6 +152,7 @@ function CimbarReceiver() {
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState<CimbarReceiveStats>(emptyReceiveStats);
   const [error, setError] = useState("");
+  const [shareStatus, setShareStatus] = useState<"" | "shared" | "cancelled" | "unsupported">("");
   const [result, setResult] = useState<{
     filename: string;
     url: string;
@@ -295,12 +296,18 @@ function CimbarReceiver() {
             <div class="share-actions">
               <a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a>
               {shareService.isShareSupported() && (
-                <button class="start-btn share-action" onClick={() => void shareService.shareFile(result.file)}>
+                <button class="start-btn share-action" onClick={async () => {
+                  const outcome = await shareService.shareFile(result.file);
+                  setShareStatus(outcome.kind === "shared" || outcome.kind === "cancelled" || outcome.kind === "unsupported" ? outcome.kind : "shared");
+                }}>
                   {t("common.share")}
                 </button>
               )}
             </div>
           )}
+          {shareStatus === "unsupported" && <p class="error-msg" role="alert">{t("cimbar.shareUnsupported")}</p>}
+          {shareStatus === "cancelled" && <p class="settings-hint">{t("cimbar.shareCancelled")}</p>}
+          {shareStatus === "shared" && <p class="settings-hint">{t("cimbar.shareSuccess")}</p>}
         </div>
       )}
     </section>

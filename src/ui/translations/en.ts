@@ -140,6 +140,9 @@ export const en: Record<string, string> = {
   "cimbar.detectedFrames": "Matrices detected",
   "cimbar.waitingMetadata": "Waiting for the first matrix",
   "cimbar.estimatedStats": "Received size and speed are estimated from fountain-block progress.",
+  "cimbar.shareSuccess": "Shared successfully",
+  "cimbar.shareCancelled": "Sharing cancelled",
+  "cimbar.shareUnsupported": "Sharing this file is not available in this browser.",
   "cimbar.complete": "Received {filename}",
   "cimbar.offscreenUnsupported": "This browser does not support OffscreenCanvas, which the experimental CIMBAR encoder requires.",
 

@@ -66,10 +66,9 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 4. Le contenu s'affiche automatiquement :
    - Si c'est une adresse web, elle apparaît sous forme de lien cliquable
    - Sinon, le texte est affiché et vous pouvez le copier avec le bouton **Copier dans le presse-papiers**
-5. Vous pouvez scanner plusieurs QR codes à la suite sans arrêter
-6. Appuyez sur **Arrêter** pour arrêter la caméra
+5. Dès qu'un contenu est reçu, le scan s'arrête et la zone caméra disparaît
 
-**Informations affichées** : nom de la caméra utilisée, résolution, type de code détecté. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
+**Informations affichées pendant le scan** : nom de la caméra utilisée et résolution. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
 
 ---
 
@@ -284,7 +283,10 @@ Le décodeur navigateur libcimbar est encore en version bêta. Utilisez une bonn
 luminosité, maximisez la matrice sur l'écran et conservez le mode QR animé
 standard comme solution de repli. La limite du protocole CIMBAR est d'environ
 33 Mo après compression. Dès que le résultat est reconstruit, la zone caméra
-disparaît et l'action de téléchargement reste affichée.
+disparaît. Un fichier peut ensuite être téléchargé ou partagé avec le dialogue
+système. Un message texte préparé dans QRShare est affiché directement avec les
+mêmes actions que sur les autres récepteurs : copier, télécharger en `.txt` et
+partager.
 
 ---
 

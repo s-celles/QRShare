@@ -66,10 +66,9 @@ Five buttons for transferring files between devices:
 4. The content is displayed automatically:
    - If it is a web address, it appears as a clickable link
    - Otherwise, the text is shown and you can copy it with the **Copy to Clipboard** button
-5. You can scan multiple QR codes in a row without stopping
-6. Tap **Stop** to turn off the camera
+5. As soon as content is received, scanning stops and the camera area disappears
 
-**Displayed information**: active camera name, resolution, detected code type. If you have multiple cameras, a dropdown lets you choose which one to use.
+**Information displayed while scanning**: active camera name and resolution. If you have multiple cameras, a dropdown lets you choose which one to use.
 
 ---
 
@@ -281,7 +280,9 @@ can also create the matching invitation and preload the sender's file.
 The libcimbar browser decoder is still beta. Use good lighting, maximize the
 matrix on the display, and keep standard animated QR as a fallback. The CIMBAR
 protocol limit is approximately 33 MB after compression. Once reconstruction
-finishes, the camera area disappears while the download action remains visible.
+finishes, the camera area disappears. A file can then be downloaded or shared
+through the system dialog. Text prepared in QRShare is displayed directly with
+the same actions as other receivers: copy, download as `.txt`, and share.
 
 ---
 

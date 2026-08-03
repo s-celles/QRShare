@@ -2,10 +2,34 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { navigate } from "../router";
 import { pendingFile, pendingText, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { t } from "../i18n";
+import { ShareService } from "@/share/service";
+import { TextResultView } from "./TextResultView";
 
 type CimbarMode = 68 | 67 | 66;
 
+type CimbarReceiveStats = {
+  expectedSize: number;
+  receivedBytes: number;
+  scannedFrames: number;
+  detectedFrames: number;
+  detectionRate: number;
+  elapsedMs: number;
+  speedBytesPerSec: number;
+};
+
+const emptyReceiveStats: CimbarReceiveStats = {
+  expectedSize: 0, receivedBytes: 0, scannedFrames: 0, detectedFrames: 0,
+  detectionRate: 0, elapsedMs: 0, speedBytesPerSec: 0,
+};
+
+function formatBytes(value: number): string {
+  if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${Math.round(value)} B`;
+}
+
 const workerUrl = (name: string) => new URL(`cimbar/${name}`, window.location.href).toString();
+const shareService = new ShareService();
 
 function preparedContent(): File | null {
   const pending = pendingFile.value;
@@ -126,8 +150,14 @@ function CimbarReceiver() {
   const [detected, setDetected] = useState(false);
   const [mode, setMode] = useState<CimbarMode>(68);
   const [progress, setProgress] = useState(0);
+  const [stats, setStats] = useState<CimbarReceiveStats>(emptyReceiveStats);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<{ filename: string; url: string } | null>(null);
+  const [result, setResult] = useState<{
+    filename: string;
+    url: string;
+    file: File;
+    text: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const worker = new Worker(workerUrl("cimbar-receive-worker.js"));
@@ -137,14 +167,24 @@ function CimbarReceiver() {
       if (message.type === "ready") setReady(true);
       else if (message.type === "frame-done") busyRef.current = false;
       else if (message.type === "frame" && message.detected) setDetected(true);
-      else if (message.type === "progress") {
-        setDetected(true);
-        setProgress(Math.max(0, ...message.values.map(Number)) * 100);
+      else if (message.type === "stats") {
+        setDetected(message.detectedFrames > 0);
+        setProgress(message.progress * 100);
+        setStats(message);
       } else if (message.type === "complete") {
-        const url = URL.createObjectURL(new Blob([message.file]));
+        const isText = message.filename === TEXT_FILENAME;
+        const file = new File([message.file], message.filename, {
+          type: isText ? TEXT_MIME_TYPE : "application/octet-stream",
+        });
+        const url = URL.createObjectURL(file);
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
         resultUrlRef.current = url;
-        setResult({ filename: message.filename, url });
+        setResult({
+          filename: message.filename,
+          url,
+          file,
+          text: isText ? new TextDecoder().decode(message.file) : null,
+        });
         setProgress(100);
         stopCamera();
       } else if (message.type === "error") setError(message.message);
@@ -187,17 +227,27 @@ function CimbarReceiver() {
   const startCamera = async () => {
     try {
       setError("");
+      setProgress(0);
+      setStats(emptyReceiveStats);
+      setDetected(false);
+      workerRef.current?.postMessage({ type: "reset" });
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 15 } },
       });
       streamRef.current = stream;
-      const video = videoRef.current!;
+      // Mount the camera frame only after the user explicitly starts it.
+      setScanning(true);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const video = videoRef.current;
+      if (!video) throw new Error("CIMBAR camera view is unavailable");
       video.srcObject = stream;
       await video.play();
-      setScanning(true);
       animationRef.current = requestAnimationFrame(pump);
     } catch (cause) {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setScanning(false);
       setError(cause instanceof Error ? cause.message : String(cause));
     }
   };
@@ -215,18 +265,44 @@ function CimbarReceiver() {
           : <button class="stop-btn" onClick={stopCamera}>{t("common.stop")}</button>}
       </div>
       {error && <div class="error-msg" role="alert">{error}</div>}
-      {!result && (
+      {scanning && !result && (
         <div class={`cimbar-camera ${detected ? "detected" : ""}`}>
           <video ref={videoRef} playsInline muted />
           <canvas ref={canvasRef} class="sr-only" />
         </div>
       )}
       {scanning && !result && (
-        <div class="progress-container">
-          <div class="progress-bar" style={{ width: `${progress}%` }} />
+        <>
+          <div class="progress-container">
+            <div class="progress-bar" style={{ width: `${progress}%` }} />
+          </div>
+          <div class="transfer-stats" aria-live="polite">
+            <div class="stat"><span class="stat-label">{t("cimbar.progress")}</span><span class="stat-value">{progress.toFixed(1)}%</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.receivedSize")}</span><span class="stat-value">{stats.expectedSize > 0 ? `${formatBytes(stats.receivedBytes)} / ${formatBytes(stats.expectedSize)}` : t("cimbar.waitingMetadata")}</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.speed")}</span><span class="stat-value">{formatBytes(stats.speedBytesPerSec)}/s</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.elapsed")}</span><span class="stat-value">{(stats.elapsedMs / 1000).toFixed(1)} s</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.detectedFrames")}</span><span class="stat-value">{stats.detectedFrames} / {stats.scannedFrames} ({Math.round(stats.detectionRate * 100)}%)</span></div>
+          </div>
+          <p class="settings-hint">{t("cimbar.estimatedStats")}</p>
+        </>
+      )}
+      {result && (
+        <div class="result-section">
+          <p>{t("cimbar.complete", { filename: result.filename })}</p>
+          {result.text != null ? (
+            <TextResultView text={result.text} filename={result.filename} />
+          ) : (
+            <div class="share-actions">
+              <a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a>
+              {shareService.isShareSupported() && (
+                <button class="start-btn share-action" onClick={() => void shareService.shareFile(result.file)}>
+                  {t("common.share")}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
-      {result && <div class="result-section"><p>{t("cimbar.complete", { filename: result.filename })}</p><a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a></div>}
     </section>
   );
 }

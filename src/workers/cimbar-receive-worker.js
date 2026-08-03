@@ -4,6 +4,11 @@
 let ready = false;
 let configuredMode = 0;
 const buffers = {};
+let scannedFrames = 0;
+let detectedFrames = 0;
+let expectedSize = 0;
+let maxProgress = 0;
+let receptionStartedAt = 0;
 
 var Module = {
   preRun: [],
@@ -45,6 +50,34 @@ function filenameFor(id, size) {
   );
 }
 
+function fileSizeFromChunk(chunk) {
+  if (chunk.length < 6) return 0;
+  return chunk[3]
+    | (chunk[2] << 8)
+    | (chunk[1] << 16)
+    | ((chunk[0] & 0x80) << 17);
+}
+
+function sendStats() {
+  const elapsedMs = receptionStartedAt ? performance.now() - receptionStartedAt : 0;
+  const receivedBytes = expectedSize > 0 ? Math.round(expectedSize * maxProgress) : 0;
+  self.postMessage({
+    type: "stats", progress: maxProgress, expectedSize, receivedBytes,
+    scannedFrames, detectedFrames,
+    detectionRate: scannedFrames > 0 ? detectedFrames / scannedFrames : 0,
+    elapsedMs,
+    speedBytesPerSec: elapsedMs > 0 ? receivedBytes * 1000 / elapsedMs : 0,
+  });
+}
+
+function resetStats() {
+  scannedFrames = 0;
+  detectedFrames = 0;
+  expectedSize = 0;
+  maxProgress = 0;
+  receptionStartedAt = 0;
+}
+
 function reassemble(id) {
   const expectedSize = Module._cimbard_get_filesize(id);
   const filename = filenameFor(id, expectedSize);
@@ -69,6 +102,7 @@ function reassemble(id) {
 }
 
 function processFrame(message) {
+  scannedFrames += 1;
   if (message.mode !== configuredMode) {
     Module._cimbard_configure_decode(message.mode);
     configuredMode = message.mode;
@@ -87,14 +121,21 @@ function processFrame(message) {
   );
   if (length <= 0) {
     self.postMessage({ type: "frame", detected: length === 0 });
+    sendStats();
     return;
   }
 
+  detectedFrames += 1;
+  if (!receptionStartedAt) receptionStartedAt = performance.now();
   const decoded = new Uint8Array(Module.HEAPU8.buffer, fountain.byteOffset, length).slice();
+  expectedSize ||= fileSizeFromChunk(decoded);
   fountain.set(decoded);
   const result = Module._cimbard_fountain_decode(fountain.byteOffset, decoded.length);
   const progress = report();
-  if (Array.isArray(progress)) self.postMessage({ type: "progress", values: progress });
+  if (Array.isArray(progress)) {
+    maxProgress = Math.max(maxProgress, 0, ...progress.map(Number).filter(Number.isFinite));
+  }
+  sendStats();
   if (result > 0) {
     const id = typeof result === "bigint" ? Number(result & 0xffffffffn) : Number(result);
     reassemble(id);
@@ -108,7 +149,8 @@ importScripts("cimbar_js.2026-07-13T0523.js");
 self.onmessage = (event) => {
   if (!ready) return;
   try {
-    if (event.data.type === "frame") processFrame(event.data);
+    if (event.data.type === "reset") resetStats();
+    else if (event.data.type === "frame") processFrame(event.data);
   } catch (error) {
     self.postMessage({ type: "error", message: String(error) });
   } finally {

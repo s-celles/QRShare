@@ -133,6 +133,13 @@ export const fr: Record<string, string> = {
   "cimbar.startSending": "D\u00e9marrer la transmission CIMBAR",
   "cimbar.sending": "Transmission CIMBAR active",
   "cimbar.startReceiving": "D\u00e9marrer la cam\u00e9ra CIMBAR",
+  "cimbar.progress": "Progression",
+  "cimbar.receivedSize": "Donn\u00e9es re\u00e7ues",
+  "cimbar.speed": "D\u00e9bit",
+  "cimbar.elapsed": "Temps \u00e9coul\u00e9",
+  "cimbar.detectedFrames": "Matrices d\u00e9tect\u00e9es",
+  "cimbar.waitingMetadata": "En attente de la premi\u00e8re matrice",
+  "cimbar.estimatedStats": "La taille re\u00e7ue et le d\u00e9bit sont estim\u00e9s \u00e0 partir de la progression des blocs fontaine.",
   "cimbar.complete": "{filename} re\u00e7u",
   "cimbar.offscreenUnsupported": "Ce navigateur ne prend pas en charge OffscreenCanvas, requis par l\u2019encodeur CIMBAR exp\u00e9rimental.",
 

@@ -133,6 +133,13 @@ export const en: Record<string, string> = {
   "cimbar.startSending": "Start CIMBAR transmission",
   "cimbar.sending": "CIMBAR transmission active",
   "cimbar.startReceiving": "Start CIMBAR camera",
+  "cimbar.progress": "Progress",
+  "cimbar.receivedSize": "Data received",
+  "cimbar.speed": "Speed",
+  "cimbar.elapsed": "Elapsed",
+  "cimbar.detectedFrames": "Matrices detected",
+  "cimbar.waitingMetadata": "Waiting for the first matrix",
+  "cimbar.estimatedStats": "Received size and speed are estimated from fountain-block progress.",
   "cimbar.complete": "Received {filename}",
   "cimbar.offscreenUnsupported": "This browser does not support OffscreenCanvas, which the experimental CIMBAR encoder requires.",
 

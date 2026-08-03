@@ -113,6 +113,8 @@ export function ScannerView() {
               if (text) {
                 scannedText.value = text;
                 scanType.value = symbols[0].typeName ?? "QR-Code";
+                stopScanning();
+                return;
               }
             }
           } catch {
@@ -128,7 +130,7 @@ export function ScannerView() {
           t("common.cameraAccessDenied");
       }
     },
-    [updateCameraInfo],
+    [stopScanning, updateCameraInfo],
   );
 
   const handleDeviceChange = useCallback(
@@ -227,7 +229,7 @@ export function ScannerView() {
         </div>
       )}
 
-      {!isScanning.value && (
+      {!isScanning.value && !scannedText.value && (
         <div class="scanner-setup">
           <p>{t("scanner.setupText")}</p>
           <button class="start-btn" onClick={() => startCamera()}>
@@ -297,47 +299,47 @@ export function ScannerView() {
             )}
           </div>
 
-          {scannedText.value && (
-            <div class="scanner-result" aria-live="polite">
-              <h3>{t("scanner.scannedContent")}</h3>
-              {isHttpUrl(scannedText.value) ? (
-                <div class="result-content">
-                  <a
-                    href={scannedText.value}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="result-link"
-                  >
-                    {scannedText.value}
-                  </a>
-                </div>
-              ) : (
-                <div class="result-content">
-                  <pre class="result-text">{scannedText.value}</pre>
-                </div>
-              )}
-              <div class="share-actions">
-                <button class="copy-btn" onClick={handleCopy}>
-                  {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
-                </button>
-                {shareService.isShareSupported() && (
-                  <button class="start-btn share-action" onClick={handleShare}>
-                    {t("common.share")}
-                  </button>
-                )}
-                <button class="start-btn share-action" onClick={handleSendQR}>
-                  {t("common.sendQR")}
-                </button>
-                <button class="start-btn share-action" onClick={handleSendWebRTC}>
-                  {t("common.sendWebRTC")}
-                </button>
-              </div>
-            </div>
-          )}
-
           <button class="stop-btn" onClick={stopScanning}>
             {t("common.stop")}
           </button>
+        </div>
+      )}
+
+      {scannedText.value && (
+        <div class="scanner-result" aria-live="polite">
+          <h3>{t("scanner.scannedContent")}</h3>
+          {isHttpUrl(scannedText.value) ? (
+            <div class="result-content">
+              <a
+                href={scannedText.value}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="result-link"
+              >
+                {scannedText.value}
+              </a>
+            </div>
+          ) : (
+            <div class="result-content">
+              <pre class="result-text">{scannedText.value}</pre>
+            </div>
+          )}
+          <div class="share-actions">
+            <button class="copy-btn" onClick={handleCopy}>
+              {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
+            </button>
+            {shareService.isShareSupported() && (
+              <button class="start-btn share-action" onClick={handleShare}>
+                {t("common.share")}
+              </button>
+            )}
+            <button class="start-btn share-action" onClick={handleSendQR}>
+              {t("common.sendQR")}
+            </button>
+            <button class="start-btn share-action" onClick={handleSendWebRTC}>
+              {t("common.sendWebRTC")}
+            </button>
+          </div>
         </div>
       )}
     </section>

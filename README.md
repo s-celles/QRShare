@@ -6,7 +6,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 
 ## Features
 
-- **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. Includes camera device selection, resolution display, and scan metadata.
+- **QR Code Scanner** -- Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. The camera area disappears after reception.
 - **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
 - **Guided Transfer Preparation** -- Select text or one or more files, choose a network policy, let QRShare recommend a transport, then show the receiver an invitation QR code before sending the payload.
 - **Native Share** -- Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
@@ -48,7 +48,7 @@ bun run package
 
 ### QR Utilities
 
-- **Scan QR Code** -- Point your camera at any QR code to decode it. The app detects URLs and displays them as clickable links; other content is shown as text with a copy-to-clipboard button. Camera parameters (device, resolution) and scan metadata are always visible.
+- **Scan QR Code** -- Point your camera at any QR code to decode it. The app detects URLs and displays them as clickable links; other content is shown as text with a copy-to-clipboard button. Once content is received, scanning stops and the camera area disappears.
 - **Create QR Code** -- Type or paste text into the editor to generate a QR code in real time. Adjust QR version and error correction level directly. A capacity meter shows payload size versus maximum. Download the result as a PNG.
 
 ### Share Mode (Native)
@@ -89,7 +89,7 @@ Text can also enter the chooser through `#/send?data=...&policy=...`, where `pol
 1. The sender selects a file or prepares one in QRShare
 2. libcimbar compresses and fountain-encodes it into animated color barcodes
 3. The receiver scans the animation with the beta browser decoder
-4. Once reconstruction completes, the camera area disappears and the receiver can download the result
+4. Once reconstruction completes, the camera area disappears. Files can be downloaded or shared; received QRShare text gets the same copy, download, and share actions as other receivers.
 
 The bundled runtime is libcimbar v0.6.7c under MPL-2.0. Files are limited to
 approximately 33 MB after compression by the upstream protocol.

@@ -31,7 +31,7 @@ export class ShareService {
     // Try file sharing first
     if (this.canShareFiles(file)) {
       try {
-        await navigator.share({ files: [file] });
+        await navigator.share({ files: [file], title: file.name });
         return { kind: "shared" };
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -41,22 +41,9 @@ export class ShareService {
       }
     }
 
-    // Fallback: share blob URL as text
-    try {
-      const blob = new Blob([file], { type: file.type || "application/octet-stream" });
-      const url = URL.createObjectURL(blob);
-      await navigator.share({
-        title: file.name,
-        text: `File: ${file.name}`,
-        url,
-      });
-      return { kind: "shared" };
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        return { kind: "cancelled" };
-      }
-      return { kind: "unsupported" };
-    }
+    // A blob URL cannot transfer the file to another application once this
+    // page is left, so do not report a misleading successful fallback.
+    return { kind: "unsupported" };
   }
 
   async shareText(text: string, title?: string): Promise<ShareResult> {

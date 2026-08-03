@@ -27,6 +27,8 @@ export const en: Record<string, string> = {
   "common.verified": "Verified",
   "common.hashMismatch": "Hash mismatch",
   "common.cameraAccessDenied": "Camera access denied. Please grant camera permissions in your browser settings.",
+  "share.unsupported": "File sharing is not supported by this browser or platform.",
+  "share.cancelled": "Sharing cancelled",
   "transfer.summary": "Transfer statistics",
   "transfer.size": "Size",
   "transfer.duration": "Duration",

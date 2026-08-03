@@ -401,7 +401,10 @@ export function WebRTCReceiverView() {
                         const response = await fetch(downloadUrl.value!);
                         const blob = await response.blob();
                         const file = new File([blob], metadata.value!.filename, { type: blob.type });
-                        await shareService.shareFile(file);
+                        const result = await shareService.shareFile(file);
+                        if (result.kind === "unsupported") error.value = t("share.unsupported");
+                        else if (result.kind === "cancelled") error.value = t("share.cancelled");
+                        else error.value = null;
                       }}
                     >
                       {t("common.share")}

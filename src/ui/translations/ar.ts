@@ -27,6 +27,8 @@ export const ar: Record<string, string> = {
   "common.verified": "تم التحقق",
   "common.hashMismatch": "عدم تطابق البصمة",
   "common.cameraAccessDenied": "تم رفض الوصول إلى الكاميرا. يرجى منح أذونات الكاميرا في إعدادات المتصفح.",
+  "share.unsupported": "مشاركة الملفات غير مدعومة في هذا المتصفح أو النظام الأساسي.",
+  "share.cancelled": "تم إلغاء المشاركة",
   "transfer.summary": "إحصائيات النقل",
   "transfer.size": "الحجم",
   "transfer.duration": "المدة",

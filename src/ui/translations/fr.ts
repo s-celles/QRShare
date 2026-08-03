@@ -27,6 +27,8 @@ export const fr: Record<string, string> = {
   "common.verified": "V\u00e9rifi\u00e9",
   "common.hashMismatch": "Empreinte non concordante",
   "common.cameraAccessDenied": "Acc\u00e8s \u00e0 la cam\u00e9ra refus\u00e9. Veuillez autoriser la cam\u00e9ra dans les param\u00e8tres de votre navigateur.",
+  "share.unsupported": "Le partage de fichiers n’est pas pris en charge par ce navigateur ou cette plateforme.",
+  "share.cancelled": "Partage annulé",
   "transfer.summary": "Statistiques du transfert",
   "transfer.size": "Taille",
   "transfer.duration": "Dur\u00e9e",

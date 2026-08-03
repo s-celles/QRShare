@@ -120,19 +120,23 @@ function processFrame(message) {
     fountain.length,
   );
   if (length <= 0) {
-    self.postMessage({ type: "frame", detected: length === 0 });
+    self.postMessage({ type: "frame", detected: false });
     sendStats();
     return;
   }
 
-  detectedFrames += 1;
-  if (!receptionStartedAt) receptionStartedAt = performance.now();
   const decoded = new Uint8Array(Module.HEAPU8.buffer, fountain.byteOffset, length).slice();
-  expectedSize ||= fileSizeFromChunk(decoded);
   fountain.set(decoded);
   const result = Module._cimbard_fountain_decode(fountain.byteOffset, decoded.length);
   const progress = report();
   if (Array.isArray(progress)) {
+    // Count only frames accepted by the fountain sink. A positive image
+    // extraction alone can still be a false positive from camera noise.
+    if (progress.length > 0) {
+      detectedFrames += 1;
+      if (!receptionStartedAt) receptionStartedAt = performance.now();
+      expectedSize ||= fileSizeFromChunk(decoded);
+    }
     maxProgress = Math.max(maxProgress, 0, ...progress.map(Number).filter(Number.isFinite));
   }
   sendStats();

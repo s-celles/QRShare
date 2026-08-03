@@ -70,7 +70,7 @@ function CimbarSender() {
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(false);
   const [error, setError] = useState("");
-  const [fps, setFps] = useState(15);
+  const [fps, setFps] = useState(10);
   const [mode, setMode] = useState<CimbarMode>(68);
   const [aspect, setAspect] = useState(1);
 

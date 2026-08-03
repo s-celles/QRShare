@@ -1017,10 +1017,12 @@ section > button:hover {
 .cimbar-camera {
   position: relative;
   overflow: hidden;
-  max-width: 960px;
+  width: min(100%, calc(100dvh - 11rem));
+  aspect-ratio: 1;
   margin: 1rem auto;
   border: 3px solid var(--border);
   border-radius: var(--radius);
+  background: #000;
 }
 
 .cimbar-camera.detected {
@@ -1028,8 +1030,10 @@ section > button:hover {
 }
 
 .cimbar-camera video {
-  display: block;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* Share Actions */

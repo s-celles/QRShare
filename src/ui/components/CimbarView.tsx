@@ -130,7 +130,7 @@ function CimbarSender() {
         </button>
       </div>
       {error && <div class="error-msg" role="alert">{error}</div>}
-      <div class="cimbar-canvas-wrap">
+      <div class="cimbar-canvas-wrap" style={{ display: active ? "" : "none" }}>
         <canvas ref={canvasRef} class="cimbar-canvas" style={{ aspectRatio: String(aspect) }} />
       </div>
     </section>

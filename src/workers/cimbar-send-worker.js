@@ -44,7 +44,19 @@ var Report = {
 
 importScripts("send.2026-07-13T0523.js");
 
-self.onmessage = (event) => {
+function hex(bytes) {
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function fileWithIntegrityMarker(file) {
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  // libcimbar exposes the filename but has no application-level hash field.
+  // Carry the expected digest in a reversible filename suffix.
+  return new File([bytes], `${file.name}.qrshare-sha256-${hex(digest)}`, { type: file.type });
+}
+
+self.onmessage = async (event) => {
   const message = event.data;
   try {
     if (message.type === "init") {
@@ -56,7 +68,8 @@ self.onmessage = (event) => {
     if (message.type === "start") {
       Send.setMode(message.mode);
       Send.setFPS(message.fps);
-      Send.importFile(message.file);
+      const markedFile = await fileWithIntegrityMarker(message.file);
+      Send.importFile(markedFile);
       if (!rendering) {
         rendering = true;
         Send.nextFrame();

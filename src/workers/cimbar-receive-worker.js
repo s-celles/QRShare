@@ -50,6 +50,16 @@ function filenameFor(id, size) {
   );
 }
 
+function splitIntegrityMarker(filename) {
+  const match = filename.match(/^(.*)\.qrshare-sha256-([a-f0-9]{64})$/i);
+  return match ? { filename: match[1] || "download", sha256: match[2].toLowerCase() } : { filename, sha256: "" };
+}
+
+async function sha256Hex(data) {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 function fileSizeFromChunk(chunk) {
   if (chunk.length < 6) return 0;
   return chunk[3]
@@ -80,7 +90,7 @@ function resetStats() {
 
 function reassemble(id) {
   const expectedSize = Module._cimbard_get_filesize(id);
-  const filename = filenameFor(id, expectedSize);
+  const markedFilename = filenameFor(id, expectedSize);
   const chunkSize = Module._cimbard_get_decompress_bufsize();
   const chunk = allocate("decompress", chunkSize);
   const chunks = [];
@@ -98,7 +108,12 @@ function reassemble(id) {
     output.set(part, offset);
     offset += part.length;
   }
-  self.postMessage({ type: "complete", filename, file: output.buffer }, [output.buffer]);
+  const { filename, sha256: expectedSha256 } = splitIntegrityMarker(markedFilename);
+  sha256Hex(output).then((sha256) => {
+    self.postMessage({ type: "complete", filename, file: output.buffer, sha256, verified: expectedSha256 ? sha256 === expectedSha256 : null }, [output.buffer]);
+  }).catch(() => {
+    self.postMessage({ type: "complete", filename, file: output.buffer, sha256: "", verified: null }, [output.buffer]);
+  });
 }
 
 function processFrame(message) {

@@ -160,6 +160,8 @@ function CimbarReceiver() {
     url: string;
     file: File;
     text: string | null;
+    sha256: string;
+    verified: boolean | null;
   } | null>(null);
 
   useEffect(() => {
@@ -187,6 +189,8 @@ function CimbarReceiver() {
           url,
           file,
           text: isText ? new TextDecoder().decode(message.file) : null,
+          sha256: message.sha256 || "",
+          verified: typeof message.verified === "boolean" ? message.verified : null,
         });
         setProgress(100);
         stopCamera();
@@ -300,8 +304,9 @@ function CimbarReceiver() {
             bytes={stats.expectedSize || stats.receivedBytes}
             durationSec={stats.elapsedMs / 1000}
             speedBytesPerSec={stats.speedBytesPerSec}
-            detail={`${stats.detectedFrames} / ${stats.scannedFrames} ${t("transfer.matrices")}`}
+            detail={`${stats.detectedFrames} / ${stats.scannedFrames} ${t("transfer.matrices")}${result.verified === true ? " · SHA-256 ✓" : result.verified === false ? " · SHA-256 ✗" : ""}`}
           />
+          {result.verified === false && <p class="error-msg" role="alert">{t("receiver.hashWarning")}</p>}
           {result.text != null ? (
             <TextResultView text={result.text} filename={result.filename} />
           ) : (

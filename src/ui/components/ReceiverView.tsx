@@ -5,6 +5,7 @@ import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
 import { TextResultView } from "./TextResultView";
+import { TransferSummary } from "./TransferSummary";
 import { t } from "../i18n";
 
 interface ReceivedFile {
@@ -31,6 +32,8 @@ const receivedFiles = signal<ReceivedFile[]>([]);
 const receivedText = signal<string | null>(null);
 const isTextContent = signal(false);
 const scanStartTime = signal(0);
+const transferDurationSec = signal(0);
+const transferSpeedBytesPerSec = signal(0);
 
 export function ReceiverView() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,6 +79,8 @@ export function ReceiverView() {
     neededSymbols.value = 0;
     scannedFrames.value = 0;
     scanStartTime.value = Date.now();
+    transferDurationSec.value = 0;
+    transferSpeedBytesPerSec.value = 0;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -109,6 +114,9 @@ export function ReceiverView() {
             receivedFileSize.value = msg.fileSize;
             break;
           case "complete": {
+            transferDurationSec.value = Math.max(0, (Date.now() - scanStartTime.value) / 1000);
+            transferSpeedBytesPerSec.value = transferDurationSec.value > 0
+              ? msg.file.byteLength / transferDurationSec.value : 0;
             isComplete.value = true;
             isScanning.value = false;
             receivedSha256.value = msg.sha256;
@@ -320,6 +328,12 @@ export function ReceiverView() {
       {isComplete.value && (
         <div class="receiver-complete">
           <h3>{t("receiver.transferComplete")}</h3>
+          <TransferSummary
+            bytes={receivedFileSize.value || 0}
+            durationSec={transferDurationSec.value}
+            speedBytesPerSec={transferSpeedBytesPerSec.value}
+            detail={`${scannedFrames.value} ${t("transfer.frames")}`}
+          />
           <div class="file-info">
             <p>
               <strong>{t("receiver.integrity")}</strong>{" "}

@@ -8,9 +8,10 @@ import { APP_VERSION, BUILD_HASH } from "../../version";
 const siteQR = signal<string | null>(null);
 
 export function About() {
+  const siteUrl = window.location.origin + window.location.pathname;
+
   useEffect(() => {
     // Generate QR code pointing to the deployed site
-    const siteUrl = window.location.origin + window.location.pathname;
     const urlBytes = new TextEncoder().encode(siteUrl);
     siteQR.value = renderQRToDataURL(urlBytes, "balanced");
   }, []);
@@ -37,6 +38,10 @@ export function About() {
 
         <p class="about-description">
           {t("about.scanText")}
+        </p>
+        <p class="about-url">
+          <strong>{t("about.applicationUrl")}</strong>{" "}
+          <a href={siteUrl}>{siteUrl}</a>
         </p>
 
         <div class="about-info">

@@ -315,6 +315,11 @@ section > button:hover {
   margin-bottom: 1rem;
 }
 
+.about-url {
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
 .qr-image {
   max-width: 100%;
   width: 480px;
@@ -1043,6 +1048,18 @@ section > button:hover {
   gap: 0.5rem;
   margin-top: 1rem;
   justify-content: center;
+}
+
+.transfer-summary {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+}
+
+.transfer-summary h4 {
+  margin-bottom: 0.5rem;
 }
 
 .share-action {

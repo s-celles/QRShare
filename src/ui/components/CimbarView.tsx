@@ -4,6 +4,7 @@ import { pendingFile, pendingText, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shar
 import { t } from "../i18n";
 import { ShareService } from "@/share/service";
 import { TextResultView } from "./TextResultView";
+import { TransferSummary } from "./TransferSummary";
 
 type CimbarMode = 68 | 67 | 66;
 
@@ -290,6 +291,12 @@ function CimbarReceiver() {
       {result && (
         <div class="result-section">
           <p>{t("cimbar.complete", { filename: result.filename })}</p>
+          <TransferSummary
+            bytes={stats.expectedSize || stats.receivedBytes}
+            durationSec={stats.elapsedMs / 1000}
+            speedBytesPerSec={stats.speedBytesPerSec}
+            detail={`${stats.detectedFrames} / ${stats.scannedFrames} ${t("transfer.matrices")}`}
+          />
           {result.text != null ? (
             <TextResultView text={result.text} filename={result.filename} />
           ) : (

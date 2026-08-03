@@ -27,6 +27,14 @@ export const fr: Record<string, string> = {
   "common.verified": "V\u00e9rifi\u00e9",
   "common.hashMismatch": "Empreinte non concordante",
   "common.cameraAccessDenied": "Acc\u00e8s \u00e0 la cam\u00e9ra refus\u00e9. Veuillez autoriser la cam\u00e9ra dans les param\u00e8tres de votre navigateur.",
+  "transfer.summary": "Statistiques du transfert",
+  "transfer.size": "Taille",
+  "transfer.duration": "Dur\u00e9e",
+  "transfer.speed": "D\u00e9bit moyen",
+  "transfer.details": "D\u00e9tails",
+  "transfer.frames": "images",
+  "transfer.files": "fichiers",
+  "transfer.matrices": "matrices",
 
   // Landing
   "landing.home": "Accueil QRShare",
@@ -387,6 +395,7 @@ export const fr: Record<string, string> = {
   "about.heading": "\u00c0 propos",
   "about.qrAlt": "QR code pointant vers QRShare",
   "about.scanText": "Scannez ce QR code pour ouvrir QRShare sur un autre appareil.",
+  "about.applicationUrl": "URL de l’application :",
   "about.description": "Transfert de fichiers hors r\u00e9seau via des QR codes anim\u00e9s avec des codes fontaine, plus un mode pair-\u00e0-pair WebRTC.",
   "about.license": "Licence : AGPL-3.0-or-later",
   "about.sourceCode": "Code source sur GitHub",

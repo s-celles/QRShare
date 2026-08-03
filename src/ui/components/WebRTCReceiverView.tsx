@@ -8,6 +8,7 @@ import { ShareService } from "@/share/service";
 import { isTextMimeType } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { TextResultView } from "./TextResultView";
+import { TransferSummary } from "./TransferSummary";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
@@ -36,6 +37,8 @@ const batchTotal = signal(0);
 const receivedFiles = signal<ReceivedFile[]>([]);
 const receivedText = signal<string | null>(null);
 const isReceivedText = signal(false);
+const transferStartedAt = signal(0);
+const transferDurationSec = signal(0);
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -66,6 +69,8 @@ export function WebRTCReceiverView() {
     receivedFiles.value = [];
     receivedText.value = null;
     isReceivedText.value = false;
+    transferStartedAt.value = 0;
+    transferDurationSec.value = 0;
     copyRoomIdFeedback.value = false;
   }, []);
 
@@ -76,6 +81,7 @@ export function WebRTCReceiverView() {
     serviceRef.current = svc;
 
     svc.onProgress((p) => {
+      if (!transferStartedAt.value) transferStartedAt.value = Date.now();
       progress.value = p;
     });
 
@@ -123,6 +129,8 @@ export function WebRTCReceiverView() {
     });
 
     svc.onBatchComplete(() => {
+      transferDurationSec.value = transferStartedAt.value
+        ? Math.max(0, (Date.now() - transferStartedAt.value) / 1000) : 0;
       isComplete.value = true;
       isWaiting.value = false;
     });
@@ -302,6 +310,12 @@ export function WebRTCReceiverView() {
       {isComplete.value && receivedFiles.value.length > 0 && (
         <div class="receiver-complete">
           <h3>{t("webrtcReceiver.transferComplete")}</h3>
+          <TransferSummary
+            bytes={receivedFiles.value.reduce((sum, file) => sum + file.meta.fileSize, 0)}
+            durationSec={transferDurationSec.value}
+            speedBytesPerSec={transferDurationSec.value > 0 ? receivedFiles.value.reduce((sum, file) => sum + file.meta.fileSize, 0) / transferDurationSec.value : 0}
+            detail={`${receivedFiles.value.length} ${t("transfer.files")}`}
+          />
           <p><strong>{t("webrtcReceiver.filesReceived", { count: receivedFiles.value.length })}</strong></p>
           <div class="file-list">
             {receivedFiles.value.map((f) => (
@@ -336,6 +350,11 @@ export function WebRTCReceiverView() {
       {isComplete.value && receivedFiles.value.length === 0 && metadata.value && (
         <div class="receiver-complete">
           <h3>{t("webrtcReceiver.transferComplete")}</h3>
+          <TransferSummary
+            bytes={metadata.value.fileSize}
+            durationSec={transferDurationSec.value}
+            speedBytesPerSec={transferDurationSec.value > 0 ? metadata.value.fileSize / transferDurationSec.value : 0}
+          />
           <div class="file-info">
             <p>
               <strong>{t("webrtcReceiver.integrity")}</strong>{" "}

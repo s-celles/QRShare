@@ -27,6 +27,14 @@ export const ar: Record<string, string> = {
   "common.verified": "تم التحقق",
   "common.hashMismatch": "عدم تطابق البصمة",
   "common.cameraAccessDenied": "تم رفض الوصول إلى الكاميرا. يرجى منح أذونات الكاميرا في إعدادات المتصفح.",
+  "transfer.summary": "إحصائيات النقل",
+  "transfer.size": "الحجم",
+  "transfer.duration": "المدة",
+  "transfer.speed": "متوسط السرعة",
+  "transfer.details": "التفاصيل",
+  "transfer.frames": "إطارات",
+  "transfer.files": "ملفات",
+  "transfer.matrices": "مصفوفات",
 
   // Landing
   "landing.home": "الصفحة الرئيسية QRShare",
@@ -324,6 +332,7 @@ export const ar: Record<string, string> = {
   "about.heading": "حول",
   "about.qrAlt": "رمز QR يشير إلى QRShare",
   "about.scanText": "امسح رمز QR هذا لفتح QRShare على جهاز آخر.",
+  "about.applicationUrl": "عنوان URL للتطبيق:",
   "about.description": "نقل ملفات بدون شبكة عبر رموز QR متحركة مع رموز نافورية، بالإضافة إلى وضع نظير إلى نظير WebRTC.",
   "about.license": "الرخصة: AGPL-3.0-or-later",
   "about.sourceCode": "الكود المصدري على GitHub",

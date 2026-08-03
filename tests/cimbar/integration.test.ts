@@ -10,9 +10,7 @@ describe("experimental libcimbar integration", () => {
     for (const file of [
       "cimbar_js.2026-07-13T0523.js",
       "cimbar_js.2026-07-13T0523.wasm",
-      "index.html",
-      "recv.html",
-      "recv-worker.2026-07-13T0523.js",
+      "send.2026-07-13T0523.js",
       "LICENSE",
     ]) {
       expect(existsSync(join(VENDOR, file))).toBe(true);
@@ -21,10 +19,10 @@ describe("experimental libcimbar integration", () => {
       .toContain("Mozilla Public License Version 2.0");
   });
 
-  it("keeps nested service workers disabled under the QRShare service worker", () => {
-    expect(readFileSync(join(VENDOR, "index.html"), "utf8"))
-      .not.toContain("serviceWorker.register");
-    expect(readFileSync(join(VENDOR, "recv.html"), "utf8"))
-      .not.toContain("serviceWorker.register");
+  it("uses QRShare-owned workers instead of embedding upstream pages", () => {
+    expect(existsSync(join(VENDOR, "index.html"))).toBe(false);
+    expect(existsSync(join(VENDOR, "recv.html"))).toBe(false);
+    expect(existsSync(join(ROOT, "src/workers/cimbar-send-worker.js"))).toBe(true);
+    expect(existsSync(join(ROOT, "src/workers/cimbar-receive-worker.js"))).toBe(true);
   });
 });

@@ -126,6 +126,15 @@ export const en: Record<string, string> = {
   "cimbar.sendFrameTitle": "CIMBAR experimental encoder",
   "cimbar.receiveFrameTitle": "CIMBAR experimental decoder",
   "cimbar.experimentalHint": "Experimental transport powered by libcimbar v0.6.7c. The browser receiver is beta; keep standard animated QR available as a fallback.",
+  "cimbar.file": "File:",
+  "cimbar.mode": "Reliability mode:",
+  "cimbar.fps": "Frame rate: {fps} FPS",
+  "cimbar.loading": "Loading CIMBAR engine…",
+  "cimbar.startSending": "Start CIMBAR transmission",
+  "cimbar.sending": "CIMBAR transmission active",
+  "cimbar.startReceiving": "Start CIMBAR camera",
+  "cimbar.complete": "Received {filename}",
+  "cimbar.offscreenUnsupported": "This browser does not support OffscreenCanvas, which the experimental CIMBAR encoder requires.",
 
   // Scanner
   "scanner.section": "QR Scanner",

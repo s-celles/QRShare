@@ -985,12 +985,51 @@ section > button:hover {
   user-select: all;
 }
 
-.cimbar-frame {
-  width: 100%;
-  height: min(78vh, 900px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+.cimbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cimbar-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cimbar-canvas-wrap {
+  display: flex;
+  justify-content: center;
   background: #fff;
+  padding: 0.5rem;
+}
+
+.cimbar-canvas {
+  display: block;
+  width: min(100%, 80vh);
+  max-height: 80vh;
+  background: #fff;
+}
+
+.cimbar-camera {
+  position: relative;
+  overflow: hidden;
+  max-width: 960px;
+  margin: 1rem auto;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cimbar-camera.detected {
+  border-color: #16a34a;
+}
+
+.cimbar-camera video {
+  display: block;
+  width: 100%;
 }
 
 /* Share Actions */

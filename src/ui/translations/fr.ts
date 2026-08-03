@@ -126,6 +126,15 @@ export const fr: Record<string, string> = {
   "cimbar.sendFrameTitle": "Encodeur CIMBAR exp\u00e9rimental",
   "cimbar.receiveFrameTitle": "D\u00e9codeur CIMBAR exp\u00e9rimental",
   "cimbar.experimentalHint": "Transport exp\u00e9rimental bas\u00e9 sur libcimbar v0.6.7c. Le r\u00e9cepteur navigateur est en version b\u00eata ; conservez le QR anim\u00e9 standard comme solution de repli.",
+  "cimbar.file": "Fichier :",
+  "cimbar.mode": "Mode de fiabilit\u00e9 :",
+  "cimbar.fps": "Fr\u00e9quence : {fps} IPS",
+  "cimbar.loading": "Chargement du moteur CIMBAR\u2026",
+  "cimbar.startSending": "D\u00e9marrer la transmission CIMBAR",
+  "cimbar.sending": "Transmission CIMBAR active",
+  "cimbar.startReceiving": "D\u00e9marrer la cam\u00e9ra CIMBAR",
+  "cimbar.complete": "{filename} re\u00e7u",
+  "cimbar.offscreenUnsupported": "Ce navigateur ne prend pas en charge OffscreenCanvas, requis par l\u2019encodeur CIMBAR exp\u00e9rimental.",
 
   // Scanner
   "scanner.section": "Scanneur QR",

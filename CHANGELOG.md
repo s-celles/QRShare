@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Experimental CIMBAR air-gapped transport using the official libcimbar v0.6.7c WASM encoder and beta browser decoder, available as a separate send/receive mode with receiver invitation support
+- Experimental CIMBAR air-gapped transport using native QRShare Preact views and workers backed directly by the libcimbar v0.6.7c WASM APIs, available as a separate send/receive mode with receiver invitation support
 
 ## [0.3.0] - 2026-08-03
 

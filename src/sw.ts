@@ -10,16 +10,11 @@ const PRECACHE_URLS = [
   "./assets/icon.svg",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
-  "./cimbar/index.html",
-  "./cimbar/recv.html",
   "./cimbar/cimbar_js.2026-07-13T0523.js",
   "./cimbar/cimbar_js.2026-07-13T0523.wasm",
-  "./cimbar/main.2026-07-13T0523.js",
   "./cimbar/send.2026-07-13T0523.js",
-  "./cimbar/send-worker.2026-07-13T0523.js",
-  "./cimbar/recv.2026-07-13T0523.js",
-  "./cimbar/recv-worker.2026-07-13T0523.js",
-  "./cimbar/zstd.2026-07-13T0523.js",
+  "./cimbar/cimbar-send-worker.js",
+  "./cimbar/cimbar-receive-worker.js",
   "./cimbar/LICENSE",
 ];
 

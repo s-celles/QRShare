@@ -102,6 +102,8 @@ for (const file of staticFiles) {
 
 // libcimbar v0.6.7c web encoder/decoder (MPL-2.0, kept as separate files).
 cpSync(join(ROOT, "vendor/libcimbar"), join(DIST, "cimbar"), { recursive: true });
+copyFileSync(join(ROOT, "src/workers/cimbar-send-worker.js"), join(DIST, "cimbar/cimbar-send-worker.js"));
+copyFileSync(join(ROOT, "src/workers/cimbar-receive-worker.js"), join(DIST, "cimbar/cimbar-receive-worker.js"));
 
 // 6. Copy WASM files from node_modules
 const wasmGlob = new Glob("**/*.wasm");

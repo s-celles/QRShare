@@ -11,6 +11,7 @@ export function UniversalScannerView() {
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef(0);
   const busyRef = useRef(false);
+  const cimbarBusyRef = useRef(false);
   const cimbarRef = useRef<Worker | null>(null);
   const [consented, setConsented] = useState(false);
   const [running, setRunning] = useState(false);
@@ -42,7 +43,9 @@ export function UniversalScannerView() {
       streamRef.current = stream;
       const cimbar = new Worker(new URL("cimbar/cimbar-receive-worker.js", window.location.href));
       cimbarRef.current = cimbar;
+      cimbar.onerror = (event) => setStatus(event.message || t("universal.workerError"));
       cimbar.onmessage = (event) => {
+        if (event.data.type === "frame-done") cimbarBusyRef.current = false;
         if ((event.data.type === "frame" && event.data.detected) || (event.data.type === "stats" && event.data.detectedFrames > 0)) {
           routeTo("cimbar");
         }
@@ -74,7 +77,10 @@ export function UniversalScannerView() {
                 else routeTo("static");
               } catch { routeTo("static"); }
             }
-            cimbarRef.current?.postMessage({ type: "frame", pixels: imageData.data.buffer, width: imageData.width, height: imageData.height, mode: 68 }, [imageData.data.buffer]);
+            if (!cimbarBusyRef.current && cimbarRef.current) {
+              cimbarBusyRef.current = true;
+              cimbarRef.current.postMessage({ type: "frame", pixels: imageData.data.buffer, width: imageData.width, height: imageData.height, mode: 68 }, [imageData.data.buffer]);
+            }
           } finally {
             busyRef.current = false;
           }

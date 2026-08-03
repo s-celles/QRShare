@@ -55,6 +55,7 @@ export const en: Record<string, string> = {
   "universal.start": "Allow and start detection",
   "universal.starting": "Starting camera…",
   "universal.detecting": "Looking for a static QR code, animated QR transfer, or CIMBAR matrix…",
+  "universal.workerError": "The CIMBAR decoder could not start.",
   "landing.createTitle": "Create QR Code",
   "landing.createDesc": "Generate from text",
   "landing.createAria": "Create a QR code",

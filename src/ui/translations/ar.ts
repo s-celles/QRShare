@@ -55,6 +55,7 @@ export const ar: Record<string, string> = {
   "universal.start": "السماح وبدء الكشف",
   "universal.starting": "جارٍ تشغيل الكاميرا…",
   "universal.detecting": "البحث عن رمز QR ثابت أو نقل QR متحرك أو مصفوفة CIMBAR…",
+  "universal.workerError": "تعذر تشغيل وحدة فك ترميز CIMBAR.",
   "landing.createTitle": "إنشاء رمز QR",
   "landing.createDesc": "إنشاء من نص",
   "landing.createAria": "إنشاء رمز QR",

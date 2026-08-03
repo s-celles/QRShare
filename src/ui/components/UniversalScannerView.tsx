@@ -43,7 +43,9 @@ export function UniversalScannerView() {
       const cimbar = new Worker(new URL("cimbar/cimbar-receive-worker.js", window.location.href));
       cimbarRef.current = cimbar;
       cimbar.onmessage = (event) => {
-        if (event.data.type === "stats" && event.data.detectedFrames > 0) routeTo("cimbar");
+        if ((event.data.type === "frame" && event.data.detected) || (event.data.type === "stats" && event.data.detectedFrames > 0)) {
+          routeTo("cimbar");
+        }
       };
       setRunning(true);
       await new Promise((resolve) => requestAnimationFrame(resolve));

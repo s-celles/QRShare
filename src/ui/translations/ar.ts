@@ -117,6 +117,8 @@ export const ar: Record<string, string> = {
   "scanner.copyToClipboard": "نسخ إلى الحافظة",
   "scanner.copied": "تم النسخ!",
   "scanner.openInQRShare": "فتح في QRShare",
+  "scanner.sendStaticQR": "إعادة الإرسال كرمز QR ثابت",
+  "scanner.sendAnimatedQR": "إعادة الإرسال عبر QR متحرك (رموز نافورية)",
 
   // Creator
   "creator.section": "منشئ QR",

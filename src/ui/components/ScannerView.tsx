@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
-import { pendingFile } from "../shared-file";
+import { pendingFile, pendingText } from "../shared-file";
 import { t } from "../i18n";
 
 const shareService = new ShareService();
@@ -203,6 +203,12 @@ export function ScannerView() {
     navigate("/send/qr");
   }, [textToBuffer]);
 
+  const handleSendStaticQR = useCallback(() => {
+    if (!scannedText.value) return;
+    pendingText.value = scannedText.value;
+    navigate("/create");
+  }, []);
+
   const handleSendWebRTC = useCallback(() => {
     if (!scannedText.value) return;
     pendingFile.value = {
@@ -359,8 +365,11 @@ export function ScannerView() {
                 {t("common.share")}
               </button>
             )}
+            <button class="start-btn share-action" onClick={handleSendStaticQR}>
+              {t("scanner.sendStaticQR")}
+            </button>
             <button class="start-btn share-action" onClick={handleSendQR}>
-              {t("common.sendQR")}
+              {t("scanner.sendAnimatedQR")}
             </button>
             <button class="start-btn share-action" onClick={handleSendWebRTC}>
               {t("common.sendWebRTC")}

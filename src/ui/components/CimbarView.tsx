@@ -215,11 +215,17 @@ function CimbarReceiver() {
           : <button class="stop-btn" onClick={stopCamera}>{t("common.stop")}</button>}
       </div>
       {error && <div class="error-msg" role="alert">{error}</div>}
-      <div class={`cimbar-camera ${detected ? "detected" : ""}`}>
-        <video ref={videoRef} playsInline muted />
-        <canvas ref={canvasRef} class="sr-only" />
-      </div>
-      {scanning && <div class="progress-container"><div class="progress-bar" style={{ width: `${progress}%` }} /></div>}
+      {!result && (
+        <div class={`cimbar-camera ${detected ? "detected" : ""}`}>
+          <video ref={videoRef} playsInline muted />
+          <canvas ref={canvasRef} class="sr-only" />
+        </div>
+      )}
+      {scanning && !result && (
+        <div class="progress-container">
+          <div class="progress-bar" style={{ width: `${progress}%` }} />
+        </div>
+      )}
       {result && <div class="result-section"><p>{t("cimbar.complete", { filename: result.filename })}</p><a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a></div>}
     </section>
   );

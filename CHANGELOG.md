@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Default animated QR fountain-code frame rate increased from 2 FPS to 10 FPS across all encoding presets
+
 ## [0.3.0] - 2026-08-03
 
 ### Added

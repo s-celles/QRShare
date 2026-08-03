@@ -87,6 +87,20 @@ export function Landing() {
         </button>
       </div>
 
+      <h3 class="mode-group-title">{t("landing.cimbarGroup")}</h3>
+      <div class="mode-grid" role="group" aria-label={t("landing.cimbarGroup")}>
+        <button class="mode-btn" onClick={() => navigate("/send/cimbar")} aria-label={t("landing.sendCimbarAria")}>
+          <span class="mode-icon" aria-hidden="true">▦</span>
+          <span class="mode-label">{t("landing.sendCimbarTitle")}</span>
+          <span class="mode-desc">{t("landing.sendCimbarDesc")}</span>
+        </button>
+        <button class="mode-btn" onClick={() => navigate("/receive/cimbar")} aria-label={t("landing.receiveCimbarAria")}>
+          <span class="mode-icon" aria-hidden="true">▧</span>
+          <span class="mode-label">{t("landing.receiveCimbarTitle")}</span>
+          <span class="mode-desc">{t("landing.receiveCimbarDesc")}</span>
+        </button>
+      </div>
+
       <h3 class="mode-group-title">{t("landing.webrtcGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.webrtcGroup")}>
         <button

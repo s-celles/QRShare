@@ -10,9 +10,10 @@ import {
 } from "../send-policy";
 import { t } from "../i18n";
 
-const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/webrtc" | "/send/share"> = {
+const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/cimbar" | "/send/webrtc" | "/send/share"> = {
   "static-qr": "/create",
   "animated-qr": "/send/qr",
+  cimbar: "/send/cimbar",
   webrtc: "/send/webrtc",
   share: "/send/share",
 };

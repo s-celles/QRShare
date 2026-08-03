@@ -244,6 +244,21 @@ Cela permet de partager votre configuration entre appareils ou de restaurer vos 
 
 ---
 
+## Transfert CIMBAR expérimental
+
+CIMBAR est un mode optique hors réseau à haut débit utilisant des matrices de
+symboles colorés. Sélectionnez **Envoyer (CIMBAR — Expérimental)** sur le donneur
+et **Recevoir (CIMBAR — Expérimental)** sur le receveur. Le workflow
+**Préparer un transfert** peut également générer l'invitation correspondante et
+précharger le fichier côté donneur.
+
+Le décodeur navigateur libcimbar est encore en version bêta. Utilisez une bonne
+luminosité, maximisez la matrice sur l'écran et conservez le mode QR animé
+standard comme solution de repli. La limite du protocole CIMBAR est d'environ
+33 Mo après compression.
+
+---
+
 ## Partage de messages texte
 
 Les trois méthodes de transfert (Partage, QR, WebRTC) prennent en charge l'envoi de messages texte en plus des fichiers. En entrant dans une vue d'envoi, un bouton **Fichier / Texte** en haut permet de choisir le type de contenu.
@@ -275,7 +290,7 @@ Si QRShare est installée en tant que PWA, vous pouvez partager du texte depuis 
 ## Questions fréquentes
 
 **L'application a-t-elle besoin d'internet ?**
-Non pour le mode QR code (transfert optique). Oui pour le mode WebRTC. Les outils Scanner et Créateur fonctionnent sans internet après le premier chargement.
+Non pour les modes QR code et CIMBAR (transferts optiques). Oui pour le mode WebRTC. Les outils Scanner et Créateur fonctionnent sans internet après le premier chargement.
 
 **Quels navigateurs sont compatibles ?**
 Tout navigateur moderne (Chrome, Firefox, Safari, Edge) sur ordinateur ou mobile.

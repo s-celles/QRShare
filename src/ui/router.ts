@@ -8,6 +8,8 @@ export type Route =
   | "/send"
   | "/send/qr"
   | "/receive/qr"
+  | "/send/cimbar"
+  | "/receive/cimbar"
   | "/send/webrtc"
   | "/receive/webrtc"
   | "/collab"
@@ -25,6 +27,8 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/send",
   "/send/qr",
   "/receive/qr",
+  "/send/cimbar",
+  "/receive/cimbar",
   "/send/webrtc",
   "/receive/webrtc",
   "/collab",

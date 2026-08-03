@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Default animated QR fountain-code frame rate increased from 2 FPS to 10 FPS across all encoding presets
 
+### Added
+
+- Experimental CIMBAR air-gapped transport using the official libcimbar v0.6.7c WASM encoder and beta browser decoder, available as a separate send/receive mode with receiver invitation support
+
 ## [0.3.0] - 2026-08-03
 
 ### Added

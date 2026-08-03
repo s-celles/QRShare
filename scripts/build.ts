@@ -3,7 +3,7 @@
  * Production build script for QRShare.
  * Bundles the app, workers, and service worker into dist/.
  */
-import { copyFileSync, mkdirSync, existsSync } from "fs";
+import { copyFileSync, cpSync, mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { Glob } from "bun";
 
@@ -99,6 +99,9 @@ for (const file of staticFiles) {
     copyFileSync(src, dest);
   }
 }
+
+// libcimbar v0.6.7c web encoder/decoder (MPL-2.0, kept as separate files).
+cpSync(join(ROOT, "vendor/libcimbar"), join(DIST, "cimbar"), { recursive: true });
 
 // 6. Copy WASM files from node_modules
 const wasmGlob = new Glob("**/*.wasm");

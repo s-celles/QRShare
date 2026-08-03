@@ -16,7 +16,7 @@ describe("URL send policy", () => {
   });
 
   it("never exposes network modes under the airgap policy", () => {
-    expect(allowedSendModes("airgap")).toEqual(["static-qr", "animated-qr"]);
+    expect(allowedSendModes("airgap")).toEqual(["static-qr", "animated-qr", "cimbar"]);
     expect(recommendSendMode("x".repeat(STATIC_QR_MAX_BYTES + 1), "airgap"))
       .toBe("animated-qr");
   });
@@ -42,6 +42,8 @@ describe("URL send policy", () => {
       .toBe("https://example.test/app/#/receive/qr?policy=airgap");
     expect(buildReceiverUrl("https://example.test/app/", "webrtc", "any"))
       .toBe("https://example.test/app/#/receive/webrtc?policy=any");
+    expect(buildReceiverUrl("https://example.test/app/", "cimbar", "airgap"))
+      .toBe("https://example.test/app/#/receive/cimbar?policy=airgap");
   });
 
   it("does not recommend static QR for files", () => {

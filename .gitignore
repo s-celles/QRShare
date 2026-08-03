@@ -47,6 +47,10 @@
 !scripts/
 !scripts/**
 
+# Vendored browser runtimes and their license notices
+!vendor/
+!vendor/**
+
 # CI/CD
 !.github/
 !.github/**

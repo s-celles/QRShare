@@ -985,6 +985,14 @@ section > button:hover {
   user-select: all;
 }
 
+.cimbar-frame {
+  width: 100%;
+  height: min(78vh, 900px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
 /* Share Actions */
 .share-actions {
   display: flex;

@@ -1,7 +1,7 @@
 import { getByteCapacity } from "@/qr/renderer";
 
 export type SendPolicy = "airgap" | "prefer-airgap" | "any";
-export type SendMode = "static-qr" | "animated-qr" | "webrtc" | "share";
+export type SendMode = "static-qr" | "animated-qr" | "cimbar" | "webrtc" | "share";
 
 export const STATIC_QR_MAX_BYTES = getByteCapacity(40, "M");
 
@@ -17,8 +17,8 @@ export function payloadSize(text: string): number {
 }
 
 export function allowedSendModes(policy: SendPolicy): SendMode[] {
-  if (policy === "airgap") return ["static-qr", "animated-qr"];
-  return ["static-qr", "animated-qr", "webrtc", "share"];
+  if (policy === "airgap") return ["static-qr", "animated-qr", "cimbar"];
+  return ["static-qr", "animated-qr", "cimbar", "webrtc", "share"];
 }
 
 export function recommendSendMode(text: string, policy: SendPolicy): SendMode {
@@ -49,6 +49,8 @@ export function buildReceiverUrl(
   const base = baseUrl.split("#", 1)[0];
   const route = mode === "static-qr"
     ? "/scan"
-    : mode === "animated-qr" ? "/receive/qr" : "/receive/webrtc";
+    : mode === "animated-qr"
+      ? "/receive/qr"
+      : mode === "cimbar" ? "/receive/cimbar" : "/receive/webrtc";
   return `${base}#${route}?policy=${policy}`;
 }

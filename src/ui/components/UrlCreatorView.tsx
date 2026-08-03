@@ -16,6 +16,7 @@ import { t } from "../i18n";
 
 type InvitationMode = Exclude<SendMode, "share">;
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const MAX_CIMBAR_SIZE = 33 * 1024 * 1024;
 
 export function UrlCreatorView() {
   const [contentType, setContentType] = useState<"file" | "text">("file");
@@ -30,11 +31,14 @@ export function UrlCreatorView() {
     : files.reduce((total, file) => total + file.size, 0);
   const hasContent = contentType === "text" ? data.trim().length > 0 : files.length > 0;
   const recommended = recommendSendModeForSize(size, policy, contentType === "text");
+  const cimbarModes: InvitationMode[] = size <= MAX_CIMBAR_SIZE ? ["cimbar"] : [];
   const allowedModes: InvitationMode[] = policy === "airgap"
-    ? (contentType === "text" ? ["static-qr", "animated-qr"] : ["animated-qr"])
+    ? (contentType === "text"
+      ? ["static-qr", "animated-qr", ...cimbarModes]
+      : ["animated-qr", ...cimbarModes])
     : (contentType === "text"
-      ? ["static-qr", "animated-qr", "webrtc"]
-      : ["animated-qr", "webrtc"]);
+      ? ["static-qr", "animated-qr", ...cimbarModes, "webrtc"]
+      : ["animated-qr", ...cimbarModes, "webrtc"]);
 
   useEffect(() => {
     setMode(recommended === "share" ? "animated-qr" : recommended);
@@ -87,7 +91,13 @@ export function UrlCreatorView() {
           filename: makeBundleName(files.length),
         };
       }
-      navigate(mode === "static-qr" ? "/create" : mode === "animated-qr" ? "/send/qr" : "/send/webrtc");
+      navigate(
+        mode === "static-qr"
+          ? "/create"
+          : mode === "animated-qr"
+            ? "/send/qr"
+            : mode === "cimbar" ? "/send/cimbar" : "/send/webrtc",
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }

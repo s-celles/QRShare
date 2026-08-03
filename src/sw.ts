@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_NAME = "qrshare-v3";
+const CACHE_NAME = "qrshare-v4";
 
 const PRECACHE_URLS = [
   "./",
@@ -10,6 +10,17 @@ const PRECACHE_URLS = [
   "./assets/icon.svg",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
+  "./cimbar/index.html",
+  "./cimbar/recv.html",
+  "./cimbar/cimbar_js.2026-07-13T0523.js",
+  "./cimbar/cimbar_js.2026-07-13T0523.wasm",
+  "./cimbar/main.2026-07-13T0523.js",
+  "./cimbar/send.2026-07-13T0523.js",
+  "./cimbar/send-worker.2026-07-13T0523.js",
+  "./cimbar/recv.2026-07-13T0523.js",
+  "./cimbar/recv-worker.2026-07-13T0523.js",
+  "./cimbar/zstd.2026-07-13T0523.js",
+  "./cimbar/LICENSE",
 ];
 
 // Hashed filenames (e.g. main.abc123.js, styles.xyz789.css) are immutable

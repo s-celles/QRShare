@@ -10,6 +10,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 - **QR Code Creator** -- Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
 - **Native Share** -- Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
+- **CIMBAR Transfer (Experimental)** -- High-speed air-gapped color-barcode transfer using libcimbar WASM. The browser decoder is beta, so standard animated QR remains the compatibility fallback.
 - **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
 - **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
 - **Internationalization** -- Full EN/FR interface with auto-detection from browser language and manual selection in Settings.
@@ -18,7 +19,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 - **Web Share Integration** -- Share received files, created QR codes, and scanned content directly to other apps using the Web Share API.
 - **Dark/Light Theme** -- Automatic theme detection with manual override.
 - **SHA-256 Verification** -- End-to-end integrity verification of transferred files.
-- **Single-File Distribution** -- Package the entire app into a single self-contained HTML file.
+- **Single-File Distribution** -- Package the core app into a single self-contained HTML file. The experimental CIMBAR runtime remains a separate WASM asset and is available in the standard PWA build.
 
 ## Quick Start
 
@@ -72,6 +73,16 @@ bun run package
 4. File is transferred over a WebRTC DataChannel with automatic chunking
 5. SHA-256 verification confirms file integrity
 
+### CIMBAR Mode (Experimental, Air-Gapped)
+
+1. The sender selects a file or prepares one in QRShare
+2. libcimbar compresses and fountain-encodes it into animated color barcodes
+3. The receiver scans the animation with the beta browser decoder
+4. The reconstructed file is downloaded by the receiver
+
+The bundled runtime is libcimbar v0.6.7c under MPL-2.0. Files are limited to
+approximately 33 MB after compression by the upstream protocol.
+
 ## Architecture
 
 - **Preact + Signals** -- Lightweight reactive UI framework
@@ -80,6 +91,7 @@ bun run package
 - **Compression** -- fflate (deflate) with automatic incompressible data detection
 - **QR Generation** -- lean-qr in byte mode with three quality presets
 - **QR Scanning** -- @undecaf/zbar-wasm for real-time decoding
+- **Experimental color barcode** -- libcimbar v0.6.7c WASM encoder and beta web decoder
 - **WebRTC** -- Trystero (Nostr relays) for decentralized signaling, binary transfer over DataChannel
 - **i18n** -- Custom lightweight translation system with signal-based locale, flat key-value dictionaries, parameterized strings, auto-detection + localStorage persistence
 - **Mermaid** -- Dynamic CDN loading for diagram rendering in the user guide (theme-aware)
@@ -88,9 +100,9 @@ bun run package
 
 | Preset | QR Version | ECC Level | Max Payload | Default FPS |
 |--------|-----------|-----------|-------------|-------------|
-| High Speed | 25 | L | 1,273 bytes | 15 |
-| Balanced | 20 | M | 666 bytes | 12 |
-| High Reliability | 15 | Q | 292 bytes | 8 |
+| High Speed | 25 | L | 1,273 bytes | 10 |
+| Balanced | 20 | M | 666 bytes | 10 |
+| High Reliability | 15 | Q | 292 bytes | 10 |
 
 ## Technology Stack
 
@@ -99,6 +111,7 @@ bun run package
 - **QR Generation**: [lean-qr](https://github.com/nicktomlin/lean-qr)
 - **QR Scanning**: [@undecaf/zbar-wasm](https://github.com/niclas-nickleby/zbar-wasm)
 - **Fountain Codes**: [wirehair-wasm](https://github.com/nicktomlin/wirehair-wasm) + pure-JS LT fallback
+- **Experimental CIMBAR**: [libcimbar](https://github.com/sz3/libcimbar) v0.6.7c (MPL-2.0)
 - **Compression**: [fflate](https://github.com/101arrowz/fflate)
 - **WebRTC**: [Trystero](https://github.com/dmotz/trystero) (Nostr strategy)
 - **Language**: TypeScript (strict mode)

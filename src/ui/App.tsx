@@ -17,6 +17,7 @@ import { About } from "./components/About";
 import { WebShareSenderView } from "./components/WebShareSenderView";
 import { SendChooserView } from "./components/SendChooserView";
 import { UrlCreatorView } from "./components/UrlCreatorView";
+import { CimbarView } from "./components/CimbarView";
 
 function RouteView() {
   const route = currentRoute.value;
@@ -35,6 +36,10 @@ function RouteView() {
       return <SenderView />;
     case "/receive/qr":
       return <ReceiverView />;
+    case "/send/cimbar":
+      return <CimbarView direction="send" />;
+    case "/receive/cimbar":
+      return <CimbarView direction="receive" />;
     case "/send/webrtc":
       return <WebRTCSenderView />;
     case "/receive/webrtc":

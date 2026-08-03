@@ -114,6 +114,7 @@ export const ar: Record<string, string> = {
   "scanner.scannedContent": "المحتوى الممسوح",
   "scanner.copyToClipboard": "نسخ إلى الحافظة",
   "scanner.copied": "تم النسخ!",
+  "scanner.openInQRShare": "فتح في QRShare",
 
   // Creator
   "creator.section": "منشئ QR",

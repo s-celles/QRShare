@@ -25,6 +25,18 @@ function isHttpUrl(text: string): boolean {
   }
 }
 
+function qrShareUrl(text: string): URL | null {
+  try {
+    const url = new URL(text);
+    const currentPath = window.location.pathname.replace(/\/$/, "");
+    const scannedPath = url.pathname.replace(/\/$/, "");
+    if ((url.protocol !== "http:" && url.protocol !== "https:") || url.origin !== window.location.origin || scannedPath !== currentPath) return null;
+    return url.hash.startsWith("#/") ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ScannerView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -170,6 +182,11 @@ export function ScannerView() {
     } catch {
       // Share cancelled or unsupported
     }
+  }, []);
+
+  const openInQRShare = useCallback(() => {
+    const url = scannedText.value && qrShareUrl(scannedText.value);
+    if (url) window.location.hash = url.hash;
   }, []);
 
   const textToBuffer = useCallback(
@@ -319,9 +336,14 @@ export function ScannerView() {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="result-link"
-              >
-                {scannedText.value}
-              </a>
+                >
+                  {scannedText.value}
+                </a>
+                {qrShareUrl(scannedText.value) && (
+                  <button class="start-btn share-action" onClick={openInQRShare}>
+                    {t("scanner.openInQRShare")}
+                  </button>
+                )}
             </div>
           ) : (
             <div class="result-content">

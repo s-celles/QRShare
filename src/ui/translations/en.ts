@@ -176,6 +176,7 @@ export const en: Record<string, string> = {
   "scanner.scannedContent": "Scanned Content",
   "scanner.copyToClipboard": "Copy to Clipboard",
   "scanner.copied": "Copied!",
+  "scanner.openInQRShare": "Open in QRShare",
 
   // Creator
   "creator.section": "QR Creator",

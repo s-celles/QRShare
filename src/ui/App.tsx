@@ -9,6 +9,7 @@ import { WebRTCSenderView } from "./components/WebRTCSenderView";
 import { WebRTCReceiverView } from "./components/WebRTCReceiverView";
 import { CollabEditorView } from "./components/CollabEditorView";
 import { ScannerView } from "./components/ScannerView";
+import { UniversalScannerView } from "./components/UniversalScannerView";
 import { CreatorView } from "./components/CreatorView";
 import { GuideView } from "./components/GuideView";
 import { Settings } from "./components/Settings";
@@ -26,6 +27,8 @@ function RouteView() {
       return <Landing />;
     case "/scan":
       return <ScannerView />;
+    case "/scan/auto":
+      return <UniversalScannerView />;
     case "/create":
       return <CreatorView />;
     case "/create/url":

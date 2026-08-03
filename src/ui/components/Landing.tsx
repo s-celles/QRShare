@@ -4,6 +4,20 @@ import { t } from "../i18n";
 export function Landing() {
   return (
     <section class="landing" aria-label={t("landing.home")}>
+      <h2>{t("landing.primaryActions")}</h2>
+      <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
+        <button class="mode-btn mode-btn--full" onClick={() => navigate("/scan/auto")} aria-label={t("landing.universalScanAria")}>
+          <span class="mode-icon" aria-hidden="true">⌕</span>
+          <span class="mode-label">{t("landing.universalScanTitle")}</span>
+          <span class="mode-desc">{t("landing.universalScanDesc")}</span>
+        </button>
+        <button class="mode-btn mode-btn--full" onClick={() => navigate("/create/url")} aria-label={t("landing.createUrlAria")}>
+          <span class="mode-icon" aria-hidden="true">🔗</span>
+          <span class="mode-label">{t("landing.createUrlTitle")}</span>
+          <span class="mode-desc">{t("landing.createUrlDesc")}</span>
+        </button>
+      </div>
+
       <h2>{t("landing.qrUtilities")}</h2>
       <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
         <button
@@ -30,15 +44,6 @@ export function Landing() {
           <span class="mode-desc">{t("landing.createDesc")}</span>
         </button>
 
-        <button
-          class="mode-btn mode-btn--full"
-          onClick={() => navigate("/create/url")}
-          aria-label={t("landing.createUrlAria")}
-        >
-          <span class="mode-icon" aria-hidden="true">🔗</span>
-          <span class="mode-label">{t("landing.createUrlTitle")}</span>
-          <span class="mode-desc">{t("landing.createUrlDesc")}</span>
-        </button>
       </div>
 
       <div class="section-divider" />

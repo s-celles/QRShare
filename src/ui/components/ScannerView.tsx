@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect } from "preact/hooks";
-import { navigate } from "../router";
+import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
 import { pendingFile } from "../shared-file";
 import { t } from "../i18n";
@@ -207,6 +207,10 @@ export function ScannerView() {
   }, [stopScanning]);
 
   useEffect(() => cleanup, [cleanup]);
+
+  useEffect(() => {
+    if (hashParams.value.get("autostart") === "1") void startCamera();
+  }, [startCamera]);
 
   return (
     <section aria-label={t("scanner.section")}>

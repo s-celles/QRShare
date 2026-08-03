@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
-import { navigate } from "../router";
+import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
@@ -182,6 +182,10 @@ export function ReceiverView() {
       cameraError.value = t("common.cameraAccessDenied");
     }
   }, []);
+
+  useEffect(() => {
+    if (hashParams.value.get("autostart") === "1") void startScanning();
+  }, [startScanning]);
 
   const captureFrames = useCallback(() => {
     const video = videoRef.current;

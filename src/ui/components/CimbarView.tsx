@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { navigate } from "../router";
+import { navigate, hashParams } from "../router";
 import { pendingFile, pendingText, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { t } from "../i18n";
 import { ShareService } from "@/share/service";
@@ -253,6 +253,10 @@ function CimbarReceiver() {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
   };
+
+  useEffect(() => {
+    if (hashParams.value.get("autostart") === "1" && ready && !scanning) void startCamera();
+  }, [ready]);
 
   return (
     <section aria-label={t("cimbar.receiveSection")}>

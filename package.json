@@ -1,6 +1,6 @@
 {
   "name": "qrshare",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
   "type": "module",
   "license": "AGPL-3.0-or-later",

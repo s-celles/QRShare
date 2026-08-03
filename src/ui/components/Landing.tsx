@@ -29,6 +29,16 @@ export function Landing() {
           <span class="mode-label">{t("landing.createTitle")}</span>
           <span class="mode-desc">{t("landing.createDesc")}</span>
         </button>
+
+        <button
+          class="mode-btn mode-btn--full"
+          onClick={() => navigate("/create/url")}
+          aria-label={t("landing.createUrlAria")}
+        >
+          <span class="mode-icon" aria-hidden="true">🔗</span>
+          <span class="mode-label">{t("landing.createUrlTitle")}</span>
+          <span class="mode-desc">{t("landing.createUrlDesc")}</span>
+        </button>
       </div>
 
       <div class="section-divider" />

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-03
+
+### Added
+
+- A **Prepare a transfer** workflow lets the sender select text or one or more files, choose an air-gapped preference or constraint, and show the receiver a bootstrap QR code that opens QRShare directly in the matching receive view before the payload transfer begins
+- URL-driven text transfer selection via `#/send?data=...&policy=...`, with static QR, animated QR, WebRTC, and system-share choices filtered and recommended according to the transfer policy
+- Air-gapped transfer policies are enforced as constraints: WebRTC and system sharing are unavailable when `policy=airgap`, regardless of payload size
+- Multiple files selected during transfer preparation are bundled using the existing QRShare ZIP format before sending
+
 ### Fixed
 
 - **The collaborative editor's text area was far too narrow.** The `.collab-editor` textarea had no CSS rule, so it fell back to the browser's default width instead of filling the view. It now spans the full width, and the `/collab` view widens beyond the 960px app shell toward the viewport to give editing more room

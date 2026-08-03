@@ -8,7 +8,7 @@ import {
   type CorrectionLabel,
 } from "@/qr/renderer";
 import { ShareService } from "@/share/service";
-import { pendingFile } from "../shared-file";
+import { pendingFile, pendingText } from "../shared-file";
 import { t } from "../i18n";
 
 const shareService = new ShareService();
@@ -58,6 +58,14 @@ const qrDataUrl = computed(() => {
 });
 
 export function CreatorView() {
+  useEffect(() => {
+    const text = pendingText.value;
+    if (text) {
+      pendingText.value = null;
+      inputText.value = text;
+    }
+  }, []);
+
   const handleTextInput = useCallback((e: Event) => {
     inputText.value = (e.target as HTMLTextAreaElement).value;
   }, []);

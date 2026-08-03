@@ -15,6 +15,8 @@ import { Settings } from "./components/Settings";
 import { WebRTCSettings } from "./components/WebRTCSettings";
 import { About } from "./components/About";
 import { WebShareSenderView } from "./components/WebShareSenderView";
+import { SendChooserView } from "./components/SendChooserView";
+import { UrlCreatorView } from "./components/UrlCreatorView";
 
 function RouteView() {
   const route = currentRoute.value;
@@ -25,6 +27,10 @@ function RouteView() {
       return <ScannerView />;
     case "/create":
       return <CreatorView />;
+    case "/create/url":
+      return <UrlCreatorView />;
+    case "/send":
+      return <SendChooserView />;
     case "/send/qr":
       return <SenderView />;
     case "/receive/qr":

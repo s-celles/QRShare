@@ -4,6 +4,8 @@ export type Route =
   | "/"
   | "/scan"
   | "/create"
+  | "/create/url"
+  | "/send"
   | "/send/qr"
   | "/receive/qr"
   | "/send/webrtc"
@@ -19,6 +21,8 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/",
   "/scan",
   "/create",
+  "/create/url",
+  "/send",
   "/send/qr",
   "/receive/qr",
   "/send/webrtc",

@@ -7,6 +7,11 @@ import { t } from "../i18n";
 export function NearbyDevices() {
   const [peers, setPeers] = useState<DiscoveredPeer[]>([]);
   const [currentMode, setCurrentMode] = useState<LocalDiscoveryMode>(localDiscovery.mode.value);
+  const [offerState, setOfferState] = useState<{
+    peerId: string;
+    peerName: string;
+    status: "pending" | "declined";
+  } | null>(null);
 
   useEffect(() => {
     if (currentMode !== "off") {
@@ -44,18 +49,28 @@ export function NearbyDevices() {
       if (!input.files || input.files.length === 0) return;
       const file = input.files[0];
       const buffer = await file.arrayBuffer();
-      pendingFile.value = {
-        buffer,
-        filename: file.name,
-      };
+
+      setOfferState({ peerId: peer.id, peerName: peer.name, status: "pending" });
+
       const transferRoomId = Math.random().toString(36).substring(2, 10);
-      void localDiscovery.sendOffer(peer.id, {
+      const accepted = await localDiscovery.sendOffer(peer.id, {
         transferId: transferRoomId,
         filename: file.name,
         size: file.size,
         isText: false,
       });
-      navigate(`/send/webrtc?room=${transferRoomId}`);
+
+      if (accepted) {
+        pendingFile.value = {
+          buffer,
+          filename: file.name,
+        };
+        setOfferState(null);
+        navigate(`/send/webrtc?room=${transferRoomId}`);
+      } else {
+        setOfferState({ peerId: peer.id, peerName: peer.name, status: "declined" });
+        setTimeout(() => setOfferState(null), 4000);
+      }
     };
     input.click();
   };
@@ -89,6 +104,14 @@ export function NearbyDevices() {
         </div>
       </div>
 
+      {offerState && (
+        <div class={`offer-status-banner ${offerState.status}`} style={{ margin: "0.5rem 0", padding: "0.5rem 0.75rem", borderRadius: "6px", background: offerState.status === "pending" ? "#fef3c7" : "#fee2e2", color: offerState.status === "pending" ? "#92400e" : "#991b1b" }}>
+          {offerState.status === "pending"
+            ? `⏳ ${t("discovery.waitingAcceptance", { name: offerState.peerName })}`
+            : `❌ ${t("discovery.offerDeclined", { name: offerState.peerName })}`}
+        </div>
+      )}
+
       {peers.length === 0 ? (
         <p class="settings-hint">{t("discovery.scanning")}</p>
       ) : (
@@ -107,6 +130,7 @@ export function NearbyDevices() {
               <button
                 class="start-btn share-action peer-send-btn"
                 onClick={() => handleSendToPeer(peer)}
+                disabled={offerState?.status === "pending"}
               >
                 {t("discovery.sendDirect")}
               </button>

@@ -189,6 +189,8 @@ export const fr: Record<string, string> = {
   "discovery.modeActive": "Visible & Actif (Voir et être visible sur le Wi-Fi local)",
   "discovery.modePassiveShort": "Discret",
   "discovery.modeActiveShort": "Visible",
+  "discovery.waitingAcceptance": "En attente de la confirmation de {name}…",
+  "discovery.offerDeclined": "Demande de transfert refusée par {name}",
 
   // Scanner
   "scanner.section": "Scanneur QR",

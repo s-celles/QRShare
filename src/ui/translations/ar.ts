@@ -110,6 +110,8 @@ export const ar: Record<string, string> = {
   "discovery.modeActive": "مرئي ونشط (الظهور على الشبكة المحلية)",
   "discovery.modePassiveShort": "غير ظاهر",
   "discovery.modeActiveShort": "مرئي",
+  "discovery.waitingAcceptance": "في انتظار موافقة {name}…",
+  "discovery.offerDeclined": "تم رفض طلب النقل من قبل {name}",
   "cimbar.file": "الملف:",
   "cimbar.mode": "وضع الموثوقية:",
   "cimbar.fps": "معدل الإطارات: {fps}",

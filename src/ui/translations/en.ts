@@ -538,4 +538,6 @@ export const en: Record<string, string> = {
   "discovery.modeActive": "Visible & Active (Discover and broadcast presence on Wi-Fi)",
   "discovery.modePassiveShort": "Discrete",
   "discovery.modeActiveShort": "Visible",
+  "discovery.waitingAcceptance": "Waiting for {name} to accept…",
+  "discovery.offerDeclined": "Transfer request declined by {name}",
 };

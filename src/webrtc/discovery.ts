@@ -316,7 +316,7 @@ export class LocalDiscoveryService {
           const payloadString = `${msg.offer.transferId}:${msg.offer.filename}:${msg.offer.size}`;
           verified = await verifySignature(msg.offer.publicKeyJwk, payloadString, msg.offer.signature);
         }
-        const newOffer = { ...msg.offer, verified };
+        const newOffer = { ...msg.offer, senderId: peerId, verified };
         this.activeOffers.value = [...this.activeOffers.value, newOffer];
       })();
     } else if (msg.type === "transfer-response") {

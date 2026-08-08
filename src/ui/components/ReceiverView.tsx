@@ -144,13 +144,14 @@ export function ReceiverView() {
       const now = Date.now();
       const timeDiff = (now - lastTime) / 1000;
       if (timeDiff >= 0.5) {
-        const symbolDiff = uniqueSymbols.value - lastSymbols;
-        const bytesPerSymbol = receivedFileSize.value / neededSymbols.value;
-        const instSpeed = (symbolDiff * bytesPerSymbol) / timeDiff;
+        // Use scannedFrames instead of uniqueSymbols for a smooth speed reflecting optical transfer rate
+        const frameDiff = scannedFrames.value - lastSymbols;
+        const bytesPerFrame = receivedFileSize.value / neededSymbols.value;
+        const instSpeed = (frameDiff * bytesPerFrame) / timeDiff;
         instantSpeedBytesPerSec.value = instSpeed;
         speedHistory.value = [...speedHistory.value.slice(-60), instSpeed]; // Keep last 30s
         lastTime = now;
-        lastSymbols = uniqueSymbols.value;
+        lastSymbols = scannedFrames.value;
       }
     }, 500);
 
@@ -306,7 +307,7 @@ export function ReceiverView() {
     : 0;
   const bytesReceived =
     neededSymbols.value > 0
-      ? (uniqueSymbols.value / neededSymbols.value) * receivedFileSize.value
+      ? Math.min(1, scannedFrames.value / neededSymbols.value) * receivedFileSize.value
       : 0;
   const speedBytesPerSec = elapsedSec > 0 ? bytesReceived / elapsedSec : 0;
 

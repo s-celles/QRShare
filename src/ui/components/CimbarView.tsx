@@ -6,6 +6,7 @@ import { ShareService } from "@/share/service";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
 import { FilePreview } from "./FilePreview";
+import { SpeedGraph } from "./SpeedGraph";
 
 type CimbarMode = 68 | 67 | 66;
 
@@ -164,6 +165,11 @@ function CimbarReceiver() {
     verified: boolean | null;
   } | null>(null);
 
+  const instantSpeedRef = useRef(0);
+  const speedHistory = useRef<number[]>([]);
+  const lastStatsRef = useRef<CimbarReceiveStats>(emptyReceiveStats);
+  const lastTimeRef = useRef(Date.now());
+
   useEffect(() => {
     const worker = new Worker(workerUrl("cimbar-receive-worker.js"));
     workerRef.current = worker;
@@ -175,6 +181,19 @@ function CimbarReceiver() {
       else if (message.type === "stats") {
         setDetected(message.detectedFrames > 0);
         setProgress(message.progress * 100);
+        
+        // Calculate instant speed based on received bytes (which uses maxProgress)
+        const now = Date.now();
+        const timeDiff = (now - lastTimeRef.current) / 1000;
+        if (timeDiff >= 0.5) {
+          const bytesDiff = message.receivedBytes - lastStatsRef.current.receivedBytes;
+          const instSpeed = bytesDiff > 0 ? bytesDiff / timeDiff : 0;
+          instantSpeedRef.current = instSpeed;
+          speedHistory.current = [...speedHistory.current.slice(-60), instSpeed];
+          lastTimeRef.current = now;
+          lastStatsRef.current = message;
+        }
+        
         setStats(message);
       } else if (message.type === "complete") {
         const isText = message.filename === TEXT_FILENAME;
@@ -237,6 +256,10 @@ function CimbarReceiver() {
       setProgress(0);
       setStats(emptyReceiveStats);
       setDetected(false);
+      speedHistory.current = [];
+      instantSpeedRef.current = 0;
+      lastTimeRef.current = Date.now();
+      lastStatsRef.current = emptyReceiveStats;
       workerRef.current?.postMessage({ type: "reset" });
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -288,12 +311,16 @@ function CimbarReceiver() {
             <div class="progress-bar" style={{ width: `${progress}%` }} />
           </div>
           <div class="transfer-stats" aria-live="polite">
-            <div class="stat"><span class="stat-label">{t("cimbar.progress")}</span><span class="stat-value">{progress.toFixed(1)}%</span></div>
-            <div class="stat"><span class="stat-label">{t("cimbar.receivedSize")}</span><span class="stat-value">{stats.expectedSize > 0 ? `${formatBytes(stats.receivedBytes)} / ${formatBytes(stats.expectedSize)}` : t("cimbar.waitingMetadata")}</span></div>
-            <div class="stat"><span class="stat-label">{t("cimbar.speed")}</span><span class="stat-value">{formatBytes(stats.speedBytesPerSec)}/s</span></div>
-            <div class="stat"><span class="stat-label">{t("cimbar.elapsed")}</span><span class="stat-value">{(stats.elapsedMs / 1000).toFixed(1)} s</span></div>
-            <div class="stat"><span class="stat-label">{t("cimbar.detectedFrames")}</span><span class="stat-value">{stats.detectedFrames} / {stats.scannedFrames} ({Math.round(stats.detectionRate * 100)}%)</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.progress") || "Progress"}</span><span class="stat-value">{progress.toFixed(1)}%</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.receivedSize") || "Downloaded"}</span><span class="stat-value">{stats.expectedSize > 0 ? `${formatBytes(stats.receivedBytes)} / ${formatBytes(stats.expectedSize)}` : t("cimbar.waitingMetadata")}</span></div>
+            <div class="stat"><span class="stat-label">{t("receiver.speed") || "Avg Speed"}</span><span class="stat-value">{formatBytes(stats.speedBytesPerSec)}/s</span></div>
+            <div class="stat"><span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span><span class="stat-value">{formatBytes(instantSpeedRef.current)}/s</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.elapsed") || "Elapsed"}</span><span class="stat-value">{(stats.elapsedMs / 1000).toFixed(1)} s</span></div>
+            <div class="stat"><span class="stat-label">{t("cimbar.detectedFrames") || "Detected"}</span><span class="stat-value">{stats.detectedFrames} / {stats.scannedFrames} ({Math.round(stats.detectionRate * 100)}%)</span></div>
           </div>
+          {speedHistory.current.length > 0 && (
+            <SpeedGraph history={speedHistory.current} maxSpeed={Math.max(stats.speedBytesPerSec * 2, 1024)} />
+          )}
           <p class="settings-hint">{t("cimbar.estimatedStats")}</p>
         </>
       )}

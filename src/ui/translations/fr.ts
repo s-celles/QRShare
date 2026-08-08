@@ -167,6 +167,23 @@ export const fr: Record<string, string> = {
   "cimbar.complete": "{filename} re\u00e7u",
   "cimbar.offscreenUnsupported": "Ce navigateur ne prend pas en charge OffscreenCanvas, requis par l\u2019encodeur CIMBAR exp\u00e9rimental.",
 
+  // Local Discovery
+  "discovery.title": "Appareils à proximité (Réseau local)",
+  "discovery.scanning": "Recherche d'appareils à proximité sur le Wi-Fi…",
+  "discovery.noPeers": "Aucun appareil trouvé sur le réseau local.",
+  "discovery.sendDirect": "Envoyer",
+  "discovery.enable": "Activer la découverte sur le réseau local",
+  "discovery.deviceName": "Nom de l'appareil",
+  "discovery.offerTitle": "Demande de transfert direct entrant",
+  "discovery.offerHint": "{name} souhaite vous envoyer {filename} ({size})",
+  "discovery.accept": "Accepter",
+  "discovery.decline": "Refuser",
+  "discovery.visibility": "Visibilité réseau",
+  "discovery.visible": "Visible",
+  "discovery.hidden": "Masqué (Privé)",
+  "discovery.privacyNotice": "Découverte locale désactivée. Votre appareil est masqué sur le réseau.",
+  "discovery.enableVisibility": "Se rendre visible sur le réseau local",
+
   // Scanner
   "scanner.section": "Scanneur QR",
   "scanner.heading": "Scanner un QR code",

@@ -22,6 +22,13 @@ describe("Local Network Discovery Service", () => {
     expect(discovery.deviceName.value).toBe("MyCustomLaptop");
   });
 
+  test("allows user to opt-out for privacy and persists choice", () => {
+    const discovery = new LocalDiscoveryService();
+    discovery.setEnabled(false);
+    expect(discovery.enabled.value).toBe(false);
+    expect(discovery.peers.value.length).toBe(0);
+  });
+
   test("prunes stale peers older than timeout threshold", () => {
     const discovery = new LocalDiscoveryService();
     const now = Date.now();

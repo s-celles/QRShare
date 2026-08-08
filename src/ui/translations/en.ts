@@ -527,4 +527,9 @@ export const en: Record<string, string> = {
   "discovery.offerHint": "{name} wants to send you {filename} ({size})",
   "discovery.accept": "Accept",
   "discovery.decline": "Decline",
+  "discovery.visibility": "Network Visibility",
+  "discovery.visible": "Visible",
+  "discovery.hidden": "Hidden (Private)",
+  "discovery.privacyNotice": "Local discovery is disabled. Your device is hidden on the network.",
+  "discovery.enableVisibility": "Make Visible on Local Network",
 };

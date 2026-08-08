@@ -6,19 +6,31 @@ import { t } from "../i18n";
 
 export function NearbyDevices() {
   const [peers, setPeers] = useState<DiscoveredPeer[]>([]);
+  const [isEnabled, setIsEnabled] = useState(localDiscovery.enabled.value);
 
   useEffect(() => {
-    localDiscovery.start();
-    const update = () => setPeers([...localDiscovery.peers.value]);
+    if (isEnabled) {
+      localDiscovery.start();
+    } else {
+      localDiscovery.stop();
+    }
+    const update = () => {
+      setIsEnabled(localDiscovery.enabled.value);
+      setPeers([...localDiscovery.peers.value]);
+    };
     update();
 
     const timer = setInterval(update, 2000);
     return () => {
       clearInterval(timer);
     };
-  }, []);
+  }, [isEnabled]);
 
-  if (!localDiscovery.enabled.value) return null;
+  const toggleVisibility = () => {
+    const nextState = !localDiscovery.enabled.value;
+    localDiscovery.setEnabled(nextState);
+    setIsEnabled(nextState);
+  };
 
   const handleSendToPeer = (peer: DiscoveredPeer) => {
     const input = document.createElement("input");
@@ -32,7 +44,6 @@ export function NearbyDevices() {
         buffer,
         filename: file.name,
       };
-      // Initiate WebRTC direct transfer room with target peer
       navigate(`/send/webrtc?peer=${peer.id}`);
     };
     input.click();
@@ -40,11 +51,25 @@ export function NearbyDevices() {
 
   return (
     <div class="nearby-devices-card structured-card">
-      <div class="card-header">
+      <div class="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h3 class="nearby-title">🌐 {t("discovery.title")}</h3>
+        <button
+          class="icon-btn-text privacy-toggle-btn"
+          onClick={toggleVisibility}
+          title={isEnabled ? t("discovery.hidden") : t("discovery.visible")}
+        >
+          {isEnabled ? `👁️ ${t("discovery.visible")}` : `🔒 ${t("discovery.hidden")}`}
+        </button>
       </div>
 
-      {peers.length === 0 ? (
+      {!isEnabled ? (
+        <div class="privacy-banner">
+          <p class="settings-hint">{t("discovery.privacyNotice")}</p>
+          <button class="start-btn share-action" onClick={toggleVisibility}>
+            {t("discovery.enableVisibility")}
+          </button>
+        </div>
+      ) : peers.length === 0 ? (
         <p class="settings-hint">{t("discovery.scanning")}</p>
       ) : (
         <div class="peers-list">

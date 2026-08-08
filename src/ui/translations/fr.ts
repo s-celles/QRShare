@@ -509,4 +509,14 @@ export const fr: Record<string, string> = {
   "structured.printTitle": "Accès Wi-Fi",
   "structured.printScanHint": "Scannez avec votre appareil photo pour vous connecter automatiquement.",
   "structured.printButton": "Imprimer",
+
+  // Encryption
+  "encryption.enable": "Chiffrer avec un mot de passe",
+  "encryption.password": "Mot de passe",
+  "encryption.passwordPlaceholder": "Entrez le mot de passe de chiffrement",
+  "encryption.lockedTitle": "Contenu chiffré",
+  "encryption.lockedHint": "Ce contenu est protégé par mot de passe. Entrez le mot de passe pour déverrouiller.",
+  "encryption.decryptButton": "Déchiffrer & Déverrouiller",
+  "encryption.incorrectPassword": "Mot de passe incorrect ou données altérées.",
+  "encryption.encryptedBadge": "Chiffré",
 };

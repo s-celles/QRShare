@@ -1,11 +1,13 @@
 import { signal } from "@preact/signals";
 import { useState } from "preact/hooks";
 import { parseStructuredQR } from "@/qr/structured";
+import { isEncryptedText, decryptText } from "@/crypto/encryption";
 import { renderQRCustomToDataURL } from "@/qr/renderer";
 import { ShareService } from "@/share/service";
 import { WifiResultCard } from "./WifiResultCard";
 import { ContactResultCard } from "./ContactResultCard";
 import { WifiPrintModal } from "./WifiPrintModal";
+import { EncryptedUnlockCard } from "./EncryptedUnlockCard";
 import { t } from "../i18n";
 
 const shareService = new ShareService();
@@ -19,11 +21,20 @@ interface TextResultViewProps {
 export function TextResultView({ text, filename }: TextResultViewProps) {
   const [showRaw, setShowRaw] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [unlockedText, setUnlockedText] = useState<string | null>(null);
 
-  const structured = parseStructuredQR(text);
+  const activeText = unlockedText ?? text;
+  const isEncrypted = isEncryptedText(text) && unlockedText === null;
+
+  const handleUnlock = async (password: string) => {
+    const decrypted = await decryptText(text, password);
+    setUnlockedText(decrypted);
+  };
+
+  const structured = parseStructuredQR(activeText);
 
   const handleCopy = async () => {
-    const result = await shareService.copyToClipboard(text);
+    const result = await shareService.copyToClipboard(activeText);
     if (result.kind === "copied") {
       copyFeedback.value = true;
       setTimeout(() => {
@@ -33,7 +44,7 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
   };
 
   const handleDownload = () => {
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([activeText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -43,12 +54,12 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
   };
 
   const handleShare = async () => {
-    await shareService.shareText(text, filename);
+    await shareService.shareText(activeText, filename);
   };
 
   const wifiQrDataUrl = structured.kind === "wifi" ? (() => {
     try {
-      return renderQRCustomToDataURL(new TextEncoder().encode(text), {
+      return renderQRCustomToDataURL(new TextEncoder().encode(activeText), {
         eccLevel: "M",
         autoVersion: true,
       });
@@ -56,6 +67,15 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
       return null;
     }
   })() : null;
+
+  if (isEncrypted) {
+    return (
+      <div class="text-result-view">
+        <h3>{t("text.receivedMessage")}</h3>
+        <EncryptedUnlockCard onUnlock={handleUnlock} />
+      </div>
+    );
+  }
 
   return (
     <div class="text-result-view">
@@ -74,7 +94,7 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
 
       {(structured.kind === "text" || structured.kind === "url" || showRaw) && (
         <div class="text-result-content" aria-label={t("text.receivedMessage")}>
-          <pre class="text-result-pre">{text}</pre>
+          <pre class="text-result-pre">{activeText}</pre>
         </div>
       )}
 

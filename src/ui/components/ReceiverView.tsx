@@ -4,6 +4,8 @@ import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
+import { isEncryptedPayload, decryptPayload } from "@/crypto/encryption";
+import { EncryptedUnlockCard } from "./EncryptedUnlockCard";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
 import { FilePreview } from "./FilePreview";
@@ -35,6 +37,36 @@ const isTextContent = signal(false);
 const scanStartTime = signal(0);
 const transferDurationSec = signal(0);
 const transferSpeedBytesPerSec = signal(0);
+const rawEncryptedBuffer = signal<ArrayBuffer | null>(null);
+
+function processFilePayload(fileBuffer: ArrayBuffer, name: string, isText: boolean) {
+  if (isText) {
+    try {
+      receivedText.value = new TextDecoder().decode(fileBuffer);
+    } catch {
+      const blob = new Blob([fileBuffer]);
+      downloadUrl.value = URL.createObjectURL(blob);
+    }
+  } else if (isZipBundle(name)) {
+    try {
+      const entries = unbundleFiles(new Uint8Array(fileBuffer));
+      const files: ReceivedFile[] = entries.map((entry) => {
+        const blob = new Blob([entry.data as BlobPart]);
+        return {
+          name: entry.name,
+          size: entry.data.length,
+          url: URL.createObjectURL(blob),
+        };
+      });
+      receivedFiles.value = files;
+    } catch {
+      error.value = t("receiver.extractError");
+    }
+  } else {
+    const blob = new Blob([fileBuffer]);
+    downloadUrl.value = URL.createObjectURL(blob);
+  }
+}
 
 export function ReceiverView() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -66,9 +98,21 @@ export function ReceiverView() {
     }
     receivedFiles.value = [];
     receivedText.value = null;
+    rawEncryptedBuffer.value = null;
     isTextContent.value = false;
     isScanning.value = false;
   }, []);
+
+  const handleUnlockEncryptedFile = async (password: string) => {
+    if (!rawEncryptedBuffer.value) return;
+    const decryptedBytes = await decryptPayload(new Uint8Array(rawEncryptedBuffer.value), password);
+    const decryptedBuffer = decryptedBytes.buffer.slice(
+      decryptedBytes.byteOffset,
+      decryptedBytes.byteOffset + decryptedBytes.byteLength,
+    ) as ArrayBuffer;
+    rawEncryptedBuffer.value = null;
+    processFilePayload(decryptedBuffer, filename.value.replace(/\.enc$/, ""), isTextContent.value);
+  };
 
   useEffect(() => cleanup, [cleanup]);
 
@@ -124,35 +168,10 @@ export function ReceiverView() {
             verified.value = msg.verified;
             isTextContent.value = msg.isText;
 
-            if (msg.isText) {
-              // Text content: decode and display inline
-              try {
-                receivedText.value = new TextDecoder().decode(msg.file);
-              } catch {
-                // Fallback to file download if text decoding fails
-                const blob = new Blob([msg.file]);
-                downloadUrl.value = URL.createObjectURL(blob);
-              }
-            } else if (isZipBundle(msg.filename)) {
-              // Multi-file bundle: extract individual files
-              try {
-                const entries = unbundleFiles(new Uint8Array(msg.file));
-                const files: ReceivedFile[] = entries.map((entry) => {
-                  const blob = new Blob([entry.data as BlobPart]);
-                  return {
-                    name: entry.name,
-                    size: entry.data.length,
-                    url: URL.createObjectURL(blob),
-                  };
-                });
-                receivedFiles.value = files;
-              } catch {
-                error.value = t("receiver.extractError");
-              }
+            if (isEncryptedPayload(new Uint8Array(msg.file))) {
+              rawEncryptedBuffer.value = msg.file;
             } else {
-              // Single file
-              const blob = new Blob([msg.file]);
-              downloadUrl.value = URL.createObjectURL(blob);
+              processFilePayload(msg.file, msg.filename, msg.isText);
             }
 
             // Stop camera
@@ -352,7 +371,9 @@ export function ReceiverView() {
             </p>
           </div>
 
-          {isTextContent.value && receivedText.value != null ? (
+          {rawEncryptedBuffer.value ? (
+            <EncryptedUnlockCard onUnlock={handleUnlockEncryptedFile} />
+          ) : isTextContent.value && receivedText.value != null ? (
             <TextResultView text={receivedText.value} filename={filename.value} />
           ) : receivedFiles.value.length > 0 ? (
             <div class="file-list">

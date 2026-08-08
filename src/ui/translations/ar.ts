@@ -177,6 +177,16 @@ export const ar: Record<string, string> = {
   "structured.printScanHint": "امسح الكود باستخدام الكاميرا للاتصال تلقائيًا.",
   "structured.printButton": "طباعة",
 
+  // Encryption
+  "encryption.enable": "تشفير بكلمة مرور",
+  "encryption.password": "كلمة المرور",
+  "encryption.passwordPlaceholder": "أدخل كلمة مرور التشفير",
+  "encryption.lockedTitle": "محتوى مشفر",
+  "encryption.lockedHint": "هذا المحتوى محمي بكلمة مرور. أدخل كلمة المرور لإلغاء القفل.",
+  "encryption.decryptButton": "فك التشفير وإلغاء القفل",
+  "encryption.incorrectPassword": "كلمة المرور غير صحيحة أو البيانات تالفة.",
+  "encryption.encryptedBadge": "مشفر",
+
   // Sender
   "sender.section": "مرسل QR",
   "sender.heading": "إرسال عبر QR",

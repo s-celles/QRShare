@@ -505,4 +505,14 @@ export const en: Record<string, string> = {
   "structured.printTitle": "Wi-Fi Access",
   "structured.printScanHint": "Scan with your camera to connect automatically.",
   "structured.printButton": "Print",
+
+  // Encryption
+  "encryption.enable": "Encrypt with password",
+  "encryption.password": "Password",
+  "encryption.passwordPlaceholder": "Enter encryption password",
+  "encryption.lockedTitle": "Encrypted Content",
+  "encryption.lockedHint": "This content is password-protected. Enter the password to unlock.",
+  "encryption.decryptButton": "Decrypt & Unlock",
+  "encryption.incorrectPassword": "Incorrect password or corrupted payload.",
+  "encryption.encryptedBadge": "Encrypted",
 };

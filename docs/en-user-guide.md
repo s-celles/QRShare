@@ -87,11 +87,11 @@ Five buttons for transferring files between devices:
 
 If the text is too long for the selected version and error correction level, an error message is displayed.
 
-### Smart Structured Formats (Wi-Fi and Contacts)
+### End-to-End Encryption (E2EE)
 
-QRShare automatically recognizes structured formats when scanning or receiving messages:
-- **Wi-Fi Network** (`WIFI:S:SSID;T:WPA;P:Pass;;`): Displays network SSID, security type, and masked password. Allows 1-click password copy, automatic Wi-Fi connection, or printing a Wi-Fi guest access sign.
-- **Contact Card** (`MECARD:...` or `BEGIN:VCARD`): Displays contact card with avatar, name, company, phone, email, and website. Allows downloading a `.vcf` file to save directly to system contacts, or triggering direct phone calls/emails.
+QRShare allows encrypting any content (text or file) with a password before generating a QR code or performing a transfer:
+- **On Sending**: Check **"Encrypt with password"** and enter your secret password. Content is encrypted locally using **AES-256-GCM** and **PBKDF2-SHA256**.
+- **On Receiving**: When scanned or received, QRShare detects the encryption and displays the **"Encrypted Content"** unlock card. The receiver enters the password to decrypt the message or file.
 
 ---
 

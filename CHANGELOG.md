@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- End-to-End Encryption (E2EE) using **AES-256-GCM** and **PBKDF2-SHA256** (100,000 iterations) via browser-native Web Crypto API, allowing password-protection of static QR codes, animated QR streams, and WebRTC file/text transfers
+- Receiver-side `EncryptedUnlockCard` for automatic password prompt, password reveal toggle, and secure in-browser decryption
 - Native support for structured QR formats: Wi-Fi connection strings (`WIFI:S:...;`) and Contact cards (**MECARD** compact format and **vCard 3.0** standard format)
 - Guided form templates in `CreatorView` for creating Wi-Fi networks and Contact cards with automatic escaping and capacity calculation
 - Smart structured QR parser for `ScannerView` and `TextResultView` rendering interactive result cards (Wi-Fi password reveal, copy password, download `.vcf` contact file, call/email buttons)

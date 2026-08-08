@@ -1808,6 +1808,39 @@ section > button:hover {
   margin-top: 1.25rem;
 }
 
+.encrypted-badge {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.locked-hint {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 1rem;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 2.5rem;
+}
+
+.toggle-pass-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
 @media print {
   body * {
     visibility: hidden;

@@ -87,11 +87,11 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 
 Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
 
-### Formats structurés intelligents (Wi-Fi et Contacts)
+### Chiffrement de bout en bout (E2EE)
 
-QRShare détecte automatiquement les formats structurés lors du scan ou de la réception :
-- **Réseau Wi-Fi** (`WIFI:S:Nom;T:WPA;P:Pass;;`) : Affiche le SSID, la sécurité et le mot de passe masqué. Permet d'afficher/copier le mot de passe en 1 clic, de lancer la connexion Wi-Fi automatique ou d'imprimer la fiche Wi-Fi pour les invités.
-- **Carte de contact** (`MECARD:...` ou `BEGIN:VCARD`) : Affiche la fiche du contact avec avatar, nom, entreprise, téléphone, e-mail et site Web. Permet de télécharger le fichier `.vcf` pour l'ajouter directement aux contacts de votre appareil, ou de lancer directement un appel ou un e-mail.
+QRShare permet de chiffrer n'importe quel contenu (texte ou fichier) avec un mot de passe avant d'émettre un QR code ou d'effectuer un transfert :
+- **À l'envoi** : Cochez **"Chiffrer avec un mot de passe"** et saisissez votre mot de passe secret. Le contenu est chiffré localement avec **AES-256-GCM** et **PBKDF2-SHA256**.
+- **À la réception** : Dès le scan ou la réception du transfert, QRShare détecte le chiffrement et affiche la carte **"Contenu chiffré"**. Le destinataire doit saisir le mot de passe pour déchiffrer le message ou le fichier.
 
 ---
 

@@ -4,6 +4,7 @@ import { navigate } from "../router";
 import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
+import { encryptPayload } from "@/crypto/encryption";
 import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME } from "../shared-file";
 import { hashParams } from "../router";
 import { ContentTypeToggle } from "./ContentTypeToggle";
@@ -14,6 +15,8 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 const contentType = signal<"file" | "text">("file");
 const textInput = signal("");
+const enableEncryption = signal(false);
+const encryptionPassword = signal("");
 const preset = signal<EncodingPreset>("balanced");
 const fps = signal(10);
 const blockSizeValue = signal(250);
@@ -52,50 +55,79 @@ export function SenderView() {
       isEncoding.value = true;
       startTime.value = Date.now();
 
-      const workerUrl = new URL("encode-worker.js", location.href);
-      const worker = new Worker(workerUrl, { type: "module" });
-      workerRef.current = worker;
+      const proceedEncoding = async () => {
+        let finalBuffer = buffer;
+        let finalFilename = filename;
+        let finalIsText = isText;
 
-      worker.onerror = (e) => {
-        error.value = `Worker error: ${e.message || "failed to load"}`;
-        isEncoding.value = false;
-      };
-
-      worker.onmessage = (e: MessageEvent<EncodeWorkerOutput>) => {
-        const msg = e.data;
-        switch (msg.type) {
-          case "metadata":
-            console.log("[sender] Metadata received, blocks:", msg.totalBlocks, "size:", msg.fileSize);
-            totalBlocks.value = msg.totalBlocks;
-            fileSize.value = msg.fileSize;
-            sha256.value = msg.sha256;
-            break;
-          case "frame": {
-            const bytes = new Uint8Array(msg.frameBytes);
-            currentFrame.value = renderQRToDataURL(bytes, preset.value);
-            frameNumber.value = msg.frameNumber;
-            if (msg.frameNumber % 30 === 0) {
-              console.log("[sender] Frame", msg.frameNumber, "symbolId:", msg.symbolId, "size:", bytes.length);
-            }
-            break;
-          }
-          case "error":
-            console.error("[sender] Worker error:", msg.message);
-            error.value = msg.message;
+        if (enableEncryption.value && encryptionPassword.value.trim()) {
+          try {
+            const encryptedBytes = await encryptPayload(
+              new Uint8Array(buffer),
+              encryptionPassword.value,
+            );
+            finalBuffer = encryptedBytes.buffer.slice(
+              encryptedBytes.byteOffset,
+              encryptedBytes.byteOffset + encryptedBytes.byteLength,
+            ) as ArrayBuffer;
+            finalFilename = filename + ".enc";
+            finalIsText = false;
+          } catch (cause) {
+            error.value = cause instanceof Error ? cause.message : String(cause);
             isEncoding.value = false;
-            break;
+            return;
+          }
         }
+
+        const workerUrl = new URL("encode-worker.js", location.href);
+        const worker = new Worker(workerUrl, { type: "module" });
+        workerRef.current = worker;
+
+        worker.onerror = (e) => {
+          error.value = `Worker error: ${e.message || "failed to load"}`;
+          isEncoding.value = false;
+        };
+
+        worker.onmessage = (e: MessageEvent<EncodeWorkerOutput>) => {
+          const msg = e.data;
+          switch (msg.type) {
+            case "metadata":
+              console.log("[sender] Metadata received, blocks:", msg.totalBlocks, "size:", msg.fileSize);
+              totalBlocks.value = msg.totalBlocks;
+              fileSize.value = msg.fileSize;
+              sha256.value = msg.sha256;
+              break;
+            case "frame": {
+              const bytes = new Uint8Array(msg.frameBytes);
+              currentFrame.value = renderQRToDataURL(bytes, preset.value);
+              frameNumber.value = msg.frameNumber;
+              if (msg.frameNumber % 30 === 0) {
+                console.log("[sender] Frame", msg.frameNumber, "symbolId:", msg.symbolId, "size:", bytes.length);
+              }
+              break;
+            }
+            case "error":
+              console.error("[sender] Worker error:", msg.message);
+              error.value = msg.message;
+              isEncoding.value = false;
+              break;
+          }
+        };
+
+        worker.postMessage(
+          {
+            type: "start",
+            file: finalBuffer,
+            filename: finalFilename,
+            isText: finalIsText,
+            preset: preset.value,
+            blockSize: blockSizeValue.value,
+          } satisfies EncodeWorkerInput,
+          [finalBuffer],
+        );
       };
 
-      worker.postMessage({
-        type: "start",
-        file: buffer,
-        filename,
-        preset: preset.value,
-        blockSize: blockSizeValue.value,
-        fps: fps.value,
-        isText,
-      } satisfies EncodeWorkerInput);
+      void proceedEncoding();
     },
     [],
   );
@@ -279,6 +311,37 @@ export function SenderView() {
               </button>
             </>
           )}
+
+          <div class="encryption-section structured-form">
+            <div class="creator-param checkbox-param">
+              <label htmlFor="sender-enable-enc">
+                <input
+                  id="sender-enable-enc"
+                  type="checkbox"
+                  checked={enableEncryption.value}
+                  onChange={(e) => {
+                    enableEncryption.value = (e.target as HTMLInputElement).checked;
+                  }}
+                />{" "}
+                🔐 {t("encryption.enable")}
+              </label>
+            </div>
+            {enableEncryption.value && (
+              <div class="creator-param">
+                <label htmlFor="sender-enc-pass">{t("encryption.password")}</label>
+                <input
+                  id="sender-enc-pass"
+                  type="password"
+                  class="creator-input-field"
+                  value={encryptionPassword.value}
+                  onInput={(e) => {
+                    encryptionPassword.value = (e.target as HTMLInputElement).value;
+                  }}
+                  placeholder={t("encryption.passwordPlaceholder")}
+                />
+              </div>
+            )}
+          </div>
 
           <div class="preset-selector">
             <label htmlFor="preset">{t("sender.encodingPreset")}</label>

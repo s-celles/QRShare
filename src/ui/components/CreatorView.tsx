@@ -13,6 +13,7 @@ import {
   buildVCardString,
   parseStructuredQR,
 } from "@/qr/structured";
+import { encryptText } from "@/crypto/encryption";
 import { ShareService } from "@/share/service";
 import { pendingFile, pendingText } from "../shared-file";
 import { WifiPrintModal } from "./WifiPrintModal";
@@ -30,6 +31,11 @@ const manualVersion = signal(5);
 
 const template = signal<TemplateType>("raw");
 
+// Encryption Signals
+const enableEncryption = signal(false);
+const encryptionPassword = signal("");
+const encryptedPayloadText = signal("");
+
 // Wi-Fi Form Signals
 const wifiSsid = signal("");
 const wifiSecurity = signal<"WPA" | "WEP" | "nopass">("WPA");
@@ -46,7 +52,14 @@ const org = signal("");
 const url = signal("");
 const note = signal("");
 
-const textBytes = computed(() => new TextEncoder().encode(inputText.value));
+const activePayloadText = computed(() => {
+  if (enableEncryption.value && encryptionPassword.value.trim()) {
+    return encryptedPayloadText.value;
+  }
+  return inputText.value;
+});
+
+const textBytes = computed(() => new TextEncoder().encode(activePayloadText.value));
 const byteLength = computed(() => textBytes.value.byteLength);
 
 const effectiveMaxVersion = computed(() => {
@@ -213,12 +226,29 @@ export function CreatorView() {
     navigate("/send/webrtc");
   }, [dataUrlToBlob]);
 
+  useEffect(() => {
+    if (enableEncryption.value && encryptionPassword.value.trim() && inputText.value.trim()) {
+      encryptText(inputText.value, encryptionPassword.value)
+        .then((res) => {
+          encryptedPayloadText.value = res;
+        })
+        .catch(() => {
+          encryptedPayloadText.value = "";
+        });
+    } else {
+      encryptedPayloadText.value = "";
+    }
+  }, [inputText.value, enableEncryption.value, encryptionPassword.value]);
+
   const cleanup = useCallback(() => {
     inputText.value = "";
     eccLevel.value = "M";
     autoVersion.value = true;
     manualVersion.value = 5;
     template.value = "raw";
+    enableEncryption.value = false;
+    encryptionPassword.value = "";
+    encryptedPayloadText.value = "";
     wifiSsid.value = "";
     wifiSecurity.value = "WPA";
     wifiPassword.value = "";
@@ -462,6 +492,37 @@ export function CreatorView() {
             </div>
           </div>
         )}
+
+        <div class="encryption-section structured-form">
+          <div class="creator-param checkbox-param">
+            <label htmlFor="enable-enc">
+              <input
+                id="enable-enc"
+                type="checkbox"
+                checked={enableEncryption.value}
+                onChange={(e) => {
+                  enableEncryption.value = (e.target as HTMLInputElement).checked;
+                }}
+              />{" "}
+              🔐 {t("encryption.enable")}
+            </label>
+          </div>
+          {enableEncryption.value && (
+            <div class="creator-param">
+              <label htmlFor="enc-pass">{t("encryption.password")}</label>
+              <input
+                id="enc-pass"
+                type="password"
+                class="creator-input-field"
+                value={encryptionPassword.value}
+                onInput={(e) => {
+                  encryptionPassword.value = (e.target as HTMLInputElement).value;
+                }}
+                placeholder={t("encryption.passwordPlaceholder")}
+              />
+            </div>
+          )}
+        </div>
 
         <div class="creator-params">
           <div class="creator-param">

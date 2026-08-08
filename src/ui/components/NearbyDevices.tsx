@@ -124,7 +124,12 @@ export function NearbyDevices() {
                 </span>
                 <div class="peer-details">
                   <strong class="peer-name">{peer.name}</strong>
-                  <span class="peer-status-badge">🟢 Online</span>
+                  <div class="peer-meta" style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "2px" }}>
+                    <span class="peer-status-badge" style={{ fontSize: "0.75rem", color: "#10b981" }}>🟢 Online</span>
+                    {peer.fingerprint && (
+                      <span class="peer-fingerprint" style={{ fontSize: "0.75rem", color: "#6b7280", background: "#f3f4f6", padding: "1px 4px", borderRadius: "4px" }} title="Verified Identity Key">🛡️ {peer.fingerprint}</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button

@@ -3,6 +3,7 @@ import type { Room } from "trystero";
 import { buildRoomConfig, ensureMqttDefaults } from "./settings";
 import { getAdapter, type StrategyAdapter } from "./strategies";
 import { buildJoinConfig } from "./service";
+import { getLocalIdentity, signMessage, verifySignature, type StoredIdentity } from "../crypto/identity";
 
 export type DeviceType = "desktop" | "mobile" | "tablet";
 export type LocalDiscoveryMode = "off" | "passive" | "active";
@@ -13,6 +14,8 @@ export interface DiscoveredPeer {
   name: string;
   deviceType: DeviceType;
   lastSeen: number;
+  fingerprint?: string;
+  publicKeyJwk?: JsonWebKey;
 }
 
 export interface TransferOffer {
@@ -25,11 +28,15 @@ export interface TransferOffer {
   isText: boolean;
   sha256?: string;
   isEncrypted?: boolean;
+  signature?: string;
+  publicKeyJwk?: JsonWebKey;
+  fingerprint?: string;
+  verified?: boolean;
 }
 
 export type DiscoveryAction =
-  | { [key: string]: any; type: "announce"; name: string; deviceType: DeviceType }
-  | { [key: string]: any; type: "heartbeat"; name: string; deviceType: DeviceType }
+  | { [key: string]: any; type: "announce"; name: string; deviceType: DeviceType; fingerprint?: string; publicKeyJwk?: JsonWebKey }
+  | { [key: string]: any; type: "heartbeat"; name: string; deviceType: DeviceType; fingerprint?: string; publicKeyJwk?: JsonWebKey }
   | { [key: string]: any; type: "transfer-offer"; offer: TransferOffer }
   | { [key: string]: any; type: "transfer-response"; transferId: string; accepted: boolean };
 
@@ -77,6 +84,7 @@ export class LocalDiscoveryService {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private pruneTimer: ReturnType<typeof setInterval> | null = null;
   private pendingResolvers = new Map<string, (accepted: boolean) => void>();
+  private identity: StoredIdentity | null = null;
 
   constructor() {
     this.loadSettings();
@@ -131,6 +139,14 @@ export class LocalDiscoveryService {
 
   public async start() {
     if (this.mode.value === "off") return;
+    
+    if (!this.identity) {
+      try {
+        this.identity = await getLocalIdentity();
+      } catch (err) {
+        console.warn("Failed to generate/load local identity:", err);
+      }
+    }
 
     if (this.rooms.length === 0) {
       try {
@@ -163,6 +179,8 @@ export class LocalDiscoveryService {
                   type: "announce",
                   name: this.deviceName.value,
                   deviceType: detectDeviceType(),
+                  fingerprint: this.identity?.fingerprint,
+                  publicKeyJwk: this.identity?.publicKeyJwk,
                 }, peerId);
               }
             });
@@ -249,6 +267,8 @@ export class LocalDiscoveryService {
       type: "announce",
       name: this.deviceName.value,
       deviceType: detectDeviceType(),
+      fingerprint: this.identity?.fingerprint,
+      publicKeyJwk: this.identity?.publicKeyJwk,
     });
   }
 
@@ -258,6 +278,8 @@ export class LocalDiscoveryService {
       type: "heartbeat",
       name: this.deviceName.value,
       deviceType: detectDeviceType(),
+      fingerprint: this.identity?.fingerprint,
+      publicKeyJwk: this.identity?.publicKeyJwk,
     });
   }
 
@@ -276,6 +298,8 @@ export class LocalDiscoveryService {
         name: msg.name,
         deviceType: msg.deviceType,
         lastSeen: Date.now(),
+        fingerprint: msg.fingerprint,
+        publicKeyJwk: msg.publicKeyJwk,
       };
 
       if (existing) {
@@ -286,7 +310,15 @@ export class LocalDiscoveryService {
         this.peers.value = [...this.peers.value, updated];
       }
     } else if (msg.type === "transfer-offer") {
-      this.activeOffers.value = [...this.activeOffers.value, msg.offer];
+      void (async () => {
+        let verified = false;
+        if (msg.offer.signature && msg.offer.publicKeyJwk) {
+          const payloadString = `${msg.offer.transferId}:${msg.offer.filename}:${msg.offer.size}`;
+          verified = await verifySignature(msg.offer.publicKeyJwk, payloadString, msg.offer.signature);
+        }
+        const newOffer = { ...msg.offer, verified };
+        this.activeOffers.value = [...this.activeOffers.value, newOffer];
+      })();
     } else if (msg.type === "transfer-response") {
       const resolver = this.pendingResolvers.get(msg.transferId);
       if (resolver) {
@@ -296,11 +328,11 @@ export class LocalDiscoveryService {
     }
   }
 
-  public sendOffer(
+  public async sendOffer(
     targetPeerId: string,
     payload: { transferId?: string; filename: string; size: number; isText: boolean; sha256?: string; isEncrypted?: boolean },
   ): Promise<boolean> {
-    if (this.sendActions.length === 0) return Promise.resolve(false);
+    if (this.sendActions.length === 0) return false;
 
     const transferId = payload.transferId || Math.random().toString(36).substring(2, 10);
     const offer: TransferOffer = {
@@ -312,7 +344,18 @@ export class LocalDiscoveryService {
       isText: payload.isText,
       sha256: payload.sha256,
       isEncrypted: payload.isEncrypted,
+      fingerprint: this.identity?.fingerprint,
+      publicKeyJwk: this.identity?.publicKeyJwk,
     };
+
+    if (this.identity) {
+      const payloadString = `${transferId}:${payload.filename}:${payload.size}`;
+      try {
+        offer.signature = await signMessage(payloadString);
+      } catch (err) {
+        console.warn("Failed to sign offer:", err);
+      }
+    }
 
     return new Promise((resolve) => {
       this.pendingResolvers.set(transferId, resolve);

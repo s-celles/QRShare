@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
-import { navigate } from "../router";
+import { navigate, hashParams } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
 import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
@@ -36,30 +36,6 @@ export function WebRTCSenderView() {
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
 
-  useEffect(() => {
-    serviceRef.current = new WebRTCService();
-    // Capture pending text
-    const pt = pendingText.value;
-    if (pt) {
-      pendingText.value = null;
-      contentType.value = "text";
-      textInput.value = pt;
-    }
-    // Capture pending file from CreatorView
-    const pending = pendingFile.value;
-    if (pending) {
-      preloadedFile.value = pending;
-      pendingFile.value = null;
-    }
-    return () => {
-      if (shouldDisconnectOnUnmount(serviceRef.current, activeCollabService.value)) {
-        serviceRef.current?.disconnect();
-      }
-      preloadedFile.value = null;
-      stopScanning();
-    };
-  }, []);
-
   const stopScanning = useCallback(() => {
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
@@ -70,6 +46,27 @@ export function WebRTCSenderView() {
       streamRef.current = null;
     }
     isScanning.value = false;
+  }, []);
+
+  const doConnect = useCallback(async (id: string) => {
+    if (!id.trim()) return;
+    if (isConnecting.value) return;
+    const svc = serviceRef.current;
+    if (!svc) return;
+
+    try {
+      error.value = null;
+      isConnecting.value = true;
+      console.log("[webrtc-sender] Connecting to room:", id.trim());
+      await svc.connectToRoom(id.trim(), buildRoomConfig());
+      console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
+      isConnected.value = true;
+    } catch (err) {
+      console.error("[webrtc-sender] Connection failed:", err);
+      error.value = err instanceof Error ? err.message : String(err);
+    } finally {
+      isConnecting.value = false;
+    }
   }, []);
 
   const startScanning = useCallback(async () => {
@@ -127,28 +124,38 @@ export function WebRTCSenderView() {
     } catch {
       error.value = "Camera access denied.";
     }
-  }, [stopScanning]);
+  }, [doConnect, stopScanning]);
 
-  const doConnect = useCallback(async (id: string) => {
-    if (!id.trim()) return;
-    if (isConnecting.value) return;
-    const svc = serviceRef.current;
-    if (!svc) return;
-
-    try {
-      error.value = null;
-      isConnecting.value = true;
-      console.log("[webrtc-sender] Connecting to room:", id.trim());
-      await svc.connectToRoom(id.trim(), buildRoomConfig());
-      console.log("[webrtc-sender] Connected, confirmation code:", svc.confirmationCode.value);
-      isConnected.value = true;
-    } catch (err) {
-      console.error("[webrtc-sender] Connection failed:", err);
-      error.value = err instanceof Error ? err.message : String(err);
-    } finally {
-      isConnecting.value = false;
+  useEffect(() => {
+    serviceRef.current = new WebRTCService();
+    // Capture pending text
+    const pt = pendingText.value;
+    if (pt) {
+      pendingText.value = null;
+      contentType.value = "text";
+      textInput.value = pt;
     }
-  }, []);
+    // Capture pending file from CreatorView
+    const pending = pendingFile.value;
+    if (pending) {
+      preloadedFile.value = pending;
+      pendingFile.value = null;
+    }
+    // Auto-connect if peer/room parameter is provided in hash
+    const targetRoom = hashParams.value.get("peer") || hashParams.value.get("room") || hashParams.value.get("offer");
+    if (targetRoom) {
+      roomIdInput.value = targetRoom;
+      void doConnect(targetRoom);
+    }
+
+    return () => {
+      if (shouldDisconnectOnUnmount(serviceRef.current, activeCollabService.value)) {
+        serviceRef.current?.disconnect();
+      }
+      preloadedFile.value = null;
+      stopScanning();
+    };
+  }, [doConnect, stopScanning]);
 
   const handleConnect = useCallback(() => {
     doConnect(roomIdInput.value);

@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 import { useRef, useEffect, useCallback } from "preact/hooks";
-import { navigate } from "../router";
+import { navigate, hashParams } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
@@ -139,7 +139,8 @@ export function WebRTCReceiverView() {
     try {
       error.value = null;
       console.log("[webrtc-receiver] Creating receiver...");
-      const result = await svc.createReceiver(buildRoomConfig());
+      const customRoomId = hashParams.value.get("room") || hashParams.value.get("offer") || hashParams.value.get("peer") || undefined;
+      const result = await svc.createReceiver(buildRoomConfig(), customRoomId);
       console.log("[webrtc-receiver] Room created, ID:", result.roomId);
       roomId.value = result.roomId;
       isWaiting.value = true;

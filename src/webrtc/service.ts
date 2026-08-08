@@ -136,8 +136,9 @@ export class WebRTCService {
 
   async createReceiver(
     config: RoomConfig = DEFAULT_ROOM_CONFIG,
+    customRoomId?: string,
   ): Promise<{ roomId: string }> {
-    const roomId = generateRoomId();
+    const roomId = customRoomId?.trim() || generateRoomId();
     this.state.value = "waiting";
 
     const strategies = config.strategies ?? ALL_STRATEGIES;

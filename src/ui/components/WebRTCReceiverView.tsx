@@ -206,7 +206,7 @@ export function WebRTCReceiverView() {
       {isWaiting.value && state === "waiting" && (
         <div class="webrtc-waiting">
           <h3>{t("webrtcReceiver.waitingForSender")}</h3>
-          {roomIdQR.value && (
+          {roomIdQR.value && !hashParams.value.get("offer") && !hashParams.value.get("room") && !hashParams.value.get("peer") && (
             <div class="qr-display">
               <img
                 src={roomIdQR.value}
@@ -215,10 +215,15 @@ export function WebRTCReceiverView() {
               />
             </div>
           )}
-          <p class="peer-id-text">
-            {t("webrtcReceiver.roomIdLabel")} <code>{roomId.value}</code>
-          </p>
-          <p>{t("webrtcReceiver.showQR")}</p>
+          
+          {!hashParams.value.get("offer") && !hashParams.value.get("room") && !hashParams.value.get("peer") && (
+            <>
+              <p class="peer-id-text">
+                {t("webrtcReceiver.roomIdLabel")} <code>{roomId.value}</code>
+              </p>
+              <p>{t("webrtcReceiver.showQR")}</p>
+            </>
+          )}
           <div class="share-actions">
             <button
               class="copy-btn"

@@ -6,6 +6,7 @@ import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
 import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
+import { SpeedGraph } from "./SpeedGraph";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
@@ -27,6 +28,8 @@ const selectedFileNames = signal<string[]>([]);
 const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
   null,
 );
+const instantSpeedBytesPerSec = signal(0);
+const speedHistory = signal<number[]>([]);
 
 export function WebRTCSenderView() {
   const serviceRef = useRef<WebRTCService | null>(null);
@@ -261,6 +264,8 @@ export function WebRTCSenderView() {
     preloadedFile.value = null;
     contentType.value = "file";
     textInput.value = "";
+    instantSpeedBytesPerSec.value = 0;
+    speedHistory.value = [];
     navigate("/");
   }, []);
 
@@ -274,6 +279,29 @@ export function WebRTCSenderView() {
       enterCollab(serviceRef.current, roomIdInput.value, false);
     }
   }, [collabWanted]);
+
+  const lastProgressRef = useRef<{ time: number; bytes: number }>({ time: Date.now(), bytes: 0 });
+
+  useEffect(() => {
+    if (!progress.value) {
+      instantSpeedBytesPerSec.value = 0;
+      speedHistory.value = [];
+      lastProgressRef.current = { time: Date.now(), bytes: 0 };
+      return;
+    }
+    const now = Date.now();
+    const timeDiff = (now - lastProgressRef.current.time) / 1000;
+    const isFinished = progress.value.bytesSent === progress.value.totalBytes;
+    
+    if (timeDiff >= 0.1 || (isFinished && timeDiff > 0)) {
+      const bytesDiff = progress.value.bytesSent - lastProgressRef.current.bytes;
+      const instSpeed = bytesDiff > 0 ? bytesDiff / timeDiff : 0;
+      instantSpeedBytesPerSec.value = instSpeed;
+      speedHistory.value = [...speedHistory.value.slice(-60), instSpeed];
+      lastProgressRef.current = { time: now, bytes: progress.value.bytesSent };
+    }
+  }, [progress.value]);
+
   const pct = progress.value
     ? Math.round(
         (progress.value.bytesSent / progress.value.totalBytes) * 100,
@@ -441,22 +469,38 @@ export function WebRTCSenderView() {
           </div>
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">{t("webrtcSender.progress")}</span>
+              <span class="stat-label">{t("webrtcSender.progress") || "Progress"}</span>
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("webrtcSender.speed")}</span>
+              <span class="stat-label">{t("receiver.downloaded") || "Uploaded"}</span>
               <span class="stat-value">
-                {(progress.value.speedBytesPerSec / 1024).toFixed(0)} KB/s
+                {(progress.value.bytesSent / 1024).toFixed(1)} KB / {(progress.value.totalBytes / 1024).toFixed(1)} KB
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("webrtcSender.elapsed")}</span>
+              <span class="stat-label">{t("webrtcSender.speed") || "Avg Speed"}</span>
+              <span class="stat-value">
+                {progress.value.speedBytesPerSec >= 1024 * 1024 ? `${(progress.value.speedBytesPerSec / (1024 * 1024)).toFixed(1)} MB/s` : progress.value.speedBytesPerSec >= 1024 ? `${(progress.value.speedBytesPerSec / 1024).toFixed(1)} KB/s` : `${progress.value.speedBytesPerSec.toFixed(0)} B/s`}
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span>
+              <span class="stat-value">
+                {instantSpeedBytesPerSec.value >= 1024 * 1024 ? `${(instantSpeedBytesPerSec.value / (1024 * 1024)).toFixed(1)} MB/s` : instantSpeedBytesPerSec.value >= 1024 ? `${(instantSpeedBytesPerSec.value / 1024).toFixed(1)} KB/s` : `${instantSpeedBytesPerSec.value.toFixed(0)} B/s`}
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">{t("webrtcSender.elapsed") || "Elapsed"}</span>
               <span class="stat-value">
                 {(progress.value.elapsedMs / 1000).toFixed(1)}s
               </span>
             </div>
           </div>
+          
+          {speedHistory.value.length > 0 && (
+            <SpeedGraph history={speedHistory.value} maxSpeed={Math.max(progress.value.speedBytesPerSec * 2, 1024)} />
+          )}
         </div>
       )}
 

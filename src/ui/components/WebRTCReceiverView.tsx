@@ -5,7 +5,7 @@ import { WebRTCService } from "@/webrtc/service";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { hashSha256 } from "@/crypto/hash";
 import { ShareService } from "@/share/service";
-import { isTextMimeType } from "../shared-file";
+import { TEXT_FILENAME } from "../shared-file";
 import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc/types";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
@@ -98,8 +98,8 @@ export function WebRTCReceiverView() {
       const hash = await hashSha256(data);
       const isVerified = toHex(hash) === meta.sha256;
 
-      // Check if this is text content
-      if (isTextMimeType(meta.mimeType)) {
+      // Check if this is a raw text message
+      if (meta.filename === TEXT_FILENAME) {
         verified.value = isVerified;
         isReceivedText.value = true;
         try {

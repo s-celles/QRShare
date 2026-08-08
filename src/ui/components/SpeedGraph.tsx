@@ -4,14 +4,17 @@ interface SpeedGraphProps {
 }
 
 export function SpeedGraph({ history, maxSpeed }: SpeedGraphProps) {
-  if (history.length < 2) return null;
+  if (history.length === 0) return null;
 
   const width = 100;
   const height = 30;
   const max = Math.max(maxSpeed, ...history, 1);
   
-  const points = history.map((val, i) => {
-    const x = (i / (history.length - 1)) * width;
+  // If only 1 point, draw a flat line across the graph
+  const renderHistory = history.length === 1 ? [history[0], history[0]] : history;
+
+  const points = renderHistory.map((val, i) => {
+    const x = (i / (renderHistory.length - 1)) * width;
     const y = height - (val / max) * height;
     return `${x},${y}`;
   }).join(" ");

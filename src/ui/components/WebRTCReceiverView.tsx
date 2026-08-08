@@ -196,7 +196,9 @@ export function WebRTCReceiverView() {
     }
     const now = Date.now();
     const timeDiff = (now - lastProgressRef.current.time) / 1000;
-    if (timeDiff >= 0.5) {
+    const isFinished = progress.value.bytesSent === progress.value.totalBytes;
+    
+    if (timeDiff >= 0.1 || (isFinished && timeDiff > 0)) {
       const bytesDiff = progress.value.bytesSent - lastProgressRef.current.bytes;
       const instSpeed = bytesDiff > 0 ? bytesDiff / timeDiff : 0;
       instantSpeedBytesPerSec.value = instSpeed;

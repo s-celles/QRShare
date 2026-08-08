@@ -10,6 +10,7 @@ import type { TransferMetadata, TransferProgress, BatchMetadata } from "@/webrtc
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
 import { FilePreview } from "./FilePreview";
+import { SpeedGraph } from "./SpeedGraph";
 import { buildRoomConfig } from "@/webrtc/settings";
 import { enterCollab, shouldDisconnectOnUnmount, activeCollabService } from "@/collab/handoff";
 import { t } from "../i18n";
@@ -40,6 +41,8 @@ const receivedText = signal<string | null>(null);
 const isReceivedText = signal(false);
 const transferStartedAt = signal(0);
 const transferDurationSec = signal(0);
+const instantSpeedBytesPerSec = signal(0);
+const speedHistory = signal<number[]>([]);
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -72,6 +75,8 @@ export function WebRTCReceiverView() {
     isReceivedText.value = false;
     transferStartedAt.value = 0;
     transferDurationSec.value = 0;
+    instantSpeedBytesPerSec.value = 0;
+    speedHistory.value = [];
     copyRoomIdFeedback.value = false;
   }, []);
 
@@ -179,6 +184,32 @@ export function WebRTCReceiverView() {
         (progress.value.bytesSent / progress.value.totalBytes) * 100,
       )
     : 0;
+
+  const lastProgressRef = useRef<{ time: number; bytes: number }>({ time: Date.now(), bytes: 0 });
+
+  useEffect(() => {
+    if (!progress.value) {
+      instantSpeedBytesPerSec.value = 0;
+      speedHistory.value = [];
+      lastProgressRef.current = { time: Date.now(), bytes: 0 };
+      return;
+    }
+    const now = Date.now();
+    const timeDiff = (now - lastProgressRef.current.time) / 1000;
+    if (timeDiff >= 0.5) {
+      const bytesDiff = progress.value.bytesSent - lastProgressRef.current.bytes;
+      const instSpeed = bytesDiff > 0 ? bytesDiff / timeDiff : 0;
+      instantSpeedBytesPerSec.value = instSpeed;
+      speedHistory.value = [...speedHistory.value.slice(-60), instSpeed];
+      lastProgressRef.current = { time: now, bytes: progress.value.bytesSent };
+    }
+  }, [progress.value]);
+
+  const formatSpeed = (bps: number): string => {
+    if (bps >= 1024 * 1024) return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
+    if (bps >= 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
+    return `${bps.toFixed(0)} B/s`;
+  };
 
   return (
     <section aria-label={t("webrtcReceiver.section")}>
@@ -311,16 +342,32 @@ export function WebRTCReceiverView() {
           </div>
           <div class="transfer-stats" aria-live="polite">
             <div class="stat">
-              <span class="stat-label">{t("webrtcReceiver.progress")}</span>
+              <span class="stat-label">{t("webrtcReceiver.progress") || "Progress"}</span>
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("webrtcReceiver.speed")}</span>
+              <span class="stat-label">{t("receiver.downloaded") || "Downloaded"}</span>
               <span class="stat-value">
-                {(progress.value.speedBytesPerSec / 1024).toFixed(0)} KB/s
+                {(progress.value.bytesSent / 1024).toFixed(1)} KB / {(progress.value.totalBytes / 1024).toFixed(1)} KB
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">{t("webrtcReceiver.speed") || "Avg Speed"}</span>
+              <span class="stat-value">
+                {formatSpeed(progress.value.speedBytesPerSec)}
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span>
+              <span class="stat-value">
+                {formatSpeed(instantSpeedBytesPerSec.value)}
               </span>
             </div>
           </div>
+          
+          {speedHistory.value.length > 0 && (
+            <SpeedGraph history={speedHistory.value} maxSpeed={Math.max(progress.value.speedBytesPerSec * 2, 1024)} />
+          )}
         </div>
       )}
 

@@ -11,6 +11,7 @@ import { EncryptedUnlockCard } from "./EncryptedUnlockCard";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
 import { FilePreview } from "./FilePreview";
+import { SpeedGraph } from "./SpeedGraph";
 import { t } from "../i18n";
 
 interface ReceivedFile {
@@ -38,7 +39,9 @@ const receivedText = signal<string | null>(null);
 const isTextContent = signal(false);
 const scanStartTime = signal(0);
 const transferDurationSec = signal(0);
-const transferSpeedBytesPerSec = signal(0);
+const transferSpeedBytesPerSec = signal(0); // Average speed
+const instantSpeedBytesPerSec = signal(0); // Instant speed
+const speedHistory = signal<number[]>([]);
 const rawEncryptedBuffer = signal<ArrayBuffer | null>(null);
 
 function processFilePayload(fileBuffer: ArrayBuffer, name: string, isText: boolean) {
@@ -103,6 +106,8 @@ export function ReceiverView() {
     rawEncryptedBuffer.value = null;
     isTextContent.value = false;
     isScanning.value = false;
+    speedHistory.value = [];
+    instantSpeedBytesPerSec.value = 0;
   }, []);
 
   const handleUnlockEncryptedFile = async (password: string) => {
@@ -128,6 +133,26 @@ export function ReceiverView() {
     scanStartTime.value = Date.now();
     transferDurationSec.value = 0;
     transferSpeedBytesPerSec.value = 0;
+    instantSpeedBytesPerSec.value = 0;
+    speedHistory.value = [];
+    
+    let lastTime = Date.now();
+    let lastSymbols = 0;
+
+    const speedInterval = setInterval(() => {
+      if (!isScanning.value || neededSymbols.value === 0 || receivedFileSize.value === 0) return;
+      const now = Date.now();
+      const timeDiff = (now - lastTime) / 1000;
+      if (timeDiff >= 0.5) {
+        const symbolDiff = uniqueSymbols.value - lastSymbols;
+        const bytesPerSymbol = receivedFileSize.value / neededSymbols.value;
+        const instSpeed = (symbolDiff * bytesPerSymbol) / timeDiff;
+        instantSpeedBytesPerSec.value = instSpeed;
+        speedHistory.value = [...speedHistory.value.slice(-60), instSpeed]; // Keep last 30s
+        lastTime = now;
+        lastSymbols = uniqueSymbols.value;
+      }
+    }, 500);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -205,6 +230,7 @@ export function ReceiverView() {
             }
 
             // Stop camera
+            clearInterval(speedInterval);
             if (streamRef.current) {
               streamRef.current.getTracks().forEach((t) => t.stop());
             }
@@ -351,16 +377,32 @@ export function ReceiverView() {
               </div>
             )}
             {receivedFileSize.value > 0 && (
-              <div class="stat">
-                <span class="stat-label">{t("receiver.speed")}</span>
-                <span class="stat-value">{formatSpeed(speedBytesPerSec)}</span>
-              </div>
+              <>
+                <div class="stat">
+                  <span class="stat-label">{t("receiver.downloaded") || "Downloaded"}</span>
+                  <span class="stat-value">
+                    {(bytesReceived / 1024).toFixed(1)} KB / {(receivedFileSize.value / 1024).toFixed(1)} KB
+                  </span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">{t("receiver.speed") || "Avg Speed"}</span>
+                  <span class="stat-value">{formatSpeed(speedBytesPerSec)}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">{(t("receiver.instantSpeed") || "Instant Speed")}</span>
+                  <span class="stat-value">{formatSpeed(instantSpeedBytesPerSec.value)}</span>
+                </div>
+              </>
             )}
             <div class="stat">
               <span class="stat-label">{t("receiver.elapsed")}</span>
               <span class="stat-value">{elapsedSec.toFixed(0)}s</span>
             </div>
           </div>
+          
+          {speedHistory.value.length > 0 && (
+            <SpeedGraph history={speedHistory.value} maxSpeed={Math.max(speedBytesPerSec * 2, 1024)} />
+          )}
 
           <div
             class="progress-bar"

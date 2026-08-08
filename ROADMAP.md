@@ -9,7 +9,6 @@ This document outlines potential future features and ideas for QRShare. None of 
 - **Export Animated QR to GIF/MP4:** Allow exporting the animated QR sequence as a `.gif` or video file to be sent over traditional instant messaging apps, allowing the recipient to scan it directly from their screen.
 
 ## Performance & Transfer Reliability
-- **Active Payload Compression (Deflate/Pako):** Compress raw text and source code payloads *before* chunking and encoding them into QR codes to drastically improve transfer speeds for highly compressible data.
 
 ## Security & Privacy
 - **Application-Layer E2EE for WebRTC:** While WebRTC is encrypted at the transport layer, implementing the same ECDH identity-based encryption we use for QR Codes would add a Zero-Trust layer on top of WebRTC, protecting against compromised signaling servers.

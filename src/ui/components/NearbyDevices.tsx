@@ -107,7 +107,7 @@ export function NearbyDevices() {
           <button
             class="icon-btn-text"
             onClick={() => setShowContacts(true)}
-            title={t("contacts.manage", "Manage Contacts")}
+            title={t("contacts.manage")}
             style={{ marginLeft: "0.5rem" }}
           >
             🛡️

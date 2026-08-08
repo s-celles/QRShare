@@ -1,4 +1,18 @@
 export const en: Record<string, string> = {
+  "contacts.manage": "Manage Contacts",
+  "contacts.title": "Trusted Contacts",
+  "contacts.myIdentity": "My Pairing QR Code",
+  "contacts.scanHint": "Have a friend scan this QR code to add you as a trusted contact.",
+  "contacts.listTitle": "My Contacts",
+  "contacts.noContacts": "You haven't added any trusted contacts yet.",
+  "contacts.export": "Export",
+  "contacts.import": "Import",
+  "identity.cardTitle": "Trusted Identity",
+  "identity.name": "Device Name",
+  "identity.fingerprint": "Fingerprint",
+  "identity.added": "Added to Trusted Contacts",
+  "identity.addContact": "Add to Trusted Contacts",
+
   // App header
   "app.home": "QRShare home",
   "app.toggleThemeLight": "Switch to light theme",

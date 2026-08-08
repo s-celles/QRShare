@@ -1,4 +1,17 @@
 export const fr: Record<string, string> = {
+  "contacts.manage": "Gérer les contacts",
+  "contacts.title": "Contacts de confiance",
+  "contacts.myIdentity": "Mon QR Code d'appairage",
+  "contacts.scanHint": "Faites scanner ce QR Code par un ami pour qu'il vous ajoute en tant que contact de confiance.",
+  "contacts.listTitle": "Mes Contacts",
+  "contacts.noContacts": "Vous n'avez pas encore ajouté de contacts de confiance.",
+  "contacts.export": "Exporter",
+  "contacts.import": "Importer",
+  "identity.cardTitle": "Identité de confiance",
+  "identity.name": "Nom de l'appareil",
+  "identity.fingerprint": "Empreinte",
+  "identity.added": "Ajouté aux contacts de confiance",
+  "identity.addContact": "Ajouter aux contacts de confiance",
   // App header
   "app.home": "Accueil QRShare",
   "app.toggleThemeLight": "Passer au th\u00e8me clair",

@@ -71,15 +71,15 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
     <div class="modal-overlay">
       <div class="modal-container contacts-modal" style={{ maxWidth: "500px" }}>
         <div class="view-header" style={{ marginBottom: "1rem" }}>
-          <h2>🛡️ {t("contacts.title", "Trusted Contacts")}</h2>
+          <h2>🛡️ {t("contacts.title")}</h2>
           <button class="icon-btn-text" onClick={onClose}>✖️</button>
         </div>
 
         <div class="contacts-tabs" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
           <div class="identity-section" style={{ background: "#f3f4f6", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
-            <h4 style={{ margin: "0 0 0.5rem 0" }}>{t("contacts.myIdentity", "My Pairing QR Code")}</h4>
-            <p class="settings-hint" style={{ marginBottom: "1rem" }}>{t("contacts.scanHint", "Have a friend scan this QR code to add you as a trusted contact.")}</p>
+            <h4 style={{ margin: "0 0 0.5rem 0" }}>{t("contacts.myIdentity")}</h4>
+            <p class="settings-hint" style={{ marginBottom: "1rem" }}>{t("contacts.scanHint")}</p>
             {identityQr ? (
               <img src={identityQr} alt="Identity QR Code" style={{ width: "200px", height: "200px", background: "white", padding: "0.5rem", borderRadius: "8px", margin: "0 auto" }} />
             ) : (
@@ -89,9 +89,9 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div class="contacts-list-section">
-            <h4 style={{ margin: "0 0 1rem 0" }}>{t("contacts.listTitle", "My Contacts")}</h4>
+            <h4 style={{ margin: "0 0 1rem 0" }}>{t("contacts.listTitle")}</h4>
             {contacts.length === 0 ? (
-              <p class="settings-hint">{t("contacts.noContacts", "You haven't added any trusted contacts yet.")}</p>
+              <p class="settings-hint">{t("contacts.noContacts")}</p>
             ) : (
               <div class="peers-list" style={{ maxHeight: "250px", overflowY: "auto" }}>
                 {contacts.map(c => (
@@ -111,8 +111,8 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
 
           <div class="contacts-actions" style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between", borderTop: "1px solid #e5e7eb", paddingTop: "1rem" }}>
             <div>
-              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem" }} onClick={handleExport}>{t("contacts.export", "Export")}</button>
-              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem", marginLeft: "0.5rem" }} onClick={handleImport}>{t("contacts.import", "Import")}</button>
+              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem" }} onClick={handleExport}>{t("contacts.export")}</button>
+              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem", marginLeft: "0.5rem" }} onClick={handleImport}>{t("contacts.import")}</button>
             </div>
             {importStatus && <span style={{ fontSize: "0.85rem", color: "#059669", alignSelf: "center" }}>{importStatus}</span>}
           </div>

@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- End-to-End Encryption (E2EE) using **AES-256-GCM** and **PBKDF2-SHA256** (100,000 iterations) via browser-native Web Crypto API, allowing password-protection of static QR codes, animated QR streams, and WebRTC file/text transfers
+- **Local Network Peer Discovery**: Automatic zero-QR peer discovery on local Wi-Fi/LAN networks via WebRTC Trystero signaling, showing active nearby devices in `NearbyDevices` card with one-click direct transfer invitations (`TransferOfferModal`)
+- End-to-End Encryption (E2EE) using **AES-256-GCM** and **PBKDF2-SHA256** (100,000 iterations) via browser-native Web Crypto API, allowing password-protection of static QR codes, animated QR streams, and WebRTC file/text transfers with original filename preservation upon decryption
 - Receiver-side `EncryptedUnlockCard` for automatic password prompt, password reveal toggle, and secure in-browser decryption
 - Native support for structured QR formats: Wi-Fi connection strings (`WIFI:S:...;`) and Contact cards (**MECARD** compact format and **vCard 3.0** standard format)
 - Guided form templates in `CreatorView` for creating Wi-Fi networks and Contact cards with automatic escaping and capacity calculation

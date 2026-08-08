@@ -1,9 +1,13 @@
 import { navigate } from "../router";
+import { NearbyDevices } from "./NearbyDevices";
+import { TransferOfferModal } from "./TransferOfferModal";
 import { t } from "../i18n";
 
 export function Landing() {
   return (
     <section class="landing" aria-label={t("landing.home")}>
+      <NearbyDevices />
+      <TransferOfferModal />
       <h2>{t("landing.primaryActions")}</h2>
       <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
         <button class="mode-btn mode-btn--full" onClick={() => navigate("/scan/auto")} aria-label={t("landing.universalScanAria")}>

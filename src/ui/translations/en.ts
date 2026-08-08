@@ -515,4 +515,16 @@ export const en: Record<string, string> = {
   "encryption.decryptButton": "Decrypt & Unlock",
   "encryption.incorrectPassword": "Incorrect password or corrupted payload.",
   "encryption.encryptedBadge": "Encrypted",
+
+  // Local Discovery
+  "discovery.title": "Nearby Devices on Local Network",
+  "discovery.scanning": "Searching for nearby devices on Wi-Fi…",
+  "discovery.noPeers": "No nearby devices found on local network.",
+  "discovery.sendDirect": "Send",
+  "discovery.enable": "Enable Local Network Discovery",
+  "discovery.deviceName": "Device Name",
+  "discovery.offerTitle": "Incoming Direct Transfer Request",
+  "discovery.offerHint": "{name} wants to send you {filename} ({size})",
+  "discovery.accept": "Accept",
+  "discovery.decline": "Decline",
 };

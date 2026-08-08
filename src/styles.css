@@ -1841,6 +1841,77 @@ section > button:hover {
   padding: 0.25rem;
 }
 
+/* Local Discovery CSS */
+.nearby-devices-card {
+  margin-bottom: 1.5rem;
+}
+
+.nearby-title {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.peers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.peer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.peer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.peer-icon {
+  font-size: 1.4rem;
+}
+
+.peer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.peer-name {
+  font-size: 0.95rem;
+}
+
+.peer-status-badge {
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.peer-send-btn {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.offer-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.offer-hint {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin-bottom: 1.25rem;
+}
+
 @media print {
   body * {
     visibility: hidden;

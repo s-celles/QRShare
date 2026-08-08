@@ -87,11 +87,13 @@ Five buttons for transferring files between devices:
 
 If the text is too long for the selected version and error correction level, an error message is displayed.
 
-### End-to-End Encryption (E2EE)
+### Local Network Peer Discovery (Zero-QR Transfer)
 
-QRShare allows encrypting any content (text or file) with a password before generating a QR code or performing a transfer:
-- **On Sending**: Check **"Encrypt with password"** and enter your secret password. Content is encrypted locally using **AES-256-GCM** and **PBKDF2-SHA256**.
-- **On Receiving**: When scanned or received, QRShare detects the encryption and displays the **"Encrypted Content"** unlock card. The receiver enters the password to decrypt the message or file.
+On the home screen, QRShare automatically displays the **"Nearby Devices on Local Network"** card whenever other devices on the same Wi-Fi/LAN network have QRShare open:
+- **Zero-scan detection**: Devices automatically announce their presence via WebRTC signaling without requiring any QR code scan.
+- **Direct transfer**: Click **Send** next to a discovered device to send a file or text message directly.
+- **Receiver prompt**: The receiver receives an invitation prompt (*Accept / Decline*). Once accepted, the transfer starts immediately over a direct WebRTC DataChannel.
+- **Privacy settings**: Local discovery can be enabled/disabled and custom device names can be configured in **Settings**.
 
 ---
 

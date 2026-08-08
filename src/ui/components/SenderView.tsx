@@ -70,7 +70,7 @@ export function SenderView() {
               encryptedBytes.byteOffset,
               encryptedBytes.byteOffset + encryptedBytes.byteLength,
             ) as ArrayBuffer;
-            finalFilename = filename + ".enc";
+            finalFilename = filename;
             finalIsText = false;
           } catch (cause) {
             error.value = cause instanceof Error ? cause.message : String(cause);

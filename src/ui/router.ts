@@ -54,7 +54,7 @@ export const currentRoute = signal<Route>(
   typeof window !== "undefined" ? getRouteFromHash() : "/",
 );
 
-export function navigate(route: Route): void {
+export function navigate(route: Route | (string & {})): void {
   window.location.hash = route;
 }
 

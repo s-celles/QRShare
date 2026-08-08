@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { navigate } from "../router";
 import { theme as themePreference, effectiveTheme, type Theme } from "../theme";
 import { locale, localePreference, t, type LocalePreference } from "../i18n";
+import { localDiscovery } from "@/webrtc/discovery";
 import { configToToml, tomlToConfig } from "../../config-toml";
 import { gatherConfig, applyConfig } from "../../config";
 
@@ -58,6 +59,37 @@ export function Settings() {
           <p class="settings-hint">{t("settings.themeCurrent", { theme: effectiveTheme.value })}</p>
         </div>
       </div>
+      <div class="settings-group">
+        <h3>{t("discovery.title")}</h3>
+        <div class="settings-field checkbox-param">
+          <label htmlFor="discovery-enable">
+            <input
+              id="discovery-enable"
+              type="checkbox"
+              checked={localDiscovery.enabled.value}
+              onChange={(e) => {
+                localDiscovery.setEnabled((e.target as HTMLInputElement).checked);
+              }}
+            />{" "}
+            {t("discovery.enable")}
+          </label>
+        </div>
+        {localDiscovery.enabled.value && (
+          <div class="settings-field">
+            <label htmlFor="discovery-name">{t("discovery.deviceName")}</label>
+            <input
+              id="discovery-name"
+              type="text"
+              class="creator-input-field"
+              value={localDiscovery.deviceName.value}
+              onInput={(e) => {
+                localDiscovery.setDeviceName((e.target as HTMLInputElement).value);
+              }}
+            />
+          </div>
+        )}
+      </div>
+
       <div class="settings-group">
         <h3>{t("settings.webrtc")}</h3>
         <div class="settings-field">

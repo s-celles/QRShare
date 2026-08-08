@@ -111,7 +111,7 @@ export function ReceiverView() {
       decryptedBytes.byteOffset + decryptedBytes.byteLength,
     ) as ArrayBuffer;
     rawEncryptedBuffer.value = null;
-    processFilePayload(decryptedBuffer, filename.value.replace(/\.enc$/, ""), isTextContent.value);
+    processFilePayload(decryptedBuffer, filename.value, isTextContent.value);
   };
 
   useEffect(() => cleanup, [cleanup]);

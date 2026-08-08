@@ -87,11 +87,13 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 
 Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
 
-### Chiffrement de bout en bout (E2EE)
+### Découverte d'appareils sur le réseau local (Sans QR Code)
 
-QRShare permet de chiffrer n'importe quel contenu (texte ou fichier) avec un mot de passe avant d'émettre un QR code ou d'effectuer un transfert :
-- **À l'envoi** : Cochez **"Chiffrer avec un mot de passe"** et saisissez votre mot de passe secret. Le contenu est chiffré localement avec **AES-256-GCM** et **PBKDF2-SHA256**.
-- **À la réception** : Dès le scan ou la réception du transfert, QRShare détecte le chiffrement et affiche la carte **"Contenu chiffré"**. Le destinataire doit saisir le mot de passe pour déchiffrer le message ou le fichier.
+Sur l'écran d'accueil, QRShare affiche automatiquement la carte **"Appareils à proximité (Réseau local)"** dès que d'autres appareils connectés au même Wi-Fi/LAN ont QRShare ouvert :
+- **Détection zéro scan** : Les appareils s'annoncent automatiquement via la signalisation WebRTC sans nécessiter de scanner de QR code.
+- **Envoi direct** : Cliquez sur **Envoyer** à côté d'un appareil pour lui envoyer directement un fichier ou du texte.
+- **Confirmation du receveur** : Le destinataire reçoit une boîte de dialogue d'invitation (*Accepter / Refuser*). Une fois acceptée, le transfert démarre immédiatement via DataChannel WebRTC local.
+- **Paramètres de confidentialité** : Il est possible de désactiver la découverte locale ou de personnaliser le nom de son appareil dans les **Paramètres**.
 
 ---
 

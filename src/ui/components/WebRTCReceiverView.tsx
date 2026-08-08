@@ -154,6 +154,16 @@ export function WebRTCReceiverView() {
     }
   }, []);
 
+  useEffect(() => {
+    if (hashParams.value.get("room") || hashParams.value.get("offer") || hashParams.value.get("peer")) {
+      // Small delay to ensure cleanup has run if this is a re-mount, though typically not needed
+      const timer = setTimeout(() => {
+        void startReceiving();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [hashParams.value, startReceiving]);
+
   const code = serviceRef.current?.getConfirmationCode() || "";
   const state = serviceRef.current?.state.value || "idle";
   // Subscribe to the peer's collaborative-start signal.

@@ -1,7 +1,8 @@
-import { signal } from "@preact/signals";
+import { signal, computed } from "@preact/signals";
 import { joinRoom, type Room } from "trystero";
 
 export type DeviceType = "desktop" | "mobile" | "tablet";
+export type LocalDiscoveryMode = "off" | "passive" | "active";
 
 export interface DiscoveredPeer {
   [key: string]: any;
@@ -63,7 +64,8 @@ const PEER_TIMEOUT_MS = 25000;
 export class LocalDiscoveryService {
   public peers = signal<DiscoveredPeer[]>([]);
   public activeOffers = signal<TransferOffer[]>([]);
-  public enabled = signal<boolean>(true);
+  public mode = signal<LocalDiscoveryMode>("off");
+  public enabled = computed(() => this.mode.value !== "off");
   public deviceName = signal<string>(getDefaultDeviceName());
   public myPeerId = signal<string>("");
 
@@ -83,8 +85,13 @@ export class LocalDiscoveryService {
       const savedName = localStorage.getItem("qrshare_device_name");
       if (savedName) this.deviceName.value = savedName;
 
-      const savedEnabled = localStorage.getItem("qrshare_discovery_enabled");
-      if (savedEnabled !== null) this.enabled.value = savedEnabled === "true";
+      const savedMode = localStorage.getItem("qrshare_discovery_mode") as LocalDiscoveryMode | null;
+      if (savedMode === "off" || savedMode === "passive" || savedMode === "active") {
+        this.mode.value = savedMode;
+      } else {
+        // Default mode is OFF (privacy-first, does not show on home screen)
+        this.mode.value = "off";
+      }
     } catch {
       // localStorage unavailable
     }
@@ -97,60 +104,81 @@ export class LocalDiscoveryService {
     } catch {
       /* ignore */
     }
-    this.announce();
+    if (this.mode.value === "active") {
+      this.announce();
+    }
   }
 
-  public setEnabled(val: boolean) {
-    this.enabled.value = val;
+  public setMode(newMode: LocalDiscoveryMode) {
+    this.mode.value = newMode;
     try {
-      localStorage.setItem("qrshare_discovery_enabled", String(val));
+      localStorage.setItem("qrshare_discovery_mode", newMode);
     } catch {
       /* ignore */
     }
-    if (val) {
-      this.start();
-    } else {
+    if (newMode === "off") {
       this.stop();
+    } else {
+      this.start();
     }
   }
 
+  public setEnabled(val: boolean) {
+    this.setMode(val ? "active" : "off");
+  }
+
   public start() {
-    if (!this.enabled.value || this.room) return;
+    if (this.mode.value === "off") return;
 
-    try {
-      this.room = joinRoom({ appId: "qrshare-discovery" }, DISCOVERY_ROOM_ID);
+    if (!this.room) {
+      try {
+        this.room = joinRoom({ appId: "qrshare-discovery" }, DISCOVERY_ROOM_ID);
 
-      const [makeAction, getAction] = this.room.makeAction<DiscoveryAction>("disc");
-      this.sendAction = makeAction;
-      this.onActionReceived = getAction;
+        const [makeAction, getAction] = this.room.makeAction<DiscoveryAction>("disc");
+        this.sendAction = makeAction;
+        this.onActionReceived = getAction;
 
-      this.room.onPeerJoin((peerId) => {
-        this.sendAction({
-          type: "announce",
-          name: this.deviceName.value,
-          deviceType: detectDeviceType(),
-        }, peerId);
-      });
+        this.room.onPeerJoin((peerId) => {
+          if (this.mode.value === "active" && this.sendAction) {
+            this.sendAction({
+              type: "announce",
+              name: this.deviceName.value,
+              deviceType: detectDeviceType(),
+            }, peerId);
+          }
+        });
 
-      this.room.onPeerLeave((peerId) => {
-        this.peers.value = this.peers.value.filter((p) => p.id !== peerId);
-      });
+        this.room.onPeerLeave((peerId) => {
+          this.peers.value = this.peers.value.filter((p) => p.id !== peerId);
+        });
 
-      this.onActionReceived((data: DiscoveryAction, peerId: string) => {
-        this.handleMessage(data, peerId);
-      });
+        this.onActionReceived((data: DiscoveryAction, peerId: string) => {
+          this.handleMessage(data, peerId);
+        });
+      } catch {
+        // Failed to join discovery room
+        return;
+      }
+    }
 
-      this.announce();
-
-      this.heartbeatTimer = setInterval(() => {
-        this.sendHeartbeat();
-      }, HEARTBEAT_INTERVAL_MS);
-
+    if (!this.pruneTimer) {
       this.pruneTimer = setInterval(() => {
         this.pruneStalePeers();
       }, 5000);
-    } catch {
-      // Failed to join discovery room
+    }
+
+    if (this.mode.value === "active") {
+      this.announce();
+      if (!this.heartbeatTimer) {
+        this.heartbeatTimer = setInterval(() => {
+          this.sendHeartbeat();
+        }, HEARTBEAT_INTERVAL_MS);
+      }
+    } else if (this.mode.value === "passive") {
+      if (this.heartbeatTimer) {
+        clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+      }
     }
   }
 
@@ -171,12 +199,14 @@ export class LocalDiscoveryService {
       }
       this.room = null;
     }
+    this.sendAction = null;
+    this.onActionReceived = null;
     this.peers.value = [];
     this.activeOffers.value = [];
   }
 
   public announce() {
-    if (!this.sendAction) return;
+    if (!this.sendAction || this.mode.value !== "active") return;
     this.sendAction({
       type: "announce",
       name: this.deviceName.value,
@@ -185,7 +215,7 @@ export class LocalDiscoveryService {
   }
 
   public sendHeartbeat() {
-    if (!this.sendAction) return;
+    if (!this.sendAction || this.mode.value !== "active") return;
     this.sendAction({
       type: "heartbeat",
       name: this.deviceName.value,

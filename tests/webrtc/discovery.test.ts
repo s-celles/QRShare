@@ -16,17 +16,32 @@ describe("Local Network Discovery Service", () => {
     expect(name.length).toBeGreaterThan(0);
   });
 
+  test("defaults mode to OFF for privacy-first behavior", () => {
+    const discovery = new LocalDiscoveryService();
+    expect(discovery.mode.value).toBe("off");
+    expect(discovery.enabled.value).toBe(false);
+  });
+
+  test("supports switching between OFF, passive, and active modes", () => {
+    const discovery = new LocalDiscoveryService();
+
+    discovery.setMode("passive");
+    expect(discovery.mode.value).toBe("passive");
+    expect(discovery.enabled.value).toBe(true);
+
+    discovery.setMode("active");
+    expect(discovery.mode.value).toBe("active");
+    expect(discovery.enabled.value).toBe(true);
+
+    discovery.setMode("off");
+    expect(discovery.mode.value).toBe("off");
+    expect(discovery.enabled.value).toBe(false);
+  });
+
   test("LocalDiscoveryService updates device name and settings", () => {
     const discovery = new LocalDiscoveryService();
     discovery.setDeviceName("MyCustomLaptop");
     expect(discovery.deviceName.value).toBe("MyCustomLaptop");
-  });
-
-  test("allows user to opt-out for privacy and persists choice", () => {
-    const discovery = new LocalDiscoveryService();
-    discovery.setEnabled(false);
-    expect(discovery.enabled.value).toBe(false);
-    expect(discovery.peers.value.length).toBe(0);
   });
 
   test("prunes stale peers older than timeout threshold", () => {

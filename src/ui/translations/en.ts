@@ -532,4 +532,10 @@ export const en: Record<string, string> = {
   "discovery.hidden": "Hidden (Private)",
   "discovery.privacyNotice": "Local discovery is disabled. Your device is hidden on the network.",
   "discovery.enableVisibility": "Make Visible on Local Network",
+  "discovery.modeLabel": "Discovery Mode",
+  "discovery.modeOff": "Off (Default - Hidden from home screen)",
+  "discovery.modePassive": "Discrete (Discover nearby devices without broadcasting your name)",
+  "discovery.modeActive": "Visible & Active (Discover and broadcast presence on Wi-Fi)",
+  "discovery.modePassiveShort": "Discrete",
+  "discovery.modeActiveShort": "Visible",
 };

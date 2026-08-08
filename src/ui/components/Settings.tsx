@@ -61,20 +61,22 @@ export function Settings() {
       </div>
       <div class="settings-group">
         <h3>{t("discovery.title")}</h3>
-        <div class="settings-field checkbox-param">
-          <label htmlFor="discovery-enable">
-            <input
-              id="discovery-enable"
-              type="checkbox"
-              checked={localDiscovery.enabled.value}
-              onChange={(e) => {
-                localDiscovery.setEnabled((e.target as HTMLInputElement).checked);
-              }}
-            />{" "}
-            {t("discovery.enable")}
-          </label>
+        <div class="settings-field">
+          <label htmlFor="discovery-mode-select">{t("discovery.modeLabel")}</label>
+          <select
+            id="discovery-mode-select"
+            value={localDiscovery.mode.value}
+            onChange={(e) => {
+              const val = (e.target as HTMLSelectElement).value as any;
+              localDiscovery.setMode(val);
+            }}
+          >
+            <option value="off">{t("discovery.modeOff")}</option>
+            <option value="passive">{t("discovery.modePassive")}</option>
+            <option value="active">{t("discovery.modeActive")}</option>
+          </select>
         </div>
-        {localDiscovery.enabled.value && (
+        {localDiscovery.mode.value !== "off" && (
           <div class="settings-field">
             <label htmlFor="discovery-name">{t("discovery.deviceName")}</label>
             <input

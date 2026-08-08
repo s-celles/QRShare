@@ -183,6 +183,12 @@ export const fr: Record<string, string> = {
   "discovery.hidden": "Masqué (Privé)",
   "discovery.privacyNotice": "Découverte locale désactivée. Votre appareil est masqué sur le réseau.",
   "discovery.enableVisibility": "Se rendre visible sur le réseau local",
+  "discovery.modeLabel": "Mode de découverte",
+  "discovery.modeOff": "Désactivé (Par défaut - Masqué de l'accueil)",
+  "discovery.modePassive": "Discret (Voir les appareils sans être visible)",
+  "discovery.modeActive": "Visible & Actif (Voir et être visible sur le Wi-Fi local)",
+  "discovery.modePassiveShort": "Discret",
+  "discovery.modeActiveShort": "Visible",
 
   // Scanner
   "scanner.section": "Scanneur QR",

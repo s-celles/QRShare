@@ -49,6 +49,10 @@ export function SenderView() {
     frameNumber.value = 0;
     error.value = null;
     selectedFiles.value = [];
+    enableEncryption.value = false;
+    encryptionPassword.value = "";
+    encryptionTargetContact.value = "";
+    encryptionMode.value = "password";
   }, []);
 
   useEffect(() => cleanup, [cleanup]);

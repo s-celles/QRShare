@@ -35,45 +35,61 @@ class PRNG {
   }
 }
 
+// Cache CDF arrays to avoid recalculating O(K) arrays for every frame
+const cdfCache = new Map<number, number[]>();
+
 /**
  * Robust Soliton Distribution for LT codes.
  * Parameters: c=0.1, delta=0.5 as specified in design.
  */
 function robustSolitonDegree(k: number, rng: PRNG): number {
-  const c = 0.1;
-  const delta = 0.5;
-  const s = c * Math.sqrt(k) * Math.log(k / delta);
-  const ks = Math.round(k / s);
+  let cdf = cdfCache.get(k);
 
-  // Build CDF (ideal + robust component)
-  const cdf: number[] = [];
-  let total = 0;
+  if (!cdf) {
+    const c = 0.1;
+    const delta = 0.5;
+    const s = c * Math.sqrt(k) * Math.log(k / delta);
+    const ks = Math.round(k / s);
 
-  for (let d = 1; d <= k; d++) {
-    // Ideal Soliton
-    let rho: number;
-    if (d === 1) {
-      rho = 1 / k;
-    } else {
-      rho = 1 / (d * (d - 1));
+    // Build CDF (ideal + robust component)
+    cdf = [];
+    let total = 0;
+
+    for (let d = 1; d <= k; d++) {
+      // Ideal Soliton
+      let rho: number;
+      if (d === 1) {
+        rho = 1 / k;
+      } else {
+        rho = 1 / (d * (d - 1));
+      }
+
+      // Robust component (tau)
+      let tau: number;
+      if (d >= 1 && d <= ks - 1) {
+        tau = s / (k * d);
+      } else if (d === ks) {
+        tau = (s * Math.log(s / delta)) / k;
+      } else {
+        tau = 0;
+      }
+
+      total += rho + tau;
+      cdf.push(total);
     }
-
-    // Robust component (tau)
-    let tau: number;
-    if (d >= 1 && d <= ks - 1) {
-      tau = s / (k * d);
-    } else if (d === ks) {
-      tau = (s * Math.log(s / delta)) / k;
-    } else {
-      tau = 0;
+    
+    // Normalize CDF to 1.0
+    for (let d = 0; d < cdf.length; d++) {
+      cdf[d] /= total;
     }
-
-    total += rho + tau;
-    cdf.push(total);
+    
+    // Keep cache bounded to avoid memory leaks
+    if (cdfCache.size > 10) cdfCache.clear();
+    cdfCache.set(k, cdf);
   }
 
-  // Normalize and sample
-  const r = rng.nextFloat() * total;
+  // Sample using normalized CDF
+  const r = rng.nextFloat();
   for (let d = 0; d < cdf.length; d++) {
     if (r < cdf[d]) return d + 1;
   }

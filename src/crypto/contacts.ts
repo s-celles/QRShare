@@ -2,6 +2,7 @@ export interface TrustedContact {
   name: string;
   fingerprint: string;
   publicKeyJwk: JsonWebKey;
+  ecdhPublicKeyJwk?: JsonWebKey;
   addedAt: number;
 }
 

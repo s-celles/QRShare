@@ -25,11 +25,13 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 
 export interface PeerIdentity {
   publicKeyJwk: JsonWebKey;
+  ecdhPublicKeyJwk?: JsonWebKey;
   fingerprint: string;
 }
 
 export interface StoredIdentity extends PeerIdentity {
   privateKeyJwk: JsonWebKey;
+  ecdhPrivateKeyJwk?: JsonWebKey;
 }
 
 let cachedIdentity: StoredIdentity | null = null;
@@ -60,6 +62,15 @@ export async function getLocalIdentity(): Promise<StoredIdentity> {
   const publicKeyJwk = await subtle.exportKey("jwk", keyPair.publicKey);
   const privateKeyJwk = await subtle.exportKey("jwk", keyPair.privateKey);
 
+  // Generate ECDH P-256 keypair for E2EE
+  const ecdhKeyPair = await subtle.generateKey(
+    { name: "ECDH", namedCurve: "P-256" },
+    true,
+    ["deriveKey", "deriveBits"]
+  );
+  const ecdhPublicKeyJwk = await subtle.exportKey("jwk", ecdhKeyPair.publicKey);
+  const ecdhPrivateKeyJwk = await subtle.exportKey("jwk", ecdhKeyPair.privateKey);
+
   // Generate fingerprint (SHA-256 of public key x and y coordinates for simplicity)
   const keyString = `${publicKeyJwk.x}|${publicKeyJwk.y}`;
   const hashBuffer = await subtle.digest("SHA-256", new TextEncoder().encode(keyString));
@@ -72,6 +83,8 @@ export async function getLocalIdentity(): Promise<StoredIdentity> {
   const identity: StoredIdentity = {
     publicKeyJwk,
     privateKeyJwk,
+    ecdhPublicKeyJwk,
+    ecdhPrivateKeyJwk,
     fingerprint,
   };
 

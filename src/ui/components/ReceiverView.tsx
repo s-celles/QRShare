@@ -4,7 +4,9 @@ import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
 import { isZipBundle, unbundleFiles } from "@/zip/bundle";
 import type { DecodeWorkerInput, DecodeWorkerOutput } from "@/workers/types";
-import { isEncryptedPayload, decryptPayload } from "@/crypto/encryption";
+import { isEncryptedPayload, decryptPayload, decryptPayloadECDH } from "@/crypto/encryption";
+import { getLocalIdentity } from "@/crypto/identity";
+import { getContacts } from "@/crypto/contacts";
 import { EncryptedUnlockCard } from "./EncryptedUnlockCard";
 import { TextResultView } from "./TextResultView";
 import { TransferSummary } from "./TransferSummary";
@@ -169,7 +171,35 @@ export function ReceiverView() {
             isTextContent.value = msg.isText;
 
             if (isEncryptedPayload(new Uint8Array(msg.file))) {
-              rawEncryptedBuffer.value = msg.file;
+              const fileBytes = new Uint8Array(msg.file);
+              if (fileBytes[4] === 2) {
+                // ECDH (Contact) Encrypted Payload
+                void (async () => {
+                  try {
+                    const me = await getLocalIdentity();
+                    if (!me.ecdhPrivateKeyJwk) throw new Error("Local ECDH key missing");
+                    const decryptedBytes = await decryptPayloadECDH(
+                      fileBytes,
+                      me.ecdhPrivateKeyJwk,
+                      async (fingerprint) => {
+                        const contacts = getContacts();
+                        const target = contacts.find(c => c.fingerprint === fingerprint);
+                        return target?.ecdhPublicKeyJwk || null;
+                      }
+                    );
+                    const decryptedBuffer = decryptedBytes.buffer.slice(
+                      decryptedBytes.byteOffset,
+                      decryptedBytes.byteOffset + decryptedBytes.byteLength,
+                    ) as ArrayBuffer;
+                    processFilePayload(decryptedBuffer, msg.filename, msg.isText);
+                  } catch (err) {
+                    error.value = "E2EE Decryption Failed: " + (err instanceof Error ? err.message : String(err));
+                  }
+                })();
+              } else {
+                // Password Encrypted Payload
+                rawEncryptedBuffer.value = msg.file;
+              }
             } else {
               processFilePayload(msg.file, msg.filename, msg.isText);
             }

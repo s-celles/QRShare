@@ -4,9 +4,11 @@ import { navigate } from "../router";
 import { renderQRToDataURL, type EncodingPreset } from "@/qr/renderer";
 import { bundleFiles, makeBundleName } from "@/zip/bundle";
 import type { EncodeWorkerInput, EncodeWorkerOutput } from "@/workers/types";
-import { encryptPayload } from "@/crypto/encryption";
+import { encryptPayload, encryptPayloadECDH } from "@/crypto/encryption";
 import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME } from "../shared-file";
 import { hashParams } from "../router";
+import { getContacts } from "@/crypto/contacts";
+import { getLocalIdentity } from "@/crypto/identity";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { t } from "../i18n";
@@ -16,7 +18,9 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 const contentType = signal<"file" | "text">("file");
 const textInput = signal("");
 const enableEncryption = signal(false);
+const encryptionMode = signal<"password" | "contact">("password");
 const encryptionPassword = signal("");
+const encryptionTargetContact = signal<string>("");
 const preset = signal<EncodingPreset>("balanced");
 const fps = signal(10);
 const blockSizeValue = signal(250);
@@ -60,12 +64,33 @@ export function SenderView() {
         let finalFilename = filename;
         let finalIsText = isText;
 
-        if (enableEncryption.value && encryptionPassword.value.trim()) {
+        if (enableEncryption.value) {
           try {
-            const encryptedBytes = await encryptPayload(
-              new Uint8Array(buffer),
-              encryptionPassword.value,
-            );
+            let encryptedBytes: Uint8Array;
+            if (encryptionMode.value === "password" && encryptionPassword.value.trim()) {
+              encryptedBytes = await encryptPayload(
+                new Uint8Array(buffer),
+                encryptionPassword.value,
+              );
+            } else if (encryptionMode.value === "contact" && encryptionTargetContact.value) {
+              const contacts = getContacts();
+              const target = contacts.find(c => c.fingerprint === encryptionTargetContact.value);
+              if (!target || !target.ecdhPublicKeyJwk) {
+                throw new Error(t("encryption.contactMissingKey"));
+              }
+              const me = await getLocalIdentity();
+              if (!me.ecdhPrivateKeyJwk) {
+                throw new Error("Local ECDH key missing. Please reset identity.");
+              }
+              encryptedBytes = await encryptPayloadECDH(
+                new Uint8Array(buffer),
+                me.ecdhPrivateKeyJwk,
+                target.ecdhPublicKeyJwk,
+                me.fingerprint
+              );
+            } else {
+              throw new Error("No password or contact selected for encryption");
+            }
             finalBuffer = encryptedBytes.buffer.slice(
               encryptedBytes.byteOffset,
               encryptedBytes.byteOffset + encryptedBytes.byteLength,
@@ -327,18 +352,49 @@ export function SenderView() {
               </label>
             </div>
             {enableEncryption.value && (
-              <div class="creator-param">
-                <label htmlFor="sender-enc-pass">{t("encryption.password")}</label>
-                <input
-                  id="sender-enc-pass"
-                  type="password"
-                  class="creator-input-field"
-                  value={encryptionPassword.value}
-                  onInput={(e) => {
-                    encryptionPassword.value = (e.target as HTMLInputElement).value;
-                  }}
-                  placeholder={t("encryption.passwordPlaceholder")}
-                />
+              <div class="creator-param" style={{ marginTop: "0.5rem" }}>
+                <div class="form-row-2">
+                  <div class="creator-param">
+                    <label htmlFor="enc-mode">{t("encryption.mode")}</label>
+                    <select
+                      id="enc-mode"
+                      value={encryptionMode.value}
+                      onChange={(e) => { encryptionMode.value = (e.target as HTMLSelectElement).value as any; }}
+                    >
+                      <option value="password">{t("encryption.modePassword")}</option>
+                      <option value="contact">{t("encryption.modeContact")}</option>
+                    </select>
+                  </div>
+                  {encryptionMode.value === "password" ? (
+                    <div class="creator-param">
+                      <label htmlFor="sender-enc-pass">{t("encryption.password")}</label>
+                      <input
+                        id="sender-enc-pass"
+                        type="password"
+                        class="creator-input-field"
+                        value={encryptionPassword.value}
+                        onInput={(e) => {
+                          encryptionPassword.value = (e.target as HTMLInputElement).value;
+                        }}
+                        placeholder={t("encryption.passwordPlaceholder")}
+                      />
+                    </div>
+                  ) : (
+                    <div class="creator-param">
+                      <label htmlFor="enc-contact">{t("encryption.contact")}</label>
+                      <select
+                        id="enc-contact"
+                        value={encryptionTargetContact.value}
+                        onChange={(e) => { encryptionTargetContact.value = (e.target as HTMLSelectElement).value; }}
+                      >
+                        <option value="">{t("encryption.selectContact")}</option>
+                        {getContacts().filter(c => c.ecdhPublicKeyJwk).map(c => (
+                          <option key={c.fingerprint} value={c.fingerprint}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

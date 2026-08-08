@@ -8,9 +8,12 @@ interface FilePreviewProps {
   mimeType?: string;
 }
 
-function kindOf(filename: string, mimeType = ""): "image" | "text" | "vcard" | "none" {
+function kindOf(filename: string, mimeType = ""): "image" | "video" | "audio" | "pdf" | "text" | "vcard" | "none" {
   const lower = filename.toLowerCase();
   if (mimeType.startsWith("image/") || /\.(avif|bmp|gif|jpe?g|png|svg|webp)$/.test(lower)) return "image";
+  if (mimeType.startsWith("video/") || /\.(mp4|webm|ogg|mov)$/.test(lower)) return "video";
+  if (mimeType.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac)$/.test(lower)) return "audio";
+  if (mimeType === "application/pdf" || /\.pdf$/.test(lower)) return "pdf";
   if (mimeType.toLowerCase().split(";")[0] === "text/vcard" || /\.(vcf|vcard)$/.test(lower)) return "vcard";
   if (mimeType.startsWith("text/") || /\.(css|csv|log|md|markdown|txt|xml|yaml|yml|json)$/.test(lower)) return "text";
   return "none";
@@ -122,7 +125,10 @@ export function FilePreview({ url, filename, mimeType }: FilePreviewProps) {
     return () => { cancelled = true; };
   }, [url, kind]);
 
-  if (kind === "image") return <div class="file-preview"><img src={url} alt={filename} loading="lazy" /></div>;
+  if (kind === "image") return <div class="file-preview file-preview-media"><img src={url} alt={filename} loading="lazy" /></div>;
+  if (kind === "video") return <div class="file-preview file-preview-media"><video src={url} controls aria-label={filename} /></div>;
+  if (kind === "audio") return <div class="file-preview file-preview-audio"><audio src={url} controls aria-label={filename} /></div>;
+  if (kind === "pdf") return <div class="file-preview file-preview-pdf"><object data={url} type="application/pdf" aria-label={filename}><p>PDF Preview not available.</p></object></div>;
   if (kind === "vcard" && text != null) return <VCardPreview url={url} filename={filename} text={text} />;
   if (kind === "text" && text != null) {
     const markdown = /\.(md|markdown)$/i.test(filename);

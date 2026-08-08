@@ -6,6 +6,7 @@ import { parseStructuredQR } from "@/qr/structured";
 import { renderQRCustomToDataURL } from "@/qr/renderer";
 import { WifiResultCard } from "./WifiResultCard";
 import { ContactResultCard } from "./ContactResultCard";
+import { IdentityResultCard } from "./IdentityResultCard";
 import { WifiPrintModal } from "./WifiPrintModal";
 import { pendingFile, pendingText } from "../shared-file";
 import { t } from "../i18n";
@@ -368,6 +369,10 @@ export function ScannerView() {
               <ContactResultCard contact={structured} />
             )}
 
+            {structured.kind === "trusted-identity" && !showRaw && (
+              <IdentityResultCard identity={structured} />
+            )}
+
             {(structured.kind === "text" || structured.kind === "url" || showRaw) && (
               isHttpUrl(scannedText.value) ? (
                 <div class="result-content">
@@ -392,7 +397,7 @@ export function ScannerView() {
               )
             )}
 
-            {(structured.kind === "wifi" || structured.kind === "contact") && (
+            {(structured.kind === "wifi" || structured.kind === "contact" || structured.kind === "trusted-identity") && (
               <div class="card-toggle-row">
                 <button class="icon-btn-text" onClick={() => setShowRaw(!showRaw)}>
                   {showRaw ? t("structured.toggleStructured") : t("structured.toggleRaw")}

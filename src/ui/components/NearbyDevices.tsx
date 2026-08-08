@@ -3,6 +3,8 @@ import { localDiscovery, type DiscoveredPeer, type LocalDiscoveryMode } from "@/
 import { navigate } from "../router";
 import { pendingFile } from "../shared-file";
 import { t } from "../i18n";
+import { isTrustedContact } from "@/crypto/contacts";
+import { ContactsModal } from "./ContactsModal";
 
 export function NearbyDevices() {
   const [peers, setPeers] = useState<DiscoveredPeer[]>([]);
@@ -12,6 +14,7 @@ export function NearbyDevices() {
     peerName: string;
     status: "pending" | "declined";
   } | null>(null);
+  const [showContacts, setShowContacts] = useState(false);
 
   useEffect(() => {
     if (currentMode !== "off") {
@@ -101,8 +104,18 @@ export function NearbyDevices() {
           >
             ✖️
           </button>
+          <button
+            class="icon-btn-text"
+            onClick={() => setShowContacts(true)}
+            title={t("contacts.manage", "Manage Contacts")}
+            style={{ marginLeft: "0.5rem" }}
+          >
+            🛡️
+          </button>
         </div>
       </div>
+
+      {showContacts && <ContactsModal onClose={() => setShowContacts(false)} />}
 
       {offerState && (
         <div class={`offer-status-banner ${offerState.status}`} style={{ margin: "0.5rem 0", padding: "0.5rem 0.75rem", borderRadius: "6px", background: offerState.status === "pending" ? "#fef3c7" : "#fee2e2", color: offerState.status === "pending" ? "#92400e" : "#991b1b" }}>
@@ -116,31 +129,36 @@ export function NearbyDevices() {
         <p class="settings-hint">{t("discovery.scanning")}</p>
       ) : (
         <div class="peers-list">
-          {peers.map((peer) => (
-            <div class="peer-item" key={peer.id}>
-              <div class="peer-info">
-                <span class="peer-icon">
-                  {peer.deviceType === "mobile" ? "📱" : peer.deviceType === "tablet" ? "📱" : "💻"}
-                </span>
-                <div class="peer-details">
-                  <strong class="peer-name">{peer.name}</strong>
-                  <div class="peer-meta" style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "2px" }}>
-                    <span class="peer-status-badge" style={{ fontSize: "0.75rem", color: "#10b981" }}>🟢 Online</span>
-                    {peer.fingerprint && (
-                      <span class="peer-fingerprint" style={{ fontSize: "0.75rem", color: "#6b7280", background: "#f3f4f6", padding: "1px 4px", borderRadius: "4px" }} title="Verified Identity Key">🛡️ {peer.fingerprint}</span>
-                    )}
+          {peers.map((peer) => {
+            const trusted = isTrustedContact(peer.fingerprint);
+            return (
+              <div class="peer-item" key={peer.id} style={{ opacity: trusted ? 1 : 0.6, borderLeft: trusted ? "3px solid #10b981" : "3px solid transparent" }}>
+                <div class="peer-info">
+                  <span class="peer-icon">
+                    {peer.deviceType === "mobile" ? "📱" : peer.deviceType === "tablet" ? "📱" : "💻"}
+                  </span>
+                  <div class="peer-details">
+                    <strong class="peer-name">{peer.name} {trusted ? "🛡️" : "⚠️"}</strong>
+                    <div class="peer-meta" style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "2px" }}>
+                      <span class="peer-status-badge" style={{ fontSize: "0.75rem", color: "#10b981" }}>🟢 Online</span>
+                      {peer.fingerprint && (
+                        <span class="peer-fingerprint" style={{ fontSize: "0.75rem", color: "#6b7280", background: "#f3f4f6", padding: "1px 4px", borderRadius: "4px" }} title="Identity Key">
+                          {trusted ? "Verified Contact" : peer.fingerprint}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
+                <button
+                  class="start-btn share-action peer-send-btn"
+                  onClick={() => handleSendToPeer(peer)}
+                  disabled={offerState?.status === "pending"}
+                >
+                  {t("discovery.sendDirect")}
+                </button>
               </div>
-              <button
-                class="start-btn share-action peer-send-btn"
-                onClick={() => handleSendToPeer(peer)}
-                disabled={offerState?.status === "pending"}
-              >
-                {t("discovery.sendDirect")}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,5 +1,12 @@
 export type StructuredQR =
   | {
+      kind: "trusted-identity";
+      name: string;
+      fingerprint: string;
+      publicKeyJwk: JsonWebKey;
+      raw: string;
+    }
+  | {
       kind: "wifi";
       ssid: string;
       security: "WPA" | "WEP" | "nopass";
@@ -346,6 +353,23 @@ export function parseStructuredQR(raw: string): StructuredQR {
   if (/^(MECARD:|BEGIN:VCARD)/i.test(trimmed)) {
     const contact = parseContactString(trimmed);
     if (contact) return contact;
+  }
+
+  try {
+    if (trimmed.startsWith("{") && trimmed.includes('"qrshare_identity"')) {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.qrshare_identity === true && parsed.name && parsed.fingerprint && parsed.publicKeyJwk) {
+        return {
+          kind: "trusted-identity",
+          name: parsed.name,
+          fingerprint: parsed.fingerprint,
+          publicKeyJwk: parsed.publicKeyJwk,
+          raw
+        };
+      }
+    }
+  } catch {
+    // Ignore JSON parse errors
   }
 
   try {

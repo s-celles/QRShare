@@ -48,7 +48,14 @@ export function NearbyDevices() {
         buffer,
         filename: file.name,
       };
-      navigate(`/send/webrtc?peer=${peer.id}`);
+      const transferRoomId = Math.random().toString(36).substring(2, 10);
+      void localDiscovery.sendOffer(peer.id, {
+        transferId: transferRoomId,
+        filename: file.name,
+        size: file.size,
+        isText: false,
+      });
+      navigate(`/send/webrtc?room=${transferRoomId}`);
     };
     input.click();
   };

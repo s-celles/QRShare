@@ -298,11 +298,11 @@ export class LocalDiscoveryService {
 
   public sendOffer(
     targetPeerId: string,
-    payload: { filename: string; size: number; isText: boolean; sha256?: string; isEncrypted?: boolean },
+    payload: { transferId?: string; filename: string; size: number; isText: boolean; sha256?: string; isEncrypted?: boolean },
   ): Promise<boolean> {
     if (this.sendActions.length === 0) return Promise.resolve(false);
 
-    const transferId = Math.random().toString(36).substring(2, 10);
+    const transferId = payload.transferId || Math.random().toString(36).substring(2, 10);
     const offer: TransferOffer = {
       transferId,
       senderId: this.myPeerId.value || "local",

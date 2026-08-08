@@ -78,12 +78,20 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 2. Tapez votre texte ou collez une adresse web dans la zone de saisie
 3. Le QR code se génère instantanément et se met à jour à chaque modification
 4. Ajustez les paramètres si besoin :
-   - **Correction d'erreur** — Niveau de correction d'erreur (L, M, Q ou H). Plus le niveau est élevé, plus le QR code résiste aux dégradations, mais moins il peut contenir de données
-   - **Version** — En mode Auto, l'application choisit la plus petite taille possible. En mode Manuel, vous choisissez une version de 1 (petit) à 40 (très grand)
-5. Le compteur **Charge utile** indique combien d'octets votre texte occupe par rapport à la capacité maximale
-6. Appuyez sur **Télécharger PNG** pour enregistrer le QR code comme image
+   - **Modèle** — Choisissez entre **Texte brut**, **Réseau Wi-Fi** (`WIFI:S:...`) ou **Carte de contact** (**MECARD** compacte ou **vCard 3.0** standard).
+   - **Correction d'erreur** — Niveau de correction d'erreur (L, M, Q ou H). Plus le niveau est élevé, plus le QR code résiste aux dégradations, mais moins il peut contenir de données.
+   - **Version** — En mode Auto, l'application choisit la plus petite taille possible. En mode Manuel, vous choisissez une version de 1 (petit) à 40 (très grand).
+5. Le compteur **Charge utile** indique combien d'octets votre texte occupe par rapport à la capacité maximale.
+6. Pour un QR code Wi-Fi, vous pouvez cliquer sur **Imprimer la fiche Wi-Fi** pour afficher et imprimer une pancarte d'accès Wi-Fi propre et professionnelle.
+7. Appuyez sur **Télécharger PNG** pour enregistrer le QR code comme image.
 
 Si le texte est trop long pour la version et le niveau de correction choisis, un message d'erreur s'affiche.
+
+### Formats structurés intelligents (Wi-Fi et Contacts)
+
+QRShare détecte automatiquement les formats structurés lors du scan ou de la réception :
+- **Réseau Wi-Fi** (`WIFI:S:Nom;T:WPA;P:Pass;;`) : Affiche le SSID, la sécurité et le mot de passe masqué. Permet d'afficher/copier le mot de passe en 1 clic, de lancer la connexion Wi-Fi automatique ou d'imprimer la fiche Wi-Fi pour les invités.
+- **Carte de contact** (`MECARD:...` ou `BEGIN:VCARD`) : Affiche la fiche du contact avec avatar, nom, entreprise, téléphone, e-mail et site Web. Permet de télécharger le fichier `.vcf` pour l'ajouter directement aux contacts de votre appareil, ou de lancer directement un appel ou un e-mail.
 
 ---
 

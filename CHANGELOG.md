@@ -7,12 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Default animated QR fountain-code frame rate increased from 2 FPS to 10 FPS across all encoding presets
-
 ### Added
 
+- Native support for structured QR formats: Wi-Fi connection strings (`WIFI:S:...;`) and Contact cards (**MECARD** compact format and **vCard 3.0** standard format)
+- Guided form templates in `CreatorView` for creating Wi-Fi networks and Contact cards with automatic escaping and capacity calculation
+- Smart structured QR parser for `ScannerView` and `TextResultView` rendering interactive result cards (Wi-Fi password reveal, copy password, download `.vcf` contact file, call/email buttons)
+- Printable Wi-Fi Guest Sign modal with print-optimized CSS layout for paper printing or badge creation
 - Experimental CIMBAR air-gapped transport using native QRShare Preact views and workers backed directly by the libcimbar v0.6.7c WASM APIs, available as a separate send/receive mode with receiver invitation support
 
 ## [0.3.0] - 2026-08-03

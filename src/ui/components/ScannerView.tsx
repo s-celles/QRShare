@@ -1,7 +1,12 @@
 import { signal } from "@preact/signals";
-import { useRef, useCallback, useEffect } from "preact/hooks";
+import { useRef, useCallback, useEffect, useState } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
+import { parseStructuredQR } from "@/qr/structured";
+import { renderQRCustomToDataURL } from "@/qr/renderer";
+import { WifiResultCard } from "./WifiResultCard";
+import { ContactResultCard } from "./ContactResultCard";
+import { WifiPrintModal } from "./WifiPrintModal";
 import { pendingFile, pendingText } from "../shared-file";
 import { t } from "../i18n";
 
@@ -38,6 +43,9 @@ function qrShareUrl(text: string): URL | null {
 }
 
 export function ScannerView() {
+  const [showRaw, setShowRaw] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -332,51 +340,96 @@ export function ScannerView() {
         </div>
       )}
 
-      {scannedText.value && (
-        <div class="scanner-result" aria-live="polite">
-          <h3>{t("scanner.scannedContent")}</h3>
-          {isHttpUrl(scannedText.value) ? (
-            <div class="result-content">
-              <a
-                href={scannedText.value}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="result-link"
-                >
-                  {scannedText.value}
-                </a>
-                {qrShareUrl(scannedText.value) && (
-                  <button class="start-btn share-action" onClick={openInQRShare}>
-                    {t("scanner.openInQRShare")}
-                  </button>
-                )}
-            </div>
-          ) : (
-            <div class="result-content">
-              <pre class="result-text">{scannedText.value}</pre>
-            </div>
-          )}
-          <div class="share-actions">
-            <button class="copy-btn" onClick={handleCopy}>
-              {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
-            </button>
-            {shareService.isShareSupported() && (
-              <button class="start-btn share-action" onClick={handleShare}>
-                {t("common.share")}
-              </button>
+      {scannedText.value && (() => {
+        const structured = parseStructuredQR(scannedText.value);
+        const wifiQrDataUrl = structured.kind === "wifi" ? (() => {
+          try {
+            return renderQRCustomToDataURL(new TextEncoder().encode(scannedText.value), {
+              eccLevel: "M",
+              autoVersion: true,
+            });
+          } catch {
+            return null;
+          }
+        })() : null;
+
+        return (
+          <div class="scanner-result" aria-live="polite">
+            <h3>{t("scanner.scannedContent")}</h3>
+
+            {structured.kind === "wifi" && !showRaw && (
+              <WifiResultCard
+                wifi={structured}
+                onPrint={() => setShowPrintModal(true)}
+              />
             )}
-            <button class="start-btn share-action" onClick={handleSendStaticQR}>
-              {t("scanner.sendStaticQR")}
-            </button>
-            <button class="start-btn share-action" onClick={handleSendQR}>
-              {t("scanner.sendAnimatedQR")}
-            </button>
-            <button class="start-btn share-action" onClick={handleSendWebRTC}>
-              {t("common.sendWebRTC")}
-            </button>
+
+            {structured.kind === "contact" && !showRaw && (
+              <ContactResultCard contact={structured} />
+            )}
+
+            {(structured.kind === "text" || structured.kind === "url" || showRaw) && (
+              isHttpUrl(scannedText.value) ? (
+                <div class="result-content">
+                  <a
+                    href={scannedText.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="result-link"
+                  >
+                    {scannedText.value}
+                  </a>
+                  {qrShareUrl(scannedText.value) && (
+                    <button class="start-btn share-action" onClick={openInQRShare}>
+                      {t("scanner.openInQRShare")}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div class="result-content">
+                  <pre class="result-text">{scannedText.value}</pre>
+                </div>
+              )
+            )}
+
+            {(structured.kind === "wifi" || structured.kind === "contact") && (
+              <div class="card-toggle-row">
+                <button class="icon-btn-text" onClick={() => setShowRaw(!showRaw)}>
+                  {showRaw ? t("structured.toggleStructured") : t("structured.toggleRaw")}
+                </button>
+              </div>
+            )}
+
+            <div class="share-actions">
+              <button class="copy-btn" onClick={handleCopy}>
+                {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
+              </button>
+              {shareService.isShareSupported() && (
+                <button class="start-btn share-action" onClick={handleShare}>
+                  {t("common.share")}
+                </button>
+              )}
+              <button class="start-btn share-action" onClick={handleSendStaticQR}>
+                {t("scanner.sendStaticQR")}
+              </button>
+              <button class="start-btn share-action" onClick={handleSendQR}>
+                {t("scanner.sendAnimatedQR")}
+              </button>
+              <button class="start-btn share-action" onClick={handleSendWebRTC}>
+                {t("common.sendWebRTC")}
+              </button>
+            </div>
+
+            {showPrintModal && structured.kind === "wifi" && (
+              <WifiPrintModal
+                wifi={structured}
+                qrDataUrl={wifiQrDataUrl}
+                onClose={() => setShowPrintModal(false)}
+              />
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 }

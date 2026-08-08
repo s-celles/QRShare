@@ -78,12 +78,20 @@ Five buttons for transferring files between devices:
 2. Type your text or paste a web address into the text area
 3. The QR code is generated instantly and updates with every change
 4. Adjust the parameters if needed:
-   - **Error Correction** — Error correction level (L, M, Q or H). A higher level makes the QR code more resistant to damage, but reduces the amount of data it can hold
-   - **Version** — In Auto mode, the application picks the smallest size that fits. In Manual mode, you choose a version from 1 (small) to 40 (very large)
-5. The **Payload** counter shows how many bytes your text uses compared to the maximum capacity
-6. Tap **Download PNG** to save the QR code as an image
+   - **Template** — Choose between **Plain Text**, **Wi-Fi Network** (`WIFI:S:...`), or **Contact Card** (**MECARD** compact or **vCard 3.0** standard).
+   - **Error Correction** — Error correction level (L, M, Q or H). A higher level makes the QR code more resistant to damage, but reduces the amount of data it can hold.
+   - **Version** — In Auto mode, the application picks the smallest size that fits. In Manual mode, you choose a version from 1 (small) to 40 (very large).
+5. The **Payload** counter shows how many bytes your text uses compared to the maximum capacity.
+6. For a Wi-Fi QR code, tap **Print Wi-Fi Sign** to display and print a clean Wi-Fi access card.
+7. Tap **Download PNG** to save the QR code as an image.
 
 If the text is too long for the selected version and error correction level, an error message is displayed.
+
+### Smart Structured Formats (Wi-Fi and Contacts)
+
+QRShare automatically recognizes structured formats when scanning or receiving messages:
+- **Wi-Fi Network** (`WIFI:S:SSID;T:WPA;P:Pass;;`): Displays network SSID, security type, and masked password. Allows 1-click password copy, automatic Wi-Fi connection, or printing a Wi-Fi guest access sign.
+- **Contact Card** (`MECARD:...` or `BEGIN:VCARD`): Displays contact card with avatar, name, company, phone, email, and website. Allows downloading a `.vcf` file to save directly to system contacts, or triggering direct phone calls/emails.
 
 ---
 

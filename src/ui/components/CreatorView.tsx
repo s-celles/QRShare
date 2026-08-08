@@ -1,5 +1,5 @@
 import { signal, computed } from "@preact/signals";
-import { useCallback, useEffect } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { navigate } from "../router";
 import {
   renderQRCustomToDataURL,
@@ -7,23 +7,50 @@ import {
   getByteCapacityTable,
   type CorrectionLabel,
 } from "@/qr/renderer";
+import {
+  buildWifiString,
+  buildMecardString,
+  buildVCardString,
+  parseStructuredQR,
+} from "@/qr/structured";
 import { ShareService } from "@/share/service";
 import { pendingFile, pendingText } from "../shared-file";
+import { WifiPrintModal } from "./WifiPrintModal";
 import { t } from "../i18n";
 
 const shareService = new ShareService();
+
+type TemplateType = "raw" | "wifi" | "contact";
+type ContactFormat = "mecard" | "vcard";
 
 const inputText = signal("");
 const eccLevel = signal<CorrectionLabel>("M");
 const autoVersion = signal(true);
 const manualVersion = signal(5);
 
+const template = signal<TemplateType>("raw");
+
+// Wi-Fi Form Signals
+const wifiSsid = signal("");
+const wifiSecurity = signal<"WPA" | "WEP" | "nopass">("WPA");
+const wifiPassword = signal("");
+const wifiHidden = signal(false);
+
+// Contact Form Signals
+const contactFormat = signal<ContactFormat>("mecard");
+const firstName = signal("");
+const lastName = signal("");
+const phone = signal("");
+const email = signal("");
+const org = signal("");
+const url = signal("");
+const note = signal("");
+
 const textBytes = computed(() => new TextEncoder().encode(inputText.value));
 const byteLength = computed(() => textBytes.value.byteLength);
 
 const effectiveMaxVersion = computed(() => {
   if (!autoVersion.value) return manualVersion.value;
-  // Find the smallest version that fits for auto mode
   const table = getByteCapacityTable();
   const capacities = table[eccLevel.value];
   for (let v = 1; v <= 40; v++) {
@@ -58,13 +85,72 @@ const qrDataUrl = computed(() => {
 });
 
 export function CreatorView() {
+  const [showPrintModal, setShowPrintModal] = useState(false);
+
+  const updatePayloadFromTemplate = useCallback(() => {
+    if (template.value === "wifi") {
+      if (!wifiSsid.value) {
+        inputText.value = "";
+      } else {
+        inputText.value = buildWifiString({
+          ssid: wifiSsid.value,
+          security: wifiSecurity.value,
+          password: wifiPassword.value,
+          hidden: wifiHidden.value,
+        });
+      }
+    } else if (template.value === "contact") {
+      const fn = contactFormat.value === "mecard" ? buildMecardString : buildVCardString;
+      inputText.value = fn({
+        firstName: firstName.value,
+        lastName: lastName.value,
+        phone: phone.value,
+        email: email.value,
+        org: org.value,
+        url: url.value,
+        note: note.value,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const text = pendingText.value;
     if (text) {
       pendingText.value = null;
       inputText.value = text;
+      // Auto-detect template mode if text matches Wi-Fi or Contact
+      const structured = parseStructuredQR(text);
+      if (structured.kind === "wifi") {
+        template.value = "wifi";
+        wifiSsid.value = structured.ssid;
+        wifiSecurity.value = structured.security;
+        wifiPassword.value = structured.password || "";
+        wifiHidden.value = !!structured.hidden;
+      } else if (structured.kind === "contact") {
+        template.value = "contact";
+        contactFormat.value = structured.format;
+        firstName.value = structured.firstName || "";
+        lastName.value = structured.lastName || "";
+        phone.value = structured.phone || "";
+        email.value = structured.email || "";
+        org.value = structured.org || "";
+        url.value = structured.url || "";
+        note.value = structured.note || "";
+      } else {
+        template.value = "raw";
+      }
     }
   }, []);
+
+  const handleTemplateChange = (e: Event) => {
+    const newTpl = (e.target as HTMLSelectElement).value as TemplateType;
+    template.value = newTpl;
+    if (newTpl === "raw") {
+      inputText.value = "";
+    } else {
+      updatePayloadFromTemplate();
+    }
+  };
 
   const handleTextInput = useCallback((e: Event) => {
     inputText.value = (e.target as HTMLTextAreaElement).value;
@@ -132,9 +218,24 @@ export function CreatorView() {
     eccLevel.value = "M";
     autoVersion.value = true;
     manualVersion.value = 5;
+    template.value = "raw";
+    wifiSsid.value = "";
+    wifiSecurity.value = "WPA";
+    wifiPassword.value = "";
+    wifiHidden.value = false;
+    contactFormat.value = "mecard";
+    firstName.value = "";
+    lastName.value = "";
+    phone.value = "";
+    email.value = "";
+    org.value = "";
+    url.value = "";
+    note.value = "";
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
+
+  const parsedStructured = parseStructuredQR(inputText.value);
 
   return (
     <section aria-label={t("creator.section")}>
@@ -152,17 +253,215 @@ export function CreatorView() {
       </div>
 
       <div class="creator-content">
-        <div class="creator-input">
-          <label htmlFor="qr-text">{t("creator.contentLabel")}</label>
-          <textarea
-            id="qr-text"
-            class="creator-textarea"
-            value={inputText.value}
-            onInput={handleTextInput}
-            placeholder={t("creator.placeholder")}
-            rows={4}
-          />
+        <div class="creator-param template-selector">
+          <label htmlFor="template-mode">{t("structured.templateLabel")}</label>
+          <select
+            id="template-mode"
+            value={template.value}
+            onChange={handleTemplateChange}
+          >
+            <option value="raw">{t("structured.templateText")}</option>
+            <option value="wifi">📶 {t("structured.templateWifi")}</option>
+            <option value="contact">📇 {t("structured.templateContact")}</option>
+          </select>
         </div>
+
+        {template.value === "raw" && (
+          <div class="creator-input">
+            <label htmlFor="qr-text">{t("creator.contentLabel")}</label>
+            <textarea
+              id="qr-text"
+              class="creator-textarea"
+              value={inputText.value}
+              onInput={handleTextInput}
+              placeholder={t("creator.placeholder")}
+              rows={4}
+            />
+          </div>
+        )}
+
+        {template.value === "wifi" && (
+          <div class="structured-form wifi-form">
+            <div class="creator-param">
+              <label htmlFor="wifi-ssid">{t("structured.wifiSsid")} *</label>
+              <input
+                id="wifi-ssid"
+                type="text"
+                class="creator-input-field"
+                value={wifiSsid.value}
+                onInput={(e) => {
+                  wifiSsid.value = (e.target as HTMLInputElement).value;
+                  updatePayloadFromTemplate();
+                }}
+                placeholder="MyHomeWifi"
+              />
+            </div>
+            <div class="creator-param">
+              <label htmlFor="wifi-sec">{t("structured.wifiSecurity")}</label>
+              <select
+                id="wifi-sec"
+                value={wifiSecurity.value}
+                onChange={(e) => {
+                  wifiSecurity.value = (e.target as HTMLSelectElement).value as any;
+                  updatePayloadFromTemplate();
+                }}
+              >
+                <option value="WPA">WPA / WPA2 / WPA3</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">None (Open)</option>
+              </select>
+            </div>
+            {wifiSecurity.value !== "nopass" && (
+              <div class="creator-param">
+                <label htmlFor="wifi-pass">{t("structured.wifiPassword")}</label>
+                <input
+                  id="wifi-pass"
+                  type="text"
+                  class="creator-input-field"
+                  value={wifiPassword.value}
+                  onInput={(e) => {
+                    wifiPassword.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                  placeholder="Password123"
+                />
+              </div>
+            )}
+            <div class="creator-param checkbox-param">
+              <label htmlFor="wifi-hidden">
+                <input
+                  id="wifi-hidden"
+                  type="checkbox"
+                  checked={wifiHidden.value}
+                  onChange={(e) => {
+                    wifiHidden.value = (e.target as HTMLInputElement).checked;
+                    updatePayloadFromTemplate();
+                  }}
+                />{" "}
+                {t("structured.wifiHidden")}
+              </label>
+            </div>
+          </div>
+        )}
+
+        {template.value === "contact" && (
+          <div class="structured-form contact-form">
+            <div class="creator-param">
+              <label htmlFor="contact-fmt">{t("structured.contactFormat")}</label>
+              <select
+                id="contact-fmt"
+                value={contactFormat.value}
+                onChange={(e) => {
+                  contactFormat.value = (e.target as HTMLSelectElement).value as any;
+                  updatePayloadFromTemplate();
+                }}
+              >
+                <option value="mecard">{t("structured.contactMecard")}</option>
+                <option value="vcard">{t("structured.contactVcard")}</option>
+              </select>
+            </div>
+            <div class="form-row-2">
+              <div class="creator-param">
+                <label htmlFor="first-name">{t("structured.firstName")}</label>
+                <input
+                  id="first-name"
+                  type="text"
+                  class="creator-input-field"
+                  value={firstName.value}
+                  onInput={(e) => {
+                    firstName.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                />
+              </div>
+              <div class="creator-param">
+                <label htmlFor="last-name">{t("structured.lastName")}</label>
+                <input
+                  id="last-name"
+                  type="text"
+                  class="creator-input-field"
+                  value={lastName.value}
+                  onInput={(e) => {
+                    lastName.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                />
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="creator-param">
+                <label htmlFor="phone">{t("structured.phone")}</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  class="creator-input-field"
+                  value={phone.value}
+                  onInput={(e) => {
+                    phone.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                  placeholder="+33601020304"
+                />
+              </div>
+              <div class="creator-param">
+                <label htmlFor="email">{t("structured.email")}</label>
+                <input
+                  id="email"
+                  type="email"
+                  class="creator-input-field"
+                  value={email.value}
+                  onInput={(e) => {
+                    email.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                  placeholder="user@example.com"
+                />
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="creator-param">
+                <label htmlFor="org">{t("structured.org")}</label>
+                <input
+                  id="org"
+                  type="text"
+                  class="creator-input-field"
+                  value={org.value}
+                  onInput={(e) => {
+                    org.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                />
+              </div>
+              <div class="creator-param">
+                <label htmlFor="url">{t("structured.url")}</label>
+                <input
+                  id="url"
+                  type="url"
+                  class="creator-input-field"
+                  value={url.value}
+                  onInput={(e) => {
+                    url.value = (e.target as HTMLInputElement).value;
+                    updatePayloadFromTemplate();
+                  }}
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+            <div class="creator-param">
+              <label htmlFor="note">{t("structured.note")}</label>
+              <input
+                id="note"
+                type="text"
+                class="creator-input-field"
+                value={note.value}
+                onInput={(e) => {
+                  note.value = (e.target as HTMLInputElement).value;
+                  updatePayloadFromTemplate();
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         <div class="creator-params">
           <div class="creator-param">
@@ -248,6 +547,14 @@ export function CreatorView() {
             <button class="start-btn download-action" onClick={handleDownload}>
               {t("creator.downloadPNG")}
             </button>
+            {parsedStructured.kind === "wifi" && (
+              <button
+                class="start-btn share-action"
+                onClick={() => setShowPrintModal(true)}
+              >
+                🖨️ {t("structured.wifiPrintSign")}
+              </button>
+            )}
             {shareService.isShareSupported() && (
               <button class="start-btn share-action" onClick={handleShare}>
                 {t("common.share")}
@@ -260,6 +567,14 @@ export function CreatorView() {
               {t("common.sendWebRTC")}
             </button>
           </div>
+        )}
+
+        {showPrintModal && parsedStructured.kind === "wifi" && (
+          <WifiPrintModal
+            wifi={parsedStructured}
+            qrDataUrl={qrDataUrl.value}
+            onClose={() => setShowPrintModal(false)}
+          />
         )}
       </div>
     </section>

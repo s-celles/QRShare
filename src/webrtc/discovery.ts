@@ -1,5 +1,8 @@
 import { signal, computed } from "@preact/signals";
-import { joinRoom, type Room } from "trystero";
+import type { Room } from "trystero";
+import { buildRoomConfig, ensureMqttDefaults } from "./settings";
+import { getAdapter, type StrategyAdapter } from "./strategies";
+import { buildJoinConfig } from "./service";
 
 export type DeviceType = "desktop" | "mobile" | "tablet";
 export type LocalDiscoveryMode = "off" | "passive" | "active";
@@ -69,11 +72,10 @@ export class LocalDiscoveryService {
   public deviceName = signal<string>(getDefaultDeviceName());
   public myPeerId = signal<string>("");
 
-  private room: Room | null = null;
+  private rooms: Room[] = [];
+  private sendActions: ((data: DiscoveryAction, targetPeerId?: string) => void)[] = [];
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private pruneTimer: ReturnType<typeof setInterval> | null = null;
-  private sendAction: any = null;
-  private onActionReceived: any = null;
   private pendingResolvers = new Map<string, (accepted: boolean) => void>();
 
   constructor() {
@@ -119,7 +121,7 @@ export class LocalDiscoveryService {
     if (newMode === "off") {
       this.stop();
     } else {
-      this.start();
+      void this.start();
     }
   }
 
@@ -127,36 +129,63 @@ export class LocalDiscoveryService {
     this.setMode(val ? "active" : "off");
   }
 
-  public start() {
+  public async start() {
     if (this.mode.value === "off") return;
 
-    if (!this.room) {
+    if (this.rooms.length === 0) {
       try {
-        this.room = joinRoom({ appId: "qrshare-discovery" }, DISCOVERY_ROOM_ID);
+        await ensureMqttDefaults();
+        const roomConfig = buildRoomConfig();
+        const adapters: StrategyAdapter[] = [];
 
-        const [makeAction, getAction] = this.room.makeAction<DiscoveryAction>("disc");
-        this.sendAction = makeAction;
-        this.onActionReceived = getAction;
-
-        this.room.onPeerJoin((peerId) => {
-          if (this.mode.value === "active" && this.sendAction) {
-            this.sendAction({
-              type: "announce",
-              name: this.deviceName.value,
-              deviceType: detectDeviceType(),
-            }, peerId);
+        const strategies = roomConfig.strategies || ["nostr", "torrent", "mqtt"];
+        for (const name of strategies) {
+          try {
+            const adapter = await getAdapter(name);
+            adapters.push(adapter);
+          } catch {
+            /* ignore unsupported strategy */
           }
-        });
+        }
 
-        this.room.onPeerLeave((peerId) => {
-          this.peers.value = this.peers.value.filter((p) => p.id !== peerId);
-        });
+        const newRooms: Room[] = [];
+        const newSenders: ((data: DiscoveryAction, targetPeerId?: string) => void)[] = [];
 
-        this.onActionReceived((data: DiscoveryAction, peerId: string) => {
-          this.handleMessage(data, peerId);
-        });
-      } catch {
-        // Failed to join discovery room
+        for (const adapter of adapters) {
+          try {
+            const joinConfig = buildJoinConfig(roomConfig, adapter, DISCOVERY_ROOM_ID);
+            const room = adapter.joinRoom(joinConfig, DISCOVERY_ROOM_ID);
+            const [send, get] = room.makeAction<DiscoveryAction>("disc");
+
+            room.onPeerJoin((peerId) => {
+              if (this.mode.value === "active") {
+                send({
+                  type: "announce",
+                  name: this.deviceName.value,
+                  deviceType: detectDeviceType(),
+                }, peerId);
+              }
+            });
+
+            room.onPeerLeave((peerId) => {
+              this.peers.value = this.peers.value.filter((p) => p.id !== peerId);
+            });
+
+            get((data: DiscoveryAction, peerId: string) => {
+              this.handleMessage(data, peerId);
+            });
+
+            newRooms.push(room);
+            newSenders.push(send);
+          } catch (err) {
+            console.warn(`[discovery] Strategy ${adapter.name} failed to join:`, err);
+          }
+        }
+
+        this.rooms = newRooms;
+        this.sendActions = newSenders;
+      } catch (err) {
+        console.warn("[discovery] Failed to initialize discovery rooms:", err);
         return;
       }
     }
@@ -191,23 +220,32 @@ export class LocalDiscoveryService {
       clearInterval(this.pruneTimer);
       this.pruneTimer = null;
     }
-    if (this.room) {
+    for (const room of this.rooms) {
       try {
-        this.room.leave();
+        room.leave();
       } catch {
         /* ignore */
       }
-      this.room = null;
     }
-    this.sendAction = null;
-    this.onActionReceived = null;
+    this.rooms = [];
+    this.sendActions = [];
     this.peers.value = [];
     this.activeOffers.value = [];
   }
 
+  private broadcastAction(data: DiscoveryAction, targetPeerId?: string) {
+    for (const send of this.sendActions) {
+      try {
+        send(data, targetPeerId);
+      } catch {
+        /* ignore individual send failures */
+      }
+    }
+  }
+
   public announce() {
-    if (!this.sendAction || this.mode.value !== "active") return;
-    this.sendAction({
+    if (this.mode.value !== "active") return;
+    this.broadcastAction({
       type: "announce",
       name: this.deviceName.value,
       deviceType: detectDeviceType(),
@@ -215,8 +253,8 @@ export class LocalDiscoveryService {
   }
 
   public sendHeartbeat() {
-    if (!this.sendAction || this.mode.value !== "active") return;
-    this.sendAction({
+    if (this.mode.value !== "active") return;
+    this.broadcastAction({
       type: "heartbeat",
       name: this.deviceName.value,
       deviceType: detectDeviceType(),
@@ -262,7 +300,7 @@ export class LocalDiscoveryService {
     targetPeerId: string,
     payload: { filename: string; size: number; isText: boolean; sha256?: string; isEncrypted?: boolean },
   ): Promise<boolean> {
-    if (!this.sendAction) return Promise.resolve(false);
+    if (this.sendActions.length === 0) return Promise.resolve(false);
 
     const transferId = Math.random().toString(36).substring(2, 10);
     const offer: TransferOffer = {
@@ -278,7 +316,7 @@ export class LocalDiscoveryService {
 
     return new Promise((resolve) => {
       this.pendingResolvers.set(transferId, resolve);
-      this.sendAction({ type: "transfer-offer", offer }, targetPeerId);
+      this.broadcastAction({ type: "transfer-offer", offer }, targetPeerId);
 
       // 30s timeout for offer response
       setTimeout(() => {
@@ -291,13 +329,12 @@ export class LocalDiscoveryService {
   }
 
   public respondToOffer(offer: TransferOffer, accepted: boolean) {
-    if (this.sendAction) {
-      this.sendAction({
-        type: "transfer-response",
-        transferId: offer.transferId,
-        accepted,
-      }, offer.senderId);
-    }
+    this.broadcastAction({
+      type: "transfer-response",
+      transferId: offer.transferId,
+      accepted,
+    }, offer.senderId);
+
     this.activeOffers.value = this.activeOffers.value.filter(
       (o) => o.transferId !== offer.transferId,
     );

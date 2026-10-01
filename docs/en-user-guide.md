@@ -230,7 +230,7 @@ sequenceDiagram
 At the top of every page:
 
 - **QRShare** (left) — Return to the home page. The version number and build hash are shown next to the title
-- Sun/moon button — Toggle between light and dark theme
+- Theme button — Cycle between ◐ Auto (follows the system setting), ☀ Light and ☾ Dark
 - **i** — About page
 - Gear icon — Settings (theme, language, WebRTC settings)
 - **← Back** — Return to the home page (present on every sub-page)

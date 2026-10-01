@@ -1,6 +1,6 @@
 import { currentRoute, hashParams } from "./router";
 import { rememberReturnUrl } from "@/share/handoff";
-import { toggleTheme, effectiveTheme } from "./theme";
+import { toggleTheme, theme, type Theme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
 import { Landing } from "./components/Landing";
@@ -21,6 +21,9 @@ import { SendChooserView } from "./components/SendChooserView";
 import { UrlCreatorView } from "./components/UrlCreatorView";
 import { CimbarView } from "./components/CimbarView";
 
+/** Header theme button: auto (system) → light → dark. */
+const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
+const THEME_LABELS: Record<Theme, string> = { auto: "settings.themeAuto", light: "settings.themeLight", dark: "settings.themeDark" };
 
 // REQ-HANDOFF-004: remember which application asked to receive a file.
 hashParams.subscribe((params) => rememberReturnUrl(params.get("return")));
@@ -85,12 +88,12 @@ export function App() {
           </a>
           <div class="nav-actions">
             <button
-              class="icon-btn"
+              class="icon-btn theme-toggle"
               onClick={toggleTheme}
-              aria-label={effectiveTheme.value === "dark" ? t("app.toggleThemeLight") : t("app.toggleThemeDark")}
-              title={t("app.toggleTheme")}
+              aria-label={t("app.themeButton", { mode: t(THEME_LABELS[theme.value]) })}
+              title={t("app.themeButton", { mode: t(THEME_LABELS[theme.value]) })}
             >
-              {effectiveTheme.value === "dark" ? "\u2600" : "\u263E"}
+              {THEME_ICONS[theme.value]}
             </button>
             <a
               href="#/guide"

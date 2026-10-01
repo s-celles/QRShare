@@ -14,9 +14,7 @@ export const fr: Record<string, string> = {
   "identity.addContact": "Ajouter aux contacts de confiance",
   // App header
   "app.home": "Accueil QRShare",
-  "app.toggleThemeLight": "Passer au th\u00e8me clair",
-  "app.toggleThemeDark": "Passer au th\u00e8me sombre",
-  "app.toggleTheme": "Changer de th\u00e8me",
+  "app.themeButton": "Thème : {mode}",
   "app.guide": "Guide utilisateur",
   "app.guideTitle": "Guide",
   "app.about": "\u00c0 propos de QRShare",

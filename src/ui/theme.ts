@@ -1,6 +1,9 @@
 import { signal, effect } from "@preact/signals";
 
+/** Theme preference: "auto" follows the system setting. */
 export type Theme = "light" | "dark" | "auto";
+
+const THEME_CYCLE: Theme[] = ["auto", "light", "dark"];
 
 function loadTheme(): Theme {
   if (typeof localStorage === "undefined") return "auto";
@@ -8,42 +11,40 @@ function loadTheme(): Theme {
   return stored === "light" || stored === "dark" ? stored : "auto";
 }
 
-export const theme = signal<Theme>(loadTheme());
-
-function getEffectiveTheme(t: Theme): "light" | "dark" {
-  if (t !== "auto") return t;
-  if (typeof window !== "undefined") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  }
-  return "light";
+/** Next preference for the header button: auto (system) → light → dark → auto. */
+export function nextTheme(current: Theme): Theme {
+  return THEME_CYCLE[(THEME_CYCLE.indexOf(current) + 1) % THEME_CYCLE.length];
 }
 
+/** The theme actually shown for a preference and the system setting. */
+export function resolveTheme(preference: Theme, systemPrefersDark: boolean): "light" | "dark" {
+  return preference === "auto" ? (systemPrefersDark ? "dark" : "light") : preference;
+}
+
+const darkQuery =
+  typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+export const theme = signal<Theme>(loadTheme());
+
+/** Tracks the system setting so "auto" follows it live. */
+const systemPrefersDark = signal<boolean>(darkQuery?.matches ?? false);
+
 export const effectiveTheme = signal<"light" | "dark">(
-  getEffectiveTheme(loadTheme()),
+  resolveTheme(theme.peek(), systemPrefersDark.peek()),
 );
 
 if (typeof window !== "undefined") {
   effect(() => {
-    effectiveTheme.value = getEffectiveTheme(theme.value);
-    document.documentElement.setAttribute(
-      "data-theme",
-      effectiveTheme.value,
-    );
+    effectiveTheme.value = resolveTheme(theme.value, systemPrefersDark.value);
+    document.documentElement.setAttribute("data-theme", effectiveTheme.value);
     localStorage.setItem("qrshare-theme", theme.value);
   });
 
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", () => {
-      if (theme.value === "auto") {
-        effectiveTheme.value = getEffectiveTheme("auto");
-      }
-    });
+  darkQuery?.addEventListener("change", (event) => {
+    systemPrefersDark.value = event.matches;
+  });
 }
 
 export function toggleTheme(): void {
-  const current = effectiveTheme.value;
-  theme.value = current === "dark" ? "light" : "dark";
+  theme.value = nextTheme(theme.value);
 }

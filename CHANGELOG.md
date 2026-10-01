@@ -21,10 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Printable Wi-Fi Guest Sign modal with print-optimized CSS layout for paper printing or badge creation
 - Experimental CIMBAR air-gapped transport using native QRShare Preact views and workers backed directly by the libcimbar v0.6.7c WASM APIs, available as a separate send/receive mode with receiver invitation support
 
+### Changed
+
+- The header theme button cycles between Auto (system), Light and Dark, like the Settings choice, instead of only switching between light and dark (which silently left the Auto mode)
+
 ### Fixed
 
 - Files shared to QRShare through the Web Share Target were dropped on the way: the service worker now keeps the file and opens the transfer chooser with it
 - The Web Share Target redirected to the domain root instead of the app's own scope when QRShare is served from a sub-path (as on GitHub Pages)
+- In Auto mode, the theme now follows changes of the system light/dark setting while the app is open
 
 ## [0.3.0] - 2026-08-03
 

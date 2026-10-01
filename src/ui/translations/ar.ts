@@ -1,9 +1,7 @@
 export const ar: Record<string, string> = {
   // App header
   "app.home": "الصفحة الرئيسية QRShare",
-  "app.toggleThemeLight": "التبديل إلى السمة الفاتحة",
-  "app.toggleThemeDark": "التبديل إلى السمة الداكنة",
-  "app.toggleTheme": "تبديل السمة",
+  "app.themeButton": "السمة: {mode}",
   "app.guide": "دليل المستخدم",
   "app.guideTitle": "الدليل",
   "app.about": "حول QRShare",

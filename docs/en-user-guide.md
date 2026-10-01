@@ -121,7 +121,18 @@ An application can open the send chooser directly with a URL such as:
 https://s-celles.github.io/QRShare/#/send?data=Hello&policy=prefer-airgap
 ```
 
-`data` contains URL-encoded text. `policy` accepts `airgap`, `prefer-airgap`, or `any`. If the policy is absent or invalid, QRShare defaults to preferring air-gapped transfer. This mechanism is intended for text; files are not embedded in the URL and must be selected locally in **Prepare a transfer**.
+`data` contains URL-encoded text. `policy` accepts `airgap`, `prefer-airgap`, or `any`. If the policy is absent or invalid, QRShare defaults to preferring air-gapped transfer. This mechanism is intended for text; files are handed over as described below.
+
+### Exchanging Files with Other Web Apps
+
+Web applications such as [Progressive Web Office](https://github.com/s-celles/progressive-web-office) can hand files to QRShare, and get received files back, directly in the browser (app handoff protocol, version 1):
+
+- **App → QRShare**: the app opens `#/send?handoff=1&policy=...`. QRShare shows *Waiting for the file from the application…*, receives the file, and opens the transfer chooser with *Received from <app>*. Nothing is sent until you pick a transfer mode.
+- **QRShare → App**: the app opens the receive screen with a `return` parameter, for example `#/receive/qr?policy=airgap&return=https%3A%2F%2Fexample.org%2Fapp%2F`. Once a file is received, an **Open in <host>** button delivers it to that application only.
+
+Files shared to QRShare through the system share sheet also open in the transfer chooser.
+
+For developers: the two windows exchange `{ type: "qrshare-handoff", version: 1, action }` messages with `postMessage` — `ready` (receiving window → its opener), `file` (`name`, `mimeType`, `data` as an `ArrayBuffer`, posted to the exact origin) and `received`. Files are limited to 200 MB. Applications can check support beforehand: QRShare's `manifest.webmanifest` lists the protocol versions it speaks in `qrshare_handoff.versions`.
 
 ---
 

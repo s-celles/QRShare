@@ -1,13 +1,17 @@
-import { useMemo } from "preact/hooks";
+import { signal } from "@preact/signals";
+import { useEffect, useMemo } from "preact/hooks";
 import { hashParams, navigate } from "../router";
-import { pendingText } from "../shared-file";
+import { pendingFile, pendingText } from "../shared-file";
 import {
   allowedSendModes,
   parseSendPolicy,
   payloadSize,
   recommendSendMode,
+  recommendSendModeForSize,
   type SendMode,
 } from "../send-policy";
+import { receiveFromOpener, type WindowLike } from "@/share/handoff";
+import { takeSharedFile } from "@/share/shared-target";
 import { t } from "../i18n";
 
 const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/cimbar" | "/send/webrtc" | "/send/share"> = {
@@ -18,19 +22,63 @@ const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/cimbar" | "/
   share: "/send/share",
 };
 
+/** A file handed over by the share target or another application (REQ-HANDOFF-001/002). */
+const incomingFile = signal<File | null>(null);
+const incomingOrigin = signal<string | null>(null);
+const waiting = signal<"idle" | "waiting" | "timeout">("idle");
+
+const formatSize = (bytes: number): string =>
+  bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
 export function SendChooserView() {
   const params = hashParams.value;
   const data = params.get("data") ?? params.get("text") ?? "";
   const policy = parseSendPolicy(params.get("policy"));
-  const size = payloadSize(data);
-  const recommended = recommendSendMode(data, policy);
-  const modes = useMemo(() => allowedSendModes(policy), [policy]);
+  const handoff = params.get("handoff") === "1";
+  const shared = params.get("shared") === "1";
+  const file = incomingFile.value;
 
-  const choose = (mode: SendMode) => {
-    if (!data) return;
-    pendingText.value = data;
+  useEffect(() => {
+    if (shared) {
+      void takeSharedFile().then((f) => {
+        if (f) incomingFile.value = f;
+      });
+    } else if (handoff && !incomingFile.value) {
+      waiting.value = "waiting";
+      void receiveFromOpener(window as unknown as WindowLike).then((result) => {
+        if (!result) {
+          waiting.value = "timeout";
+          return;
+        }
+        waiting.value = "idle";
+        incomingFile.value = result.file;
+        incomingOrigin.value = result.origin;
+      });
+    }
+  }, [shared, handoff]);
+
+  const size = file ? file.size : payloadSize(data);
+  const recommended = file ? recommendSendModeForSize(size, policy, false) : recommendSendMode(data, policy);
+  // A single static QR code carries text only.
+  const modes = useMemo(
+    () => allowedSendModes(policy).filter((mode) => !file || mode !== "static-qr"),
+    [policy, file],
+  );
+
+  const choose = async (mode: SendMode) => {
+    if (file) {
+      pendingFile.value = { buffer: await file.arrayBuffer(), filename: file.name, isText: file.type.startsWith("text/") };
+      incomingFile.value = null;
+      incomingOrigin.value = null;
+    } else if (data) {
+      pendingText.value = data;
+    } else {
+      return;
+    }
     navigate(MODE_ROUTES[mode]);
   };
+
+  const hasPayload = !!file || !!data;
 
   return (
     <section aria-label={t("sendChooser.section")}>
@@ -41,11 +89,26 @@ export function SendChooserView() {
         <h2>{t("sendChooser.heading")}</h2>
       </div>
 
-      {!data ? (
-        <div class="error-msg" role="alert">{t("sendChooser.missingData")}</div>
+      {!hasPayload ? (
+        waiting.value === "waiting" ? (
+          <p role="status">{t("sendChooser.waitingForApp")}</p>
+        ) : waiting.value === "timeout" ? (
+          <div class="error-msg" role="alert">{t("sendChooser.handoffTimeout")}</div>
+        ) : shared ? (
+          <p role="status">{t("sendChooser.loadingShared")}</p>
+        ) : (
+          <div class="error-msg" role="alert">{t("sendChooser.missingData")}</div>
+        )
       ) : (
         <div class="creator-content">
-          <p>{t("sendChooser.summary", { size })}</p>
+          {file ? (
+            <p>{t("sendChooser.fileSummary", { name: file.name, size: formatSize(file.size) })}</p>
+          ) : (
+            <p>{t("sendChooser.summary", { size })}</p>
+          )}
+          {incomingOrigin.value && (
+            <p class="settings-hint">{t("sendChooser.fromApp", { origin: incomingOrigin.value })}</p>
+          )}
           <p class="settings-hint">
             {policy === "airgap"
               ? t("sendChooser.airgapGuaranteed")
@@ -57,7 +120,7 @@ export function SendChooserView() {
             {modes.map((mode) => (
               <button
                 class="mode-btn"
-                onClick={() => choose(mode)}
+                onClick={() => void choose(mode)}
                 aria-label={t(`sendChooser.${mode}`)}
               >
                 <span class="mode-label">{t(`sendChooser.${mode}`)}</span>

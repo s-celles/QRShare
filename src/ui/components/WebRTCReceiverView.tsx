@@ -1,4 +1,5 @@
 import { signal } from "@preact/signals";
+import { OpenInAppButton } from "./OpenInAppButton";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { WebRTCService } from "@/webrtc/service";
@@ -461,6 +462,7 @@ export function WebRTCReceiverView() {
                   >
                     {t("webrtcReceiver.downloadFile", { filename: metadata.value.filename })}
                   </a>
+                  <OpenInAppButton url={downloadUrl.value} filename={metadata.value.filename} mimeType={metadata.value.mimeType} />
                   {shareService.isShareSupported() && (
                     <button
                       class="start-btn"

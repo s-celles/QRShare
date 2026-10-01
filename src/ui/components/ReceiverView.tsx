@@ -1,4 +1,5 @@
 import { signal } from "@preact/signals";
+import { OpenInAppButton } from "./OpenInAppButton";
 import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
@@ -476,6 +477,7 @@ export function ReceiverView() {
               >
                 {t("receiver.downloadFile", { filename: filename.value })}
               </a>
+              <OpenInAppButton url={downloadUrl.value} filename={filename.value} />
               {shareService.isShareSupported() && (
                 <button
                   class="start-btn"

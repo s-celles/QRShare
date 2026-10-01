@@ -478,4 +478,15 @@ export const ar: Record<string, string> = {
   // Guide
   "guide.section": "\u062f\u0644\u064a\u0644 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645",
   "guide.heading": "\u062f\u0644\u064a\u0644 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645",
+  // App handoff
+  "sendChooser.fileSummary": "الملف: {name} ({size})",
+  "sendChooser.fromApp": "تم الاستلام من {origin}",
+  "sendChooser.waitingForApp": "في انتظار الملف من التطبيق…",
+  "sendChooser.handoffTimeout": "لم يرسل التطبيق أي ملف. عُد إليه وحاول مرة أخرى.",
+  "sendChooser.loadingShared": "جارٍ تحميل الملف المشترك…",
+  "handoff.openIn": "فتح في {host}",
+  "handoff.sending": "جارٍ الإرسال إلى {host}…",
+  "handoff.sent": "تم الفتح في {host}.",
+  "handoff.blocked": "منع المتصفح فتح النافذة الجديدة. اسمح بالنوافذ المنبثقة لـ QRShare ثم حاول مرة أخرى.",
+  "handoff.noAnswer": "لم يستجب {host}. نزّل الملف وافتحه هناك.",
 };

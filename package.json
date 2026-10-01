@@ -1,6 +1,6 @@
 {
   "name": "qrshare",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
   "type": "module",
   "license": "BSD-3-Clause",

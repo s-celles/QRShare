@@ -1,7 +1,9 @@
 /// <reference lib="webworker" />
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_NAME = "qrshare-v4";
+declare const __BUILD_ID__: string;
+// One cache per build: a new deployment changes sw.js, so browsers install it and drop the old cache.
+const CACHE_NAME = `qrshare-${typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev"}`;
 
 const PRECACHE_URLS = [
   "./",

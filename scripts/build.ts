@@ -13,6 +13,7 @@ const DIST = join(ROOT, "dist");
 // Get git commit hash for build metadata
 const gitResult = Bun.spawnSync(["git", "rev-parse", "--short", "HEAD"], { cwd: ROOT });
 const buildHash = gitResult.exitCode === 0 ? gitResult.stdout.toString().trim() : "unknown";
+const buildDate = new Date().toISOString();
 
 // Clean dist
 if (existsSync(DIST)) {
@@ -34,7 +35,7 @@ const mainResult = await Bun.build({
   naming: "[name].[hash].[ext]",
   define: {
     __BUILD_HASH__: JSON.stringify(buildHash),
-    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    __BUILD_DATE__: JSON.stringify(buildDate),
   },
 });
 if (!mainResult.success) {
@@ -65,6 +66,10 @@ const swResult = await Bun.build({
   minify: true,
   target: "browser",
   naming: "[name].[ext]",
+  // A different sw.js on every build lets browsers notice a new version.
+  define: {
+    __BUILD_ID__: JSON.stringify(`${buildHash}-${buildDate}`),
+  },
 });
 if (!swResult.success) {
   console.error("Service Worker build failed:", swResult.logs);

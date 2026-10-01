@@ -225,6 +225,45 @@ nav .icon-btn:hover {
   border-color: var(--accent);
 }
 
+/* New version available */
+.update-banner {
+  position: fixed;
+  bottom: 16px;
+  inset-inline-end: 16px;
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  max-width: calc(100vw - 32px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.update-banner button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 32px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.update-banner button.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+@media print {
+  .update-banner { display: none !important; }
+}
+
 /* Landing Page */
 .landing {
   padding: 1rem 0;

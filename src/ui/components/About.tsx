@@ -10,6 +10,7 @@ import { APP_VERSION, BUILD_HASH, BUILD_DATE } from "../../version";
 const SOURCE_URL = "https://github.com/s-celles/QRShare";
 const LICENSE_URL = "https://www.gnu.org/licenses/agpl-3.0.html";
 const CHANGELOG_URL = `${SOURCE_URL}/blob/main/CHANGELOG.md`;
+const DOCS_URL = `${SOURCE_URL}/blob/main/docs`;
 
 /** Whether the app runs installed (standalone window) rather than in a browser tab. */
 function installed(): boolean {
@@ -189,6 +190,17 @@ export function About() {
             <a href="#/guide">{t("app.guide")}</a>
           </li>
           <li>
+            <ExternalLink href={`${DOCS_URL}/${locale.value === "fr" ? "fr-guide-utilisateur.md" : "en-user-guide.md"}`}>
+              {t("about.docs")}
+            </ExternalLink>
+          </li>
+          <li>
+            <ExternalLink href={`${DOCS_URL}/en-connectivity-and-turn.md`}>{t("about.connectivity")}</ExternalLink>
+          </li>
+          <li>
+            <ExternalLink href={`${DOCS_URL}/en-collaborative-editing.md`}>{t("about.collab")}</ExternalLink>
+          </li>
+          <li>
             <ExternalLink href={SOURCE_URL}>{t("about.sourceCode")}</ExternalLink>
           </li>
           <li>
@@ -200,6 +212,7 @@ export function About() {
         </ul>
 
         <p class="hint">{t("about.privacy")}</p>
+        <p class="hint">{t("about.credits")}</p>
         <p class="hint">
           <strong>{t("about.disclaimer")}</strong> {t("about.disclaimerText")}
         </p>

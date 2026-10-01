@@ -41,14 +41,32 @@ Either peer can save the current document as a **named version**. Each entry is 
 full document snapshot plus metadata:
 
 ```
-{ id, label, snapshotBytes, siteId, lamport }
+{ id, label, snapshotBytes, siteId, lamport, author?, savedAt? }
 ```
+
+`author` (the saver's display name) and `savedAt` (its clock) are informative only;
+older peers that do not send them stay compatible.
 
 Versions are ordered by a per-peer logical **Lamport clock** with `siteId` as the
 tie-breaker — never by wall-clock time, which is unreliable across two unsynchronized
 devices. The version log is append-only and de-duplicated by `id`, so replays during
 resync never double-count. Restoring a version replays its text as a normal edit that
 both peers converge on; later versions are not deleted.
+
+### Who is here
+
+Each participant gets a friendly compound name such as *Swift Crimson Falcon*,
+written in the colour of its colour word and remembered on the device. The editor
+lists who is in the session; a participant who leaves disappears at once.
+
+## Shared collaboration core
+
+The synchronisation, version log, presence and persistence live in
+`src/collab/core`, independent of the user interface. The same code is published
+as the `@scelles/collab` package (a git dependency built from the `collab-dist`
+branch) so other applications — such as Progressive Web Office — collaborate with
+the same protocol instead of duplicating it. Pushing a `collab-vX.Y.Z` tag builds
+and publishes `collab-dist-vX.Y.Z`.
 
 ## Persistence across reload
 

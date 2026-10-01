@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Printable Wi-Fi Guest Sign modal with print-optimized CSS layout for paper printing or badge creation
 - Experimental CIMBAR air-gapped transport using native QRShare Preact views and workers backed directly by the libcimbar v0.6.7c WASM APIs, available as a separate send/receive mode with receiver invitation support
 
+- Collaborative editing shows **who is here**, each participant with a friendly compound name (e.g. *Swift Crimson Falcon*) in a matching colour, and saved versions show their author
+- The collaboration engine (document sync, version history, presence, local persistence) is now a UI-independent core in `src/collab/core`, also published as the `@scelles/collab` git dependency (`collab-dist` branch, built by the *Collab package* workflow on `collab-v*` tags) so other apps can share it
+
 ### Changed
 
 - The header theme button cycles between Auto (system), Light and Dark, like the Settings choice, instead of only switching between light and dark (which silently left the Auto mode)

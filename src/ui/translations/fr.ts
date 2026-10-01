@@ -124,6 +124,16 @@ export const fr: Record<string, string> = {
   "sendChooser.webrtcDesc": "Transfert pair-\u00e0-pair via le r\u00e9seau",
   "sendChooser.share": "Partage syst\u00e8me",
   "sendChooser.shareDesc": "Utiliser le dialogue de partage de l\u2019appareil",
+  "sendChooser.fileSummary": "Fichier : {name} ({size})",
+  "sendChooser.fromApp": "Reçu de {origin}",
+  "sendChooser.waitingForApp": "En attente du fichier de l’application…",
+  "sendChooser.handoffTimeout": "L’application n’a pas envoyé de fichier. Revenez-y et réessayez.",
+  "sendChooser.loadingShared": "Chargement du fichier partagé…",
+  "handoff.openIn": "Ouvrir dans {host}",
+  "handoff.sending": "Envoi vers {host}…",
+  "handoff.sent": "Ouvert dans {host}.",
+  "handoff.blocked": "Le navigateur a bloqué la nouvelle fenêtre. Autorisez les fenêtres pop-up pour QRShare et réessayez.",
+  "handoff.noAnswer": "{host} n’a pas répondu. Téléchargez le fichier et ouvrez-le dans l’application.",
 
   // Cr\u00e9ateur d'URL
   "urlCreator.section": "Cr\u00e9ateur d\u2019URL de transfert",

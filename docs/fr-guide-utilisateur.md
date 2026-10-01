@@ -121,7 +121,18 @@ Une application peut ouvrir directement le sélecteur d'envoi avec une URL de la
 https://s-celles.github.io/QRShare/#/send?data=Bonjour&policy=prefer-airgap
 ```
 
-`data` contient le texte encodé pour une URL. `policy` accepte `airgap`, `prefer-airgap` ou `any`. En l'absence d'une politique valide, QRShare privilégie le mode hors réseau. Cette méthode convient au texte ; les fichiers ne sont pas placés dans l'URL et doivent être sélectionnés localement dans **Préparer un transfert**.
+`data` contient le texte encodé pour une URL. `policy` accepte `airgap`, `prefer-airgap` ou `any`. En l'absence d'une politique valide, QRShare privilégie le mode hors réseau. Cette méthode convient au texte ; les fichiers sont transmis comme décrit ci-dessous.
+
+### Échanger des fichiers avec d'autres applications web
+
+Des applications web comme [Progressive Web Office](https://github.com/s-celles/progressive-web-office) peuvent confier des fichiers à QRShare, et récupérer les fichiers reçus, directement dans le navigateur (protocole de transmission entre applications, version 1) :
+
+- **Application → QRShare** : l'application ouvre `#/send?handoff=1&policy=...`. QRShare affiche *En attente du fichier de l'application…*, reçoit le fichier puis ouvre le sélecteur de transfert avec *Reçu de <application>*. Rien n'est envoyé tant que vous n'avez pas choisi un mode de transfert.
+- **QRShare → Application** : l'application ouvre l'écran de réception avec un paramètre `return`, par exemple `#/receive/qr?policy=airgap&return=https%3A%2F%2Fexample.org%2Fapp%2F`. Une fois le fichier reçu, le bouton **Ouvrir dans <hôte>** le transmet à cette application uniquement.
+
+Les fichiers partagés vers QRShare depuis la feuille de partage du système s'ouvrent également dans le sélecteur de transfert.
+
+Pour les développeurs : les deux fenêtres échangent des messages `{ type: "qrshare-handoff", version: 1, action }` avec `postMessage` — `ready` (fenêtre qui reçoit → sa fenêtre d'origine), `file` (`name`, `mimeType`, `data` sous forme d'`ArrayBuffer`, envoyé à l'origine exacte) et `received`. Les fichiers sont limités à 200 Mo. Les applications peuvent vérifier la prise en charge au préalable : le `manifest.webmanifest` de QRShare liste les versions du protocole dans `qrshare_handoff.versions`.
 
 ---
 

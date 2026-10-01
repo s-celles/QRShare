@@ -1,4 +1,5 @@
-import { currentRoute } from "./router";
+import { currentRoute, hashParams } from "./router";
+import { rememberReturnUrl } from "@/share/handoff";
 import { toggleTheme, effectiveTheme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
@@ -19,6 +20,10 @@ import { WebShareSenderView } from "./components/WebShareSenderView";
 import { SendChooserView } from "./components/SendChooserView";
 import { UrlCreatorView } from "./components/UrlCreatorView";
 import { CimbarView } from "./components/CimbarView";
+
+
+// REQ-HANDOFF-004: remember which application asked to receive a file.
+hashParams.subscribe((params) => rememberReturnUrl(params.get("return")));
 
 function RouteView() {
   const route = currentRoute.value;

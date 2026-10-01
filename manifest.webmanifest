@@ -23,6 +23,9 @@
       "type": "image/png"
     }
   ],
+  "qrshare_handoff": {
+    "versions": [1]
+  },
   "share_target": {
     "action": "./",
     "method": "POST",

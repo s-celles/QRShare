@@ -43,7 +43,7 @@ const singleHtml = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#1f5fbf">
   <meta name="description" content="Air-gapped file transfer via animated QR codes with fountain codes">
   ${iconSvgUri ? `<link rel="icon" href="${iconSvgUri}" type="image/svg+xml">` : ""}
   <title>QRShare</title>

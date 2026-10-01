@@ -32,7 +32,7 @@ export function IdentityResultCard({ identity }: { identity: { name: string; fin
       </div>
       <div class="card-actions">
         {added ? (
-          <div class="success-banner" style={{ background: "#d1fae5", color: "#065f46", padding: "0.5rem", borderRadius: "4px", textAlign: "center", width: "100%" }}>
+          <div class="success-banner" style={{ background: "var(--success-bg)", color: "var(--success)", padding: "0.5rem", borderRadius: "4px", textAlign: "center", width: "100%" }}>
             ✓ {t("identity.added")}
           </div>
         ) : (

@@ -77,7 +77,7 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
 
         <div class="contacts-tabs" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           
-          <div class="identity-section" style={{ background: "#f3f4f6", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+          <div class="identity-section" style={{ background: "var(--bg)", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
             <h4 style={{ margin: "0 0 0.5rem 0" }}>{t("contacts.myIdentity")}</h4>
             <p class="settings-hint" style={{ marginBottom: "1rem" }}>{t("contacts.scanHint")}</p>
             {identityQr ? (
@@ -85,7 +85,7 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
             ) : (
               <p>Loading...</p>
             )}
-            <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "#4b5563" }}>Fingerprint: <code>{identity?.fingerprint}</code></p>
+            <p style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: "var(--muted)" }}>Fingerprint: <code>{identity?.fingerprint}</code></p>
           </div>
 
           <div class="contacts-list-section">
@@ -102,19 +102,19 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
                         <div class="peer-meta"><code>{c.fingerprint}</code></div>
                       </div>
                     </div>
-                    <button class="icon-btn-text" style={{ color: "#ef4444" }} onClick={() => handleRemove(c.fingerprint)} title="Remove">🗑️</button>
+                    <button class="icon-btn-text" style={{ color: "var(--danger)" }} onClick={() => handleRemove(c.fingerprint)} title="Remove">🗑️</button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div class="contacts-actions" style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between", borderTop: "1px solid #e5e7eb", paddingTop: "1rem" }}>
+          <div class="contacts-actions" style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
             <div>
-              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem" }} onClick={handleExport}>{t("contacts.export")}</button>
-              <button class="start-btn" style={{ background: "#4b5563", padding: "0.5rem 1rem", fontSize: "0.85rem", marginLeft: "0.5rem" }} onClick={handleImport}>{t("contacts.import")}</button>
+              <button class="start-btn" style={{ background: "var(--muted)", padding: "0.5rem 1rem", fontSize: "0.85rem" }} onClick={handleExport}>{t("contacts.export")}</button>
+              <button class="start-btn" style={{ background: "var(--muted)", padding: "0.5rem 1rem", fontSize: "0.85rem", marginLeft: "0.5rem" }} onClick={handleImport}>{t("contacts.import")}</button>
             </div>
-            {importStatus && <span style={{ fontSize: "0.85rem", color: "#059669", alignSelf: "center" }}>{importStatus}</span>}
+            {importStatus && <span style={{ fontSize: "0.85rem", color: "var(--success)", alignSelf: "center" }}>{importStatus}</span>}
           </div>
         </div>
       </div>

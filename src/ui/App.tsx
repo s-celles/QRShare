@@ -84,6 +84,7 @@ export function App() {
             class="logo-link"
             aria-label={t("app.home")}
           >
+            <span class="brand" aria-hidden="true">QR</span>
             <h1>QRShare <span class="app-version">v{APP_VERSION} <span class="build-hash">({BUILD_HASH})</span></span></h1>
           </a>
           <div class="nav-actions">

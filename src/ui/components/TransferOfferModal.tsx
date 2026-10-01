@@ -37,7 +37,7 @@ export function TransferOfferModal() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3 style={{ margin: 0 }}>📱 {t("discovery.offerTitle")}</h3>
             {currentOffer.verified && currentOffer.fingerprint && (
-              <div class="verified-badge" style={{ fontSize: "0.75rem", color: "#059669", background: "#d1fae5", padding: "2px 6px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "4px" }} title="Cryptographically Verified Identity">
+              <div class="verified-badge" style={{ fontSize: "0.75rem", color: "var(--success)", background: "var(--success-bg)", padding: "2px 6px", borderRadius: "4px", display: "flex", alignItems: "center", gap: "4px" }} title="Cryptographically Verified Identity">
                 🛡️ {currentOffer.fingerprint}
               </div>
             )}

@@ -118,7 +118,7 @@ export function NearbyDevices() {
       {showContacts && <ContactsModal onClose={() => setShowContacts(false)} />}
 
       {offerState && (
-        <div class={`offer-status-banner ${offerState.status}`} style={{ margin: "0.5rem 0", padding: "0.5rem 0.75rem", borderRadius: "6px", background: offerState.status === "pending" ? "#fef3c7" : "#fee2e2", color: offerState.status === "pending" ? "#92400e" : "#991b1b" }}>
+        <div class={`offer-status-banner ${offerState.status}`} style={{ margin: "0.5rem 0", padding: "0.5rem 0.75rem", borderRadius: "6px", background: offerState.status === "pending" ? "var(--warning-bg)" : "var(--danger-bg)", color: offerState.status === "pending" ? "var(--warning)" : "var(--danger)" }}>
           {offerState.status === "pending"
             ? `⏳ ${t("discovery.waitingAcceptance", { name: offerState.peerName })}`
             : `❌ ${t("discovery.offerDeclined", { name: offerState.peerName })}`}
@@ -132,7 +132,7 @@ export function NearbyDevices() {
           {peers.map((peer) => {
             const trusted = isTrustedContact(peer.fingerprint);
             return (
-              <div class="peer-item" key={peer.id} style={{ opacity: trusted ? 1 : 0.6, borderLeft: trusted ? "3px solid #10b981" : "3px solid transparent" }}>
+              <div class="peer-item" key={peer.id} style={{ opacity: trusted ? 1 : 0.6, borderLeft: trusted ? "3px solid var(--success)" : "3px solid transparent" }}>
                 <div class="peer-info">
                   <span class="peer-icon">
                     {peer.deviceType === "mobile" ? "📱" : peer.deviceType === "tablet" ? "📱" : "💻"}
@@ -140,9 +140,9 @@ export function NearbyDevices() {
                   <div class="peer-details">
                     <strong class="peer-name">{peer.name} {trusted ? "🛡️" : "⚠️"}</strong>
                     <div class="peer-meta" style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "2px" }}>
-                      <span class="peer-status-badge" style={{ fontSize: "0.75rem", color: "#10b981" }}>🟢 Online</span>
+                      <span class="peer-status-badge" style={{ fontSize: "0.75rem", color: "var(--success)" }}>🟢 Online</span>
                       {peer.fingerprint && (
-                        <span class="peer-fingerprint" style={{ fontSize: "0.75rem", color: "#6b7280", background: "#f3f4f6", padding: "1px 4px", borderRadius: "4px" }} title="Identity Key">
+                        <span class="peer-fingerprint" style={{ fontSize: "0.75rem", color: "var(--muted)", background: "var(--bg)", padding: "1px 4px", borderRadius: "4px" }} title="Identity Key">
                           {trusted ? "Verified Contact" : peer.fingerprint}
                         </span>
                       )}

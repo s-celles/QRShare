@@ -148,7 +148,7 @@ export function Settings() {
           </button>
         </div>
         {importError.value && (
-          <p class="settings-hint" style={{ color: "var(--color-error, #d32f2f)" }}>
+          <p class="settings-hint" style={{ color: "var(--danger)" }}>
             {importError.value}
           </p>
         )}

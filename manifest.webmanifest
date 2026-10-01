@@ -4,8 +4,8 @@
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
   "start_url": "./",
   "display": "standalone",
-  "theme_color": "#1a1a2e",
-  "background_color": "#1a1a2e",
+  "theme_color": "#1f5fbf",
+  "background_color": "#f4f6f9",
   "icons": [
     {
       "src": "assets/icon.svg",

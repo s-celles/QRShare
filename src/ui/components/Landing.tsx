@@ -10,12 +10,12 @@ export function Landing() {
       <TransferOfferModal />
       <h2>{t("landing.primaryActions")}</h2>
       <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
-        <button class="mode-btn mode-btn--full" onClick={() => navigate("/scan/auto")} aria-label={t("landing.universalScanAria")}>
+        <button class="mode-btn mode-btn--full mode-btn--receive" onClick={() => navigate("/scan/auto")} aria-label={t("landing.universalScanAria")}>
           <span class="mode-icon" aria-hidden="true">⌕</span>
           <span class="mode-label">{t("landing.universalScanTitle")}</span>
           <span class="mode-desc">{t("landing.universalScanDesc")}</span>
         </button>
-        <button class="mode-btn mode-btn--full" onClick={() => navigate("/create/url")} aria-label={t("landing.createUrlAria")}>
+        <button class="mode-btn mode-btn--full mode-btn--tool" onClick={() => navigate("/create/url")} aria-label={t("landing.createUrlAria")}>
           <span class="mode-icon" aria-hidden="true">🔗</span>
           <span class="mode-label">{t("landing.createUrlTitle")}</span>
           <span class="mode-desc">{t("landing.createUrlDesc")}</span>
@@ -25,7 +25,7 @@ export function Landing() {
       <h2>{t("landing.qrUtilities")}</h2>
       <div class="mode-grid" role="group" aria-label={t("landing.qrUtilitiesGroup")}>
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--receive"
           onClick={() => navigate("/scan")}
           aria-label={t("landing.scanAria")}
         >
@@ -37,7 +37,7 @@ export function Landing() {
         </button>
 
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--tool"
           onClick={() => navigate("/create")}
           aria-label={t("landing.createAria")}
         >
@@ -57,7 +57,7 @@ export function Landing() {
       <h3 class="mode-group-title">{t("landing.shareGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.shareGroup")}>
         <button
-          class="mode-btn mode-btn--full"
+          class="mode-btn mode-btn--full mode-btn--send"
           onClick={() => navigate("/send/share")}
           aria-label={t("landing.sendShareAria")}
         >
@@ -72,7 +72,7 @@ export function Landing() {
       <h3 class="mode-group-title">{t("landing.qrGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.qrGroup")}>
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--send"
           onClick={() => navigate("/send/qr")}
           aria-label={t("landing.sendQRAria")}
         >
@@ -84,7 +84,7 @@ export function Landing() {
         </button>
 
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--receive"
           onClick={() => navigate("/receive/qr")}
           aria-label={t("landing.receiveQRAria")}
         >
@@ -98,12 +98,12 @@ export function Landing() {
 
       <h3 class="mode-group-title">{t("landing.cimbarGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.cimbarGroup")}>
-        <button class="mode-btn" onClick={() => navigate("/send/cimbar")} aria-label={t("landing.sendCimbarAria")}>
+        <button class="mode-btn mode-btn--send" onClick={() => navigate("/send/cimbar")} aria-label={t("landing.sendCimbarAria")}>
           <span class="mode-icon" aria-hidden="true">▦</span>
           <span class="mode-label">{t("landing.sendCimbarTitle")}</span>
           <span class="mode-desc">{t("landing.sendCimbarDesc")}</span>
         </button>
-        <button class="mode-btn" onClick={() => navigate("/receive/cimbar")} aria-label={t("landing.receiveCimbarAria")}>
+        <button class="mode-btn mode-btn--receive" onClick={() => navigate("/receive/cimbar")} aria-label={t("landing.receiveCimbarAria")}>
           <span class="mode-icon" aria-hidden="true">▧</span>
           <span class="mode-label">{t("landing.receiveCimbarTitle")}</span>
           <span class="mode-desc">{t("landing.receiveCimbarDesc")}</span>
@@ -113,7 +113,7 @@ export function Landing() {
       <h3 class="mode-group-title">{t("landing.webrtcGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.webrtcGroup")}>
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--receive"
           onClick={() => navigate("/receive/webrtc")}
           aria-label={t("landing.receiveWebRTCAria")}
         >
@@ -125,7 +125,7 @@ export function Landing() {
         </button>
 
         <button
-          class="mode-btn"
+          class="mode-btn mode-btn--send"
           onClick={() => navigate("/send/webrtc")}
           aria-label={t("landing.sendWebRTCAria")}
         >

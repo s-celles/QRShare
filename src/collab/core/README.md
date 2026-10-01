@@ -51,4 +51,4 @@ Wire protocol (action names, kept compatible across versions): `doc-update`,
 
 ## License
 
-AGPL-3.0-or-later.
+BSD-3-Clause.

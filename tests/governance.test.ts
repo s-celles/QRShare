@@ -4,10 +4,10 @@ import { resolve } from "path";
 const root = resolve(import.meta.dir, "..");
 
 describe("repository governance files", () => {
-  it("has LICENSE file with AGPL-3.0 text", async () => {
+  it("has LICENSE file with BSD-3-Clause text", async () => {
     const license = await Bun.file(resolve(root, "LICENSE")).text();
-    expect(license).toContain("GNU AFFERO GENERAL PUBLIC LICENSE");
-    expect(license).toContain("Version 3");
+    expect(license).toContain("BSD 3-Clause License");
+    expect(license).toContain("Neither the name of the copyright holder");
   });
 
   it("has SECURITY.md with vulnerability reporting instructions", async () => {

@@ -156,4 +156,4 @@ approximately 33 MB after compression by the upstream protocol.
 
 ## License
 
-[AGPL-3.0-or-later](LICENSE)
+[BSD-3-Clause](LICENSE)

@@ -4,7 +4,7 @@ This directory contains the official WASM runtime and encoder engine from
 [`sz3/libcimbar`](https://github.com/sz3/libcimbar), release **v0.6.7c**
 (published 2026-07-14).
 
-The files are intentionally kept separate from QRShare's AGPL source. libcimbar
+The files are intentionally kept separate from QRShare's BSD-3-Clause source. libcimbar
 is distributed under the Mozilla Public License 2.0; see `LICENSE` in this
 directory. The upstream release artifact was `cimbar.wasm.tar.gz`.
 

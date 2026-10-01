@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- QRShare is now licensed under the **BSD-3-Clause** license instead of AGPL-3.0-or-later (including the `@scelles/collab` core); releases up to 0.4.1 remain available under AGPL-3.0-or-later. The vendored libcimbar runtime keeps its own MPL-2.0 license
+
 ## [0.4.1] - 2026-10-01
 
 ### Added

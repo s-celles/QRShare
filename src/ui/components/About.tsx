@@ -8,7 +8,7 @@ import { SOURCE_URL, DOCS_URL } from "../links";
 
 /** About window, modelled on the one of Progressive Web Office. */
 
-const LICENSE_URL = "https://www.gnu.org/licenses/agpl-3.0.html";
+const LICENSE_URL = `${SOURCE_URL}/blob/main/LICENSE`;
 const CHANGELOG_URL = `${SOURCE_URL}/blob/main/CHANGELOG.md`;
 
 /** Whether the app runs installed (standalone window) rather than in a browser tab. */
@@ -128,7 +128,7 @@ export function About() {
     [t("about.version"), <ExternalLink href={CHANGELOG_URL}>{APP_VERSION}</ExternalLink>],
     [t("about.commit"), commit],
     [t("about.built"), buildDateText()],
-    [t("about.license"), <ExternalLink href={LICENSE_URL}>GNU AGPL-3.0-or-later</ExternalLink>],
+    [t("about.license"), <ExternalLink href={LICENSE_URL}>BSD-3-Clause</ExternalLink>],
     [t("about.installed"), yesNo(installed())],
     [t("about.offline"), yesNo(offlineReady())],
   ];

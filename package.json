@@ -10,10 +10,12 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "package": "bun run scripts/package-single-html.ts",
-    "serve": "bun run scripts/serve.ts"
+    "serve": "bun run scripts/serve.ts",
+    "build:collab": "bun run scripts/build-collab.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.0.0",
+    "@scelles/unique-names-generator": "^0.1.0",
     "@undecaf/zbar-wasm": "^0.11.0",
     "fflate": "^0.8.2",
     "lean-qr": "^2.7.0",
@@ -22,6 +24,7 @@
     "trystero": "^0.22.0",
     "wirehair-wasm": "^1.0.5",
     "y-indexeddb": "^9.0.12",
+    "y-protocols": "^1.0.7",
     "yjs": "^13.6.31"
   },
   "devDependencies": {

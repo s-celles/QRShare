@@ -140,6 +140,17 @@ export function CollabEditorView() {
           : t("collab.status.peerOffline")}
       </p>
 
+      <p class="settings-hint collab-presence" aria-live="polite">
+        {t("collab.here")}{" "}
+        {session.participants.value.map((p, i) => (
+          <span key={p.clientId} style={{ color: p.user.color, fontWeight: 600 }}>
+            {i > 0 ? ", " : ""}
+            {p.user.name}
+            {p.self ? ` (${t("collab.you")})` : ""}
+          </span>
+        ))}
+      </p>
+
       <label class="sr-only" for="collab-editor">
         {t("collab.editorLabel")}
       </label>
@@ -196,7 +207,7 @@ export function CollabEditorView() {
                 <span class="version-label">{v.label}</span>
                 <span class="version-meta">
                   {" "}
-                  ({v.siteId.slice(0, 6)} · #{v.lamport})
+                  ({v.author ? t("collab.byAuthor", { author: v.author }) : v.siteId.slice(0, 6)} · #{v.lamport})
                 </span>
                 <button
                   onClick={() => session.restoreVersion(v.id)}

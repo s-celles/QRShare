@@ -1,5 +1,9 @@
 import { signal, type Signal } from "@preact/signals";
 import * as Y from "yjs";
+import { REMOTE_ORIGIN } from "./core/sync";
+import { setText } from "./core/restore";
+
+export { REMOTE_ORIGIN };
 
 /**
  * Origin markers used to distinguish where a Y.Doc update came from.
@@ -9,7 +13,6 @@ import * as Y from "yjs";
  *   received update would be re-broadcast back to the peer (REQ-COLLAB-012).
  * - `LOCAL_ORIGIN`: a local mutation (typing, restore) that MUST be broadcast.
  */
-export const REMOTE_ORIGIN = Symbol("collab-remote");
 export const LOCAL_ORIGIN = Symbol("collab-local");
 
 const TEXT_KEY = "content";
@@ -69,30 +72,7 @@ export class CollabDoc {
    * rewrite. This is the v1 `<textarea>` binding (REQ-COLLAB, approved decision 5).
    */
   setText(next: string): void {
-    const cur = this.ytext.toString();
-    if (cur === next) return;
-
-    let start = 0;
-    const minLen = Math.min(cur.length, next.length);
-    while (start < minLen && cur[start] === next[start]) start++;
-
-    let endCur = cur.length;
-    let endNext = next.length;
-    while (
-      endCur > start &&
-      endNext > start &&
-      cur[endCur - 1] === next[endNext - 1]
-    ) {
-      endCur--;
-      endNext--;
-    }
-
-    this.ydoc.transact(() => {
-      const delCount = endCur - start;
-      if (delCount > 0) this.ytext.delete(start, delCount);
-      const insertion = next.slice(start, endNext);
-      if (insertion.length > 0) this.ytext.insert(start, insertion);
-    }, LOCAL_ORIGIN);
+    setText(this.ytext, next, LOCAL_ORIGIN);
   }
 
   /**

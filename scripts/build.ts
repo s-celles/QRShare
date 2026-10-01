@@ -34,6 +34,7 @@ const mainResult = await Bun.build({
   naming: "[name].[hash].[ext]",
   define: {
     __BUILD_HASH__: JSON.stringify(buildHash),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
   },
 });
 if (!mainResult.success) {

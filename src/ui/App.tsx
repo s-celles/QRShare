@@ -66,7 +66,13 @@ function RouteView() {
     case "/settings/webrtc":
       return <WebRTCSettings />;
     case "/about":
-      return <About />;
+      // The About window opens over the home screen.
+      return (
+        <>
+          <Landing />
+          <About />
+        </>
+      );
     default:
       return <Landing />;
   }

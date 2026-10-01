@@ -478,6 +478,10 @@ export const fr: Record<string, string> = {
   "about.copyDetailsTitle": "Copier la version, le navigateur et l’appareil pour les coller dans un rapport de bug",
   "about.copied": "Copié",
   "common.close": "Fermer",
+  "about.openTitle": "À propos de QRShare (version, build, liens)",
+  "qr.enlarge": "Agrandir le QR code",
+  "qr.enlargeTitle": "Afficher le QR code en plein écran, plus facile à scanner de loin",
+  "qr.fullScreen": "QR code en plein écran",
 
   // Share Sender
   "shareSender.section": "Partage",

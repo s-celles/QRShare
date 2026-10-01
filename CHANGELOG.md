@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The About page is now an About window, modelled on the one of Progressive Web Office: logo and tagline, version (linked to the changelog), commit (linked to GitHub), build date, licence, whether the app is installed and works offline, the QR code of the app with its URL, links to the guide, source, changelog and issue tracker, a privacy note, and a **Copy details** button for bug reports
+- The About page is now an About window, modelled on the one of Progressive Web Office: logo and tagline, version (linked to the changelog), commit (linked to GitHub), build date, licence, whether the app is installed and works offline, the QR code of the app with its URL, links to the guide, source, changelog and issue tracker, a privacy note, and a **Copy details** button for bug reports; a click on its QR code shows it full screen, easier to scan from a distance, and the version next to the name in the header now opens it
 - New visual style shared with [Progressive Web Office](https://s-celles.github.io/progressive-web-office/): same palette (light and dark), header bar with a brand badge, bordered buttons, start-screen cards with a coloured edge (blue to send, green to receive, orange for QR tools) and a high-visibility focus ring; the app icon (SVG and 192/512 PNG, now rendered from the SVG) uses the same blue; status colours now follow the theme instead of being fixed light-mode values
 - The header theme button cycles between Auto (system), Light and Dark, like the Settings choice, instead of only switching between light and dark (which silently left the Auto mode)
 

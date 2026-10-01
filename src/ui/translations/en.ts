@@ -448,6 +448,10 @@ export const en: Record<string, string> = {
   "about.copyDetailsTitle": "Copy version, browser and device details to paste into a bug report",
   "about.copied": "Copied",
   "common.close": "Close",
+  "about.openTitle": "About QRShare (version, build, links)",
+  "qr.enlarge": "Enlarge the QR code",
+  "qr.enlargeTitle": "Show the QR code full screen, easier to scan from a distance",
+  "qr.fullScreen": "QR code, full screen",
 
   // Share Sender
   "shareSender.section": "Share Sender",

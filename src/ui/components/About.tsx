@@ -53,11 +53,47 @@ function ExternalLink({ href, children, class: cls }: { href: string; children: 
   );
 }
 
+/** The QR code full screen, easy to scan from a distance (click, Escape or Close to leave). */
+function QrFullScreen({ src, alt, text, onClose }: { src: string; alt: string; text: string; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      class="qr-full"
+      aria-label={t("qr.fullScreen")}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target === ref.current || target.classList.contains("qr-full-image")) onClose();
+      }}
+    >
+      <img class="qr-full-image" src={src} alt={alt} />
+      <p class="qr-full-text">{text}</p>
+      <button type="button" class="primary" onClick={onClose} autoFocus>
+        {t("common.close")}
+      </button>
+    </dialog>
+  );
+}
+
 export function About() {
   const appUrl = window.location.origin + window.location.pathname;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     setQr(renderQRToDataURL(new TextEncoder().encode(appUrl), "balanced"));
@@ -129,7 +165,16 @@ export function About() {
           </dl>
           {qr && (
             <figure class="about-qr-figure">
-              <img class="about-qr" src={qr} alt={t("about.qrAlt")} width={160} height={160} />
+              {/* A click enlarges it, to scan from a distance or with a poor camera. */}
+              <button
+                type="button"
+                class="qr-zoom"
+                aria-label={t("qr.enlarge")}
+                title={t("qr.enlargeTitle")}
+                onClick={() => setZoomed(true)}
+              >
+                <img class="about-qr" src={qr} alt={t("about.qrAlt")} width={160} height={160} />
+              </button>
               <figcaption class="hint">
                 {t("about.scanText")}
                 <br />
@@ -169,6 +214,9 @@ export function About() {
           {t("common.close")}
         </button>
       </div>
+      {zoomed && qr && (
+        <QrFullScreen src={qr} alt={t("about.qrAlt")} text={appUrl} onClose={() => setZoomed(false)} />
+      )}
     </dialog>
   );
 }

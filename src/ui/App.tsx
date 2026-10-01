@@ -91,7 +91,11 @@ export function App() {
             aria-label={t("app.home")}
           >
             <span class="brand" aria-hidden="true">QR</span>
-            <h1>QRShare <span class="app-version">v{APP_VERSION} <span class="build-hash">({BUILD_HASH})</span></span></h1>
+            <h1>QRShare</h1>
+          </a>
+          {/* Version and build, as in Progressive Web Office: opens the About window. */}
+          <a href="#/about" class="app-version" title={t("about.openTitle")}>
+            v{APP_VERSION} <span class="build-hash">({BUILD_HASH})</span>
           </a>
           <div class="nav-actions">
             <button

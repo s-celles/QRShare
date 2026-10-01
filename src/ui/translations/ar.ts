@@ -434,6 +434,10 @@ export const ar: Record<string, string> = {
   "about.copyDetailsTitle": "نسخ الإصدار والمتصفح والجهاز للصقها في تقرير خطأ",
   "about.copied": "تم النسخ",
   "common.close": "إغلاق",
+  "about.openTitle": "حول QRShare (الإصدار، البناء، الروابط)",
+  "qr.enlarge": "تكبير رمز QR",
+  "qr.enlargeTitle": "عرض رمز QR بملء الشاشة لتسهيل مسحه من بعيد",
+  "qr.fullScreen": "رمز QR بملء الشاشة",
 
   // Share Sender
   "shareSender.section": "مشاركة",

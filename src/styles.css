@@ -140,7 +140,6 @@ header {
 nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   min-height: var(--header-h);
   max-width: 960px;
@@ -176,10 +175,18 @@ nav {
 }
 
 .app-version {
+  font-family: ui-monospace, monospace;
   font-size: 0.75rem;
-  font-weight: 400;
   color: var(--muted);
-  vertical-align: middle;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.app-version:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 .build-hash {
@@ -975,6 +982,66 @@ section > button:hover {
   padding: 4px;
   border-radius: 4px;
   image-rendering: pixelated;
+}
+
+button.qr-zoom {
+  display: block;
+  padding: 0;
+  margin: 0 auto 4px;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: 4px;
+}
+
+button.qr-zoom .about-qr {
+  margin: 0;
+}
+
+/* QR code full screen */
+.qr-full {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  background: #fff;
+  color: #000;
+}
+
+.qr-full[open] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.qr-full-image {
+  width: min(80vw, 75vh);
+  height: auto;
+  image-rendering: pixelated;
+  cursor: zoom-out;
+}
+
+.qr-full-text {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  text-align: center;
+  max-width: 90vw;
+}
+
+.qr-full button.primary {
+  background: #1f5fbf;
+  color: #fff;
+  border: 1px solid #1f5fbf;
+  border-radius: var(--radius-sm);
+  min-height: 32px;
+  padding: 4px 12px;
+  cursor: pointer;
 }
 
 .about-qr-figure .mono {

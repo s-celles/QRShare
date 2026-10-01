@@ -4,13 +4,12 @@ import { navigate } from "../router";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { t, locale } from "../i18n";
 import { APP_VERSION, BUILD_HASH, BUILD_DATE } from "../../version";
+import { SOURCE_URL, DOCS_URL } from "../links";
 
 /** About window, modelled on the one of Progressive Web Office. */
 
-const SOURCE_URL = "https://github.com/s-celles/QRShare";
 const LICENSE_URL = "https://www.gnu.org/licenses/agpl-3.0.html";
 const CHANGELOG_URL = `${SOURCE_URL}/blob/main/CHANGELOG.md`;
-const DOCS_URL = `${SOURCE_URL}/blob/main/docs`;
 
 /** Whether the app runs installed (standalone window) rather than in a browser tab. */
 function installed(): boolean {

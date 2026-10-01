@@ -4,6 +4,8 @@ export const ar: Record<string, string> = {
   "app.themeButton": "السمة: {mode}",
   "app.guide": "دليل المستخدم",
   "app.guideTitle": "الدليل",
+  "app.docs": "التوثيق",
+  "app.docsTitle": "التوثيق (يُفتح على GitHub في علامة تبويب جديدة)",
   "app.about": "حول QRShare",
   "app.aboutTitle": "حول",
   "app.settings": "الإعدادات",

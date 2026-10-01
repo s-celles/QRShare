@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A book icon in the header opens the documentation (on GitHub, in a new tab)
+
+### Fixed
+
+- The "new version available" banner no longer appears on the very first visit, when the service worker installs for the first time
+
 ## [0.4.0] - 2026-10-01
 
 ### Added

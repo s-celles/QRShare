@@ -17,6 +17,8 @@ export const fr: Record<string, string> = {
   "app.themeButton": "Thème : {mode}",
   "app.guide": "Guide utilisateur",
   "app.guideTitle": "Guide",
+  "app.docs": "Documentation",
+  "app.docsTitle": "Documentation (s’ouvre sur GitHub dans un nouvel onglet)",
   "app.about": "\u00c0 propos de QRShare",
   "app.aboutTitle": "\u00c0 propos",
   "app.settings": "Param\u00e8tres",

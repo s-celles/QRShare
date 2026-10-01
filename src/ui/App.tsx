@@ -3,6 +3,7 @@ import { rememberReturnUrl } from "@/share/handoff";
 import { toggleTheme, theme, type Theme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
+import { DOCS_INDEX_URL } from "./links";
 import { Landing } from "./components/Landing";
 import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
@@ -113,6 +114,20 @@ export function App() {
               title={t("app.guideTitle")}
             >
               ?
+            </a>
+            <a
+              href={DOCS_INDEX_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="icon-btn"
+              aria-label={t("app.docs")}
+              title={t("app.docsTitle")}
+            >
+              <svg class="icon-svg" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                {/* An open book */}
+                <path d="M12 6.5C10.2 5.2 7.6 4.5 4 4.5v14c3.6 0 6.2.7 8 2 1.8-1.3 4.4-2 8-2v-14c-3.6 0-6.2.7-8 2Z" />
+                <path d="M12 6.5v14" />
+              </svg>
             </a>
             <a
               href="#/about"

@@ -225,6 +225,14 @@ nav .icon-btn:hover {
   border-color: var(--accent);
 }
 
+.icon-svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
 /* New version available */
 .update-banner {
   position: fixed;

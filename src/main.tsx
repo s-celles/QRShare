@@ -31,13 +31,16 @@ function showUpdateBanner(): void {
 // Register Service Worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    // Only a page already run by an older worker has an update to offer;
+    // on the first visit the new worker claims the page without any banner.
+    const servedByWorker = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register("./sw.js").then((reg) => {
       reg.addEventListener("updatefound", () => {
         const newSW = reg.installing;
         if (!newSW) return;
         newSW.addEventListener("statechange", () => {
           // The new worker takes over at once (skipWaiting); the page still runs the old code.
-          if (newSW.state === "activated" && navigator.serviceWorker.controller) showUpdateBanner();
+          if (newSW.state === "activated" && servedByWorker) showUpdateBanner();
         });
       });
       // An installed app can stay open for days: look for a new version when it comes back.

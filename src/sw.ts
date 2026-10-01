@@ -33,7 +33,8 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          // Keep the share-target cache: it may hold a file not yet picked up.
+          .filter((key) => key !== CACHE_NAME && key !== "qrshare-share-target")
           .map((key) => caches.delete(key)),
       ),
     ),
@@ -44,19 +45,30 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Handle Share Target POST requests
+  // Handle Share Target POST requests (REQ-HANDOFF-001)
   if (request.method === "POST") {
     event.respondWith(
       (async () => {
         const formData = await request.formData();
         const text = formData.get("text") as string | null;
-        const files = formData.getAll("file") as File[];
+        const files = formData.getAll("file").filter((f): f is File => typeof f !== "string");
 
-        // Build redirect URL with shared content
-        const url = new URL("./", self.location.origin);
+        // Redirect within the app's scope (GitHub Pages serves it from a sub-path).
+        const url = new URL("./", self.registration.scope);
         if (files.length > 0 && files[0].size > 0) {
-          // File share — redirect to share sender (existing behavior)
-          url.hash = "/send/share";
+          // Keep the file for the transfer chooser, which takes it from this cache.
+          const file = files[0];
+          const cache = await caches.open("qrshare-share-target");
+          await cache.put(
+            new URL("shared-file", self.registration.scope).href,
+            new Response(file, {
+              headers: {
+                "content-type": file.type || "application/octet-stream",
+                "x-file-name": encodeURIComponent(file.name || "shared"),
+              },
+            }),
+          );
+          url.hash = "/send?shared=1";
         } else if (text) {
           // Text share — redirect with text in hash params
           url.hash = `/send/qr?text=${encodeURIComponent(text)}`;

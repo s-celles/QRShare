@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **App handoff** (protocol version 1): other web applications can hand a file to QRShare with `#/send?handoff=1` and `postMessage`, and get received files back through an **Open in <host>** button when they open the receive screen with a `return` URL; messages are accepted only from the opener and files are posted only to the expected origin
+- The transfer chooser (`#/send`) accepts files as well as text; the single static QR code stays reserved for text
+
 - **Local Network Peer Discovery**: Automatic zero-QR peer discovery on local Wi-Fi/LAN networks via WebRTC Trystero signaling, showing active nearby devices in `NearbyDevices` card with one-click direct transfer invitations (`TransferOfferModal`)
 - End-to-End Encryption (E2EE) using **AES-256-GCM** and **PBKDF2-SHA256** (100,000 iterations) via browser-native Web Crypto API, allowing password-protection of static QR codes, animated QR streams, and WebRTC file/text transfers with original filename preservation upon decryption
 - Receiver-side `EncryptedUnlockCard` for automatic password prompt, password reveal toggle, and secure in-browser decryption
@@ -17,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart structured QR parser for `ScannerView` and `TextResultView` rendering interactive result cards (Wi-Fi password reveal, copy password, download `.vcf` contact file, call/email buttons)
 - Printable Wi-Fi Guest Sign modal with print-optimized CSS layout for paper printing or badge creation
 - Experimental CIMBAR air-gapped transport using native QRShare Preact views and workers backed directly by the libcimbar v0.6.7c WASM APIs, available as a separate send/receive mode with receiver invitation support
+
+### Fixed
+
+- Files shared to QRShare through the Web Share Target were dropped on the way: the service worker now keeps the file and opens the transfer chooser with it
+- The Web Share Target redirected to the domain root instead of the app's own scope when QRShare is served from a sub-path (as on GitHub Pages)
 
 ## [0.3.0] - 2026-08-03
 

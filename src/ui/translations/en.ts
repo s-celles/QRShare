@@ -125,6 +125,16 @@ export const en: Record<string, string> = {
   "sendChooser.webrtcDesc": "Peer-to-peer network transfer",
   "sendChooser.share": "System share",
   "sendChooser.shareDesc": "Use the device share dialog",
+  "sendChooser.fileSummary": "File: {name} ({size})",
+  "sendChooser.fromApp": "Received from {origin}",
+  "sendChooser.waitingForApp": "Waiting for the file from the application…",
+  "sendChooser.handoffTimeout": "The application did not send a file. Go back to it and try again.",
+  "sendChooser.loadingShared": "Loading the shared file…",
+  "handoff.openIn": "Open in {host}",
+  "handoff.sending": "Sending to {host}…",
+  "handoff.sent": "Opened in {host}.",
+  "handoff.blocked": "The browser blocked the new window. Allow pop-ups for QRShare and try again.",
+  "handoff.noAnswer": "{host} did not answer. Download the file and open it there instead.",
 
   // URL creator
   "urlCreator.section": "Transfer URL creator",

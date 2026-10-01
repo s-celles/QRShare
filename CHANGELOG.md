@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-01
+
 ### Added
 
 - **App handoff** (protocol version 1): other web applications can hand a file to QRShare with `#/send?handoff=1` and `postMessage`, and get received files back through an **Open in <host>** button when they open the receive screen with a `return` URL; messages are accepted only from the opener and files are posted only to the expected origin

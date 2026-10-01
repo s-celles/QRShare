@@ -29,3 +29,9 @@ updates:
       prefix: "chore(ci)"
     labels:
       - dependencies
+    ignore:
+      # trystero 0.25 split the strategies into @trystero-p2p/* packages and
+      # changed the Room API (actions are objects, peer events are
+      # properties): it needs a code migration, not a version bump.
+      - dependency-name: trystero
+        versions: [">=0.23.0"]

@@ -19,7 +19,7 @@
     "lean-qr": "^2.7.0",
     "marked": "^18.0.7",
     "preact": "^10.25.0",
-    "trystero": "^0.25.4",
+    "trystero": "^0.22.0",
     "wirehair-wasm": "^1.0.5",
     "y-indexeddb": "^9.0.12",
     "yjs": "^13.6.31"

@@ -219,7 +219,7 @@ sequenceDiagram
 En haut de chaque page :
 
 - **QRShare** (à gauche) — Retour à la page d'accueil. Le numéro de version et le hash de build sont affichés à côté du titre
-- Bouton soleil/lune — Basculer entre thème clair et sombre
+- Bouton de thème — Passer de ◐ Auto (suit le réglage du système) à ☀ Clair puis ☾ Sombre
 - **?** — Guide utilisateur
 - **i** — Page « À propos »
 - Roue dentée — Paramètres (langue, thème, paramètres WebRTC)

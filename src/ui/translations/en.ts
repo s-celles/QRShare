@@ -15,9 +15,7 @@ export const en: Record<string, string> = {
 
   // App header
   "app.home": "QRShare home",
-  "app.toggleThemeLight": "Switch to light theme",
-  "app.toggleThemeDark": "Switch to dark theme",
-  "app.toggleTheme": "Toggle theme",
+  "app.themeButton": "Theme: {mode}",
   "app.guide": "User guide",
   "app.guideTitle": "Guide",
   "app.about": "About QRShare",

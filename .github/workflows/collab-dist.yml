@@ -49,7 +49,8 @@ jobs:
             git worktree add --detach "$work"
             git -C "$work" checkout --orphan collab-dist
           fi
-          git -C "$work" rm -rq --ignore-unmatch .
+          git -C "$work" rm -rqf --ignore-unmatch .
+          git -C "$work" clean -fdxq
           cp -r dist-collab/. "$work/"
           git -C "$work" add -A
           git -C "$work" commit -m "chore(collab): build @scelles/collab $VERSION from $source_sha" --allow-empty

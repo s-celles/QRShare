@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { pendingFileMimeType } from "@/ui/shared-file";
 import {
   encodeFlags,
   decodeFlags,
@@ -165,5 +166,18 @@ describe("Constants", () => {
 
   it("TEXT_MIME_TYPE starts with text/", () => {
     expect(TEXT_MIME_TYPE.startsWith("text/")).toBe(true);
+  });
+});
+
+describe("REQ-RTC-004 type of a handed-over file", () => {
+  it("keeps the type given by the view that handed the file over", () => {
+    expect(pendingFileMimeType({ buffer: new ArrayBuffer(0), filename: "x.bin", mimeType: "application/x-thing" })).toBe("application/x-thing");
+  });
+
+  it("uses text for text and the extension otherwise, never a fixed image type", () => {
+    expect(pendingFileMimeType({ buffer: new ArrayBuffer(0), filename: "scanned-qr.txt", isText: true })).toBe("text/plain; charset=utf-8");
+    expect(pendingFileMimeType({ buffer: new ArrayBuffer(0), filename: "report.PDF" })).toBe("application/pdf");
+    expect(pendingFileMimeType({ buffer: new ArrayBuffer(0), filename: "qrcode.png" })).toBe("image/png");
+    expect(pendingFileMimeType({ buffer: new ArrayBuffer(0), filename: "data.unknown" })).toBe("application/octet-stream");
   });
 });

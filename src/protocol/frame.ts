@@ -26,7 +26,8 @@ export function decodeFlags(flagsByte: number): FrameFlags {
 //     [0]      version (1B)
 //     [1]      flags (1B)
 //     [2..5]   metadataHash (4B)
-//     [6..7]   sourceBlockCount (uint16 LE)
+//     [6..7]   sourceBlockCount (uint16 LE) — saturates at 65535; the exact count
+//              is ceil(compressedSize / blockSize), which receivers use (REQ-QRX-004)
 //     [8..9]   blockSize (uint16 LE) — fountain symbol size
 //     [10..13] compressedSize (uint32 LE)
 //     [14]     compressionId (1B)
@@ -39,6 +40,13 @@ export function decodeFlags(flagsByte: number): FrameFlags {
 //   Payload:
 //     [57+N..] fountain symbol (blockSize bytes)
 export const BASE_HEADER_SIZE = 19;
+/** Largest value of the 16-bit sourceBlockCount field. */
+export const MAX_SOURCE_BLOCK_COUNT_FIELD = 0xffff;
+
+/** Exact number of source blocks of a transfer, whatever the size of the header field. */
+export function sourceBlockCountOf(frame: Pick<Frame, "compressedSize" | "blockSize">): number {
+  return frame.blockSize > 0 ? Math.ceil(frame.compressedSize / frame.blockSize) : 0;
+}
 export const METADATA_FIXED_SIZE = 38; // 4 + 32 + 2
 
 /** @deprecated Use BASE_HEADER_SIZE + metadataOverhead instead */
@@ -82,7 +90,8 @@ export function serializeFrame(frame: Frame): Uint8Array {
   buf[0] = frame.version;
   buf[1] = frame.flags;
   buf.set(frame.metadataHash, 2);
-  view.setUint16(6, frame.sourceBlockCount, true);
+  // Large files with small blocks exceed 16 bits: saturate instead of wrapping around.
+  view.setUint16(6, Math.min(frame.sourceBlockCount, MAX_SOURCE_BLOCK_COUNT_FIELD), true);
   view.setUint16(8, frame.blockSize, true);
   view.setUint32(10, frame.compressedSize, true);
   buf[14] = frame.compressionId;

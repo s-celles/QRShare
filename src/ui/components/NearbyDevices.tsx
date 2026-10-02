@@ -67,6 +67,7 @@ export function NearbyDevices() {
         pendingFile.value = {
           buffer,
           filename: file.name,
+          mimeType: file.type || undefined,
         };
         setOfferState(null);
         navigate(`/send/webrtc?room=${transferRoomId}`);

@@ -3,7 +3,7 @@ import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
-import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
+import { pendingFile, pendingFileMimeType, type PendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { SpeedGraph } from "./SpeedGraph";
@@ -25,7 +25,7 @@ const isScanning = signal(false);
 const totalFiles = signal(0);
 const currentFileIndex = signal(0);
 const selectedFileNames = signal<string[]>([]);
-const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
+const preloadedFile = signal<PendingFile | null>(
   null,
 );
 const instantSpeedBytesPerSec = signal(0);
@@ -204,7 +204,7 @@ export function WebRTCSenderView() {
 
     try {
       const file = new File([pre.buffer], pre.filename, {
-        type: "image/png",
+        type: pendingFileMimeType(pre),
       });
       await svc.sendFile(file, (p) => {
         progress.value = p;

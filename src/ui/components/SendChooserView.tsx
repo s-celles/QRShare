@@ -67,7 +67,7 @@ export function SendChooserView() {
 
   const choose = async (mode: SendMode) => {
     if (file) {
-      pendingFile.value = { buffer: await file.arrayBuffer(), filename: file.name, isText: file.type.startsWith("text/") };
+      pendingFile.value = { buffer: await file.arrayBuffer(), filename: file.name, isText: file.type.startsWith("text/"), mimeType: file.type || undefined };
       incomingFile.value = null;
       incomingOrigin.value = null;
     } else if (data) {

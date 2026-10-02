@@ -540,6 +540,8 @@ export const en: Record<string, string> = {
   "docs.desc.how-it-works": "Features and the transfer modes in detail.",
   "docs.desc.connectivity": "Why WebRTC sometimes cannot connect, and how a TURN server helps.",
   "docs.desc.collaboration": "Live shared text editing over WebRTC, with named versions.",
+  "docs.page.apps": "Apps built on QRShare",
+  "docs.desc.apps": "Progressive Web Office, CAScad and how to use QRShare from your own app.",
   "docs.desc.architecture": "Building blocks and technology stack.",
   "docs.desc.development": "Build, test, write documentation and release.",
   "docs.page.collab-sync": "Offline sync protocol",

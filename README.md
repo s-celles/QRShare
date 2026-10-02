@@ -23,19 +23,19 @@ The documentation opens **in the app** (book icon in the header):
 - [How QRShare Works](https://s-celles.github.io/QRShare/#/docs?page=how-it-works) — features and transfer modes
 - [Connectivity and TURN](https://s-celles.github.io/QRShare/#/docs?page=connectivity)
 - [Collaborative Editing](https://s-celles.github.io/QRShare/#/docs?page=collaboration)
+- [Apps Built on QRShare](https://s-celles.github.io/QRShare/#/docs?page=apps) — who uses QRShare, and how to build on it
 - [Architecture](https://s-celles.github.io/QRShare/#/docs?page=architecture) — building blocks and technology stack
 - [Development](https://s-celles.github.io/QRShare/#/docs?page=development) — build, test and release
 - [Requirements](https://s-celles.github.io/QRShare/#/docs?page=requirements) — EARS specification
 
 Its Markdown sources are in the [`docs/`](docs/) folder.
 
-## Used by Progressive Web Office
+## Apps Built on QRShare
 
-[Progressive Web Office](https://github.com/s-celles/progressive-web-office)
-([demo](https://s-celles.github.io/progressive-web-office/)), an office suite that
-runs entirely in the browser, uses QRShare to exchange documents between devices
-without a network. Any web app can do the same with the app handoff protocol,
-described in the [user guide](https://s-celles.github.io/QRShare/#/docs?page=user-guide&lang=en&section=exchanging-files-with-other-web-apps).
+[Progressive Web Office](https://github.com/s-celles/progressive-web-office) (office
+suite) and [CAScad](https://github.com/s-celles/CAScad) (computer algebra notebook)
+use QRShare to move their files between devices, even without a network. Any web
+app can do the same: see [Apps Built on QRShare](https://s-celles.github.io/QRShare/#/docs?page=apps).
 
 ## Quick Start
 

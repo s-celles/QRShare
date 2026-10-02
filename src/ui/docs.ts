@@ -8,6 +8,7 @@ import userGuideFr from "../../docs/fr-guide-utilisateur.md" with { type: "text"
 import howItWorksEn from "../../docs/en-how-it-works.md" with { type: "text" };
 import connectivityEn from "../../docs/en-connectivity-and-turn.md" with { type: "text" };
 import collaborationEn from "../../docs/en-collaborative-editing.md" with { type: "text" };
+import appsEn from "../../docs/en-apps.md" with { type: "text" };
 import architectureEn from "../../docs/en-architecture.md" with { type: "text" };
 import developmentEn from "../../docs/en-development.md" with { type: "text" };
 import collabSyncEn from "../../docs/collab-sync-protocol.md" with { type: "text" };
@@ -47,6 +48,12 @@ export const DOC_PAGES: readonly DocPage[] = [
     group: "using",
     files: { en: "en-collaborative-editing.md" },
     content: { en: collaborationEn },
+  },
+  {
+    slug: "apps",
+    group: "using",
+    files: { en: "en-apps.md" },
+    content: { en: appsEn },
   },
   {
     slug: "architecture",

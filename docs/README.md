@@ -10,6 +10,7 @@ header.
 - [How QRShare Works](en-how-it-works.md) — features and transfer modes, step by step
 - [Connectivity and TURN](en-connectivity-and-turn.md) — when WebRTC cannot connect
 - [Collaborative Editing](en-collaborative-editing.md) — live shared text editor
+- [Apps Built on QRShare](en-apps.md) — Progressive Web Office, CAScad, and building on QRShare
 
 ## Developing QRShare
 

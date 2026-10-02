@@ -525,6 +525,8 @@ export const ar: Record<string, string> = {
   "docs.desc.how-it-works": "الميزات وأوضاع النقل بالتفصيل.",
   "docs.desc.connectivity": "لماذا يتعذر أحيانًا اتصال WebRTC، وكيف يساعد خادم TURN.",
   "docs.desc.collaboration": "تحرير نص مشترك مباشر عبر WebRTC، مع نسخ مسمّاة.",
+  "docs.page.apps": "تطبيقات مبنية على QRShare",
+  "docs.desc.apps": "Progressive Web Office و CAScad وكيفية استخدام QRShare من تطبيقك.",
   "docs.desc.architecture": "المكونات الأساسية والتقنيات المستخدمة.",
   "docs.desc.development": "البناء والاختبار وكتابة التوثيق وإصدار النسخ.",
   "docs.page.collab-sync": "بروتوكول المزامنة دون اتصال",

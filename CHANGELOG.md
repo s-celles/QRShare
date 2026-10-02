@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Documentation page **Apps Built on QRShare**: Progressive Web Office and CAScad (integration in progress), what each uses from QRShare (sending, receiving, offline sync), and how any web app can build on it; linked from the README
+- App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
+- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 199 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
+- The offline sync protocol of the collaboration core (`docs/collab-sync-protocol.md`) is part of the in-app documentation and of the requirements (REQ-COLLAB-090 to 094)
+- **In-app documentation** (`#/docs`, book icon in the header): an index of all the pages of `docs/` and each page rendered in the app, with a side menu, links between pages that stay in the app, tables, code and Mermaid diagrams; pages not yet translated are shown in English with a note. `#/guide` (the **?** button) still opens the user guide
+- New documentation pages, moved out of the README: **How QRShare works** (features, transfer modes, encoding presets), **Architecture** (building blocks, technology stack) and **Development** (commands, writing documentation, releasing), plus a `docs/README.md` index
+- **Passkey sign-in codes** (`FIDO:/…` QR codes, FIDO hybrid transport): the scanner recognises and decodes them, shows what the computer asks (sign in or create a passkey) and when the code was made, explains that the phone holding the passkey must scan it, warns when it has likely expired, and offers no copy, share or send action so that the code is never forwarded
+
+### Changed
+
+- The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
+- The README is now short: what QRShare is, a link to the app, highlights, links to the documentation and a quick start
+- Documentation is rendered with marked (already used for file previews) instead of a minimal home-made converter
+
 ### Fixed
 
 - **Encryption for a trusted contact did not work.** Identity QR codes carried no encryption key, so a contact added by scanning could never be chosen, and the receiver looked the sender up with a padded fingerprint, so decryption always failed. Identity codes now carry the encryption key and the fingerprint is read correctly; contacts added before must be scanned again
@@ -14,31 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A file handed to the WebRTC sender from another screen was always announced as a PNG image; files now keep their type
 - Some labels showed raw identifiers (`receiver.downloaded`, `receiver.instantSpeed`, the contact encryption options); 70 texts were missing in Arabic; the vCard preview had French labels and the file preview English ones. A test now checks that every language has every text the code uses
 - The single-file package was described as self-contained although its workers and WebAssembly runtimes stay separate files; the script, the documentation and the requirements now say so
-
-### Added
-
-- **Passkey sign-in codes** (`FIDO:/…` QR codes, FIDO hybrid transport): the scanner recognises and decodes them, shows what the computer asks (sign in or create a passkey) and when the code was made, explains that the phone holding the passkey must scan it, warns when it has likely expired, and offers no copy, share or send action so that the code is never forwarded
-- App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
-- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 199 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
-- The offline sync protocol of the collaboration core (`docs/collab-sync-protocol.md`) is part of the in-app documentation and of the requirements (REQ-COLLAB-090 to 094)
-
-### Changed
-
-- The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
-
-### Fixed
-
 - Placeholders such as `<app>` or `<host>` in the documentation were hidden as unknown HTML tags; they are shown as text
-
-### Added
-
-- **In-app documentation** (`#/docs`, book icon in the header): an index of all the pages of `docs/` and each page rendered in the app, with a side menu, links between pages that stay in the app, tables, code and Mermaid diagrams; pages not yet translated are shown in English with a note. `#/guide` (the **?** button) still opens the user guide
-- New documentation pages, moved out of the README: **How QRShare works** (features, transfer modes, encoding presets), **Architecture** (building blocks, technology stack) and **Development** (commands, writing documentation, releasing), plus a `docs/README.md` index
-
-### Changed
-
-- The README is now short: what QRShare is, a link to the app, highlights, links to the documentation and a quick start
-- Documentation is rendered with marked (already used for file previews) instead of a minimal home-made converter
 
 ## [0.5.0] - 2026-10-01
 

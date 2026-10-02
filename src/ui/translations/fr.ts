@@ -570,6 +570,8 @@ export const fr: Record<string, string> = {
   "docs.desc.how-it-works": "Les fonctionnalités et les modes de transfert en détail.",
   "docs.desc.connectivity": "Pourquoi WebRTC ne parvient parfois pas à se connecter, et comment un serveur TURN aide.",
   "docs.desc.collaboration": "Édition de texte partagée en direct via WebRTC, avec versions nommées.",
+  "docs.page.apps": "Applications basées sur QRShare",
+  "docs.desc.apps": "Progressive Web Office, CAScad et comment utiliser QRShare depuis votre propre application.",
   "docs.desc.architecture": "Briques logicielles et pile technique.",
   "docs.desc.development": "Compiler, tester, écrire la documentation et publier une version.",
   "docs.page.collab-sync": "Protocole de synchronisation hors ligne",

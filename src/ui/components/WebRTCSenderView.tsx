@@ -473,7 +473,7 @@ export function WebRTCSenderView() {
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.downloaded") || "Uploaded"}</span>
+              <span class="stat-label">{t("sender.uploaded")}</span>
               <span class="stat-value">
                 {(progress.value.bytesSent / 1024).toFixed(1)} KB / {(progress.value.totalBytes / 1024).toFixed(1)} KB
               </span>
@@ -485,7 +485,7 @@ export function WebRTCSenderView() {
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span>
+              <span class="stat-label">{t("receiver.instantSpeed")}</span>
               <span class="stat-value">
                 {instantSpeedBytesPerSec.value >= 1024 * 1024 ? `${(instantSpeedBytesPerSec.value / (1024 * 1024)).toFixed(1)} MB/s` : instantSpeedBytesPerSec.value >= 1024 ? `${(instantSpeedBytesPerSec.value / 1024).toFixed(1)} KB/s` : `${instantSpeedBytesPerSec.value.toFixed(0)} B/s`}
               </span>

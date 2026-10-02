@@ -314,7 +314,7 @@ function CimbarReceiver() {
             <div class="stat"><span class="stat-label">{t("cimbar.progress") || "Progress"}</span><span class="stat-value">{progress.toFixed(1)}%</span></div>
             <div class="stat"><span class="stat-label">{t("cimbar.receivedSize") || "Downloaded"}</span><span class="stat-value">{stats.expectedSize > 0 ? `${formatBytes(stats.receivedBytes)} / ${formatBytes(stats.expectedSize)}` : t("cimbar.waitingMetadata")}</span></div>
             <div class="stat"><span class="stat-label">{t("receiver.speed") || "Avg Speed"}</span><span class="stat-value">{formatBytes(stats.speedBytesPerSec)}/s</span></div>
-            <div class="stat"><span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span><span class="stat-value">{formatBytes(instantSpeedRef.current)}/s</span></div>
+            <div class="stat"><span class="stat-label">{t("receiver.instantSpeed")}</span><span class="stat-value">{formatBytes(instantSpeedRef.current)}/s</span></div>
             <div class="stat"><span class="stat-label">{t("cimbar.elapsed") || "Elapsed"}</span><span class="stat-value">{(stats.elapsedMs / 1000).toFixed(1)} s</span></div>
             <div class="stat"><span class="stat-label">{t("cimbar.detectedFrames") || "Detected"}</span><span class="stat-value">{stats.detectedFrames} / {stats.scannedFrames} ({Math.round(stats.detectionRate * 100)}%)</span></div>
           </div>

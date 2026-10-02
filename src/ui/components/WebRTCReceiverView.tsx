@@ -349,7 +349,7 @@ export function WebRTCReceiverView() {
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.downloaded") || "Downloaded"}</span>
+              <span class="stat-label">{t("receiver.downloaded")}</span>
               <span class="stat-value">
                 {(progress.value.bytesSent / 1024).toFixed(1)} KB / {(progress.value.totalBytes / 1024).toFixed(1)} KB
               </span>
@@ -361,7 +361,7 @@ export function WebRTCReceiverView() {
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span>
+              <span class="stat-label">{t("receiver.instantSpeed")}</span>
               <span class="stat-value">
                 {formatSpeed(instantSpeedBytesPerSec.value)}
               </span>

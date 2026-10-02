@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { readdirSync } from "fs";
 import { resolve } from "path";
 import { DOC_PAGES, docLanguage, docRoute, findDocByFile, findDocPage } from "../../src/ui/docs";
-import { markdownToHtml } from "../../src/ui/markdown";
+import { headingId, markdownToHtml } from "../../src/ui/markdown";
 
 const docsDir = resolve(import.meta.dir, "../../docs");
 
@@ -23,6 +23,13 @@ describe("in-app documentation", () => {
     expect(findDocByFile("fr-guide-utilisateur.md")?.slug).toBe("user-guide");
     expect(findDocByFile("docs/en-architecture.md")?.slug).toBe("architecture");
     expect(findDocByFile("unknown.md")).toBeUndefined();
+  });
+
+  it("builds in-app addresses for pages and sections", () => {
+    expect(docRoute("user-guide")).toBe("#/docs?page=user-guide");
+    expect(docRoute("user-guide", "exchanging-files-with-other-web-apps")).toBe(
+      "#/docs?page=user-guide&section=exchanging-files-with-other-web-apps",
+    );
   });
 
   it("falls back to English when a page has no translation", () => {
@@ -54,6 +61,19 @@ describe("markdownToHtml", () => {
     const html = markdownToHtml("| a | b |\n|---|---|\n| 1 | 2 |\n\n[site](https://example.org)");
     expect(html).toContain("<table>");
     expect(html).toContain('href="https://example.org" target="_blank" rel="noopener noreferrer"');
+  });
+
+  it("gives headings GitHub-style anchors, numbering repeats", () => {
+    const html = markdownToHtml("## Exchanging Files with Other Web Apps\n\n### Export\n\n### Export");
+    expect(html).toContain('<h2 id="exchanging-files-with-other-web-apps">');
+    expect(html).toContain('<h3 id="export">');
+    expect(html).toContain('<h3 id="export-1">');
+    expect(headingId("QRShare — User Guide")).toBe("qrshare--user-guide");
+    expect(headingId("Qu'est-ce que QRShare ?")).toBe("quest-ce-que-qrshare-");
+  });
+
+  it("shows HTML-like placeholders as text", () => {
+    expect(markdownToHtml("Open in <host> now")).toContain("Open in &lt;host&gt; now");
   });
 
   it("rewrites resolved links to in-app addresses", () => {

@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
+- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 197 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
+- The offline sync protocol of the collaboration core (`docs/collab-sync-protocol.md`) is part of the in-app documentation and of the requirements (REQ-COLLAB-090 to 094)
+
+### Changed
+
+- The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
+
+### Fixed
+
+- Placeholders such as `<app>` or `<host>` in the documentation were hidden as unknown HTML tags; they are shown as text
+
+### Added
+
 - **In-app documentation** (`#/docs`, book icon in the header): an index of all the pages of `docs/` and each page rendered in the app, with a side menu, links between pages that stay in the app, tables, code and Mermaid diagrams; pages not yet translated are shown in English with a note. `#/guide` (the **?** button) still opens the user guide
 - New documentation pages, moved out of the README: **How QRShare works** (features, transfer modes, encoding presets), **Architecture** (building blocks, technology stack) and **Development** (commands, writing documentation, releasing), plus a `docs/README.md` index
 

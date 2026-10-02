@@ -10,7 +10,8 @@ import connectivityEn from "../../docs/en-connectivity-and-turn.md" with { type:
 import collaborationEn from "../../docs/en-collaborative-editing.md" with { type: "text" };
 import architectureEn from "../../docs/en-architecture.md" with { type: "text" };
 import developmentEn from "../../docs/en-development.md" with { type: "text" };
-import offlineSyncEn from "../../docs/en-offline-sync-protocol.md" with { type: "text" };
+import collabSyncEn from "../../docs/collab-sync-protocol.md" with { type: "text" };
+import requirementsEn from "../../docs/requirements.md" with { type: "text" };
 
 export type DocGroup = "using" | "developing";
 
@@ -60,10 +61,16 @@ export const DOC_PAGES: readonly DocPage[] = [
     content: { en: developmentEn },
   },
   {
-    slug: "offline-sync",
+    slug: "collab-sync",
     group: "developing",
-    files: { en: "en-offline-sync-protocol.md" },
-    content: { en: offlineSyncEn },
+    files: { en: "collab-sync-protocol.md" },
+    content: { en: collabSyncEn },
+  },
+  {
+    slug: "requirements",
+    group: "developing",
+    files: { en: "requirements.md" },
+    content: { en: requirementsEn },
   },
 ];
 
@@ -82,5 +89,7 @@ export function docLanguage(page: DocPage, locale: string): "en" | "fr" {
   return locale === "fr" && page.content.fr ? "fr" : "en";
 }
 
-/** The in-app address of a page. */
-export const docRoute = (slug: string): string => `#/docs?page=${slug}`;
+/** The in-app address of a page, optionally of one of its sections (heading anchor). */
+export function docRoute(slug: string, section?: string): string {
+  return `#/docs?page=${slug}${section ? `&section=${encodeURIComponent(section)}` : ""}`;
+}

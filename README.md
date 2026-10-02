@@ -17,16 +17,17 @@ browser, installs as a Progressive Web App and works offline.
 
 ## Documentation
 
-The documentation is available **in the app** (book icon in the header, or
-[#/docs](https://s-celles.github.io/QRShare/#/docs)) and in the [`docs/`](docs/)
-folder:
+The documentation opens **in the app** (book icon in the header):
 
-- [User Guide](docs/en-user-guide.md) · [Guide utilisateur](docs/fr-guide-utilisateur.md)
-- [How QRShare Works](docs/en-how-it-works.md) — features and transfer modes
-- [Connectivity and TURN](docs/en-connectivity-and-turn.md)
-- [Collaborative Editing](docs/en-collaborative-editing.md)
-- [Architecture](docs/en-architecture.md) — building blocks and technology stack
-- [Development](docs/en-development.md) — build, test and release
+- [User Guide](https://s-celles.github.io/QRShare/#/docs?page=user-guide&lang=en) · [Guide utilisateur](https://s-celles.github.io/QRShare/#/docs?page=user-guide&lang=fr)
+- [How QRShare Works](https://s-celles.github.io/QRShare/#/docs?page=how-it-works) — features and transfer modes
+- [Connectivity and TURN](https://s-celles.github.io/QRShare/#/docs?page=connectivity)
+- [Collaborative Editing](https://s-celles.github.io/QRShare/#/docs?page=collaboration)
+- [Architecture](https://s-celles.github.io/QRShare/#/docs?page=architecture) — building blocks and technology stack
+- [Development](https://s-celles.github.io/QRShare/#/docs?page=development) — build, test and release
+- [Requirements](https://s-celles.github.io/QRShare/#/docs?page=requirements) — EARS specification
+
+Its Markdown sources are in the [`docs/`](docs/) folder.
 
 ## Used by Progressive Web Office
 
@@ -34,7 +35,7 @@ folder:
 ([demo](https://s-celles.github.io/progressive-web-office/)), an office suite that
 runs entirely in the browser, uses QRShare to exchange documents between devices
 without a network. Any web app can do the same with the app handoff protocol,
-described in the [user guide](docs/en-user-guide.md#exchanging-files-with-other-web-apps).
+described in the [user guide](https://s-celles.github.io/QRShare/#/docs?page=user-guide&lang=en&section=exchanging-files-with-other-web-apps).
 
 ## Quick Start
 
@@ -44,7 +45,7 @@ bun test
 bun run build
 ```
 
-See [Development](docs/en-development.md) for all commands and the release process.
+See [Development](https://s-celles.github.io/QRShare/#/docs?page=development) for all commands and the release process.
 
 ## License
 

@@ -541,6 +541,8 @@ export const en: Record<string, string> = {
   "docs.desc.collaboration": "Live shared text editing over WebRTC, with named versions.",
   "docs.desc.architecture": "Building blocks and technology stack.",
   "docs.desc.development": "Build, test, write documentation and release.",
+  "docs.page.collab-sync": "Offline sync protocol",
+  "docs.desc.collab-sync": "Signed frames that sync a shared document between devices without a network.",
   "docs.page.requirements": "Requirements",
   "docs.desc.requirements": "The EARS specification: every requirement, with its priority and the version that introduced it.",
   "docs.inEnglish": "In English",

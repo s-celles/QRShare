@@ -527,6 +527,8 @@ export const ar: Record<string, string> = {
   "docs.desc.collaboration": "تحرير نص مشترك مباشر عبر WebRTC، مع نسخ مسمّاة.",
   "docs.desc.architecture": "المكونات الأساسية والتقنيات المستخدمة.",
   "docs.desc.development": "البناء والاختبار وكتابة التوثيق وإصدار النسخ.",
+  "docs.page.collab-sync": "بروتوكول المزامنة دون اتصال",
+  "docs.desc.collab-sync": "إطارات موقّعة تزامن مستندًا مشتركًا بين الأجهزة دون شبكة.",
   "docs.page.requirements": "المتطلبات",
   "docs.desc.requirements": "مواصفات EARS: كل متطلب مع أولويته والإصدار الذي أضافه.",
   "docs.inEnglish": "بالإنجليزية",

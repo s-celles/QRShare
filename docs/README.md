@@ -15,4 +15,5 @@ header.
 
 - [Architecture](en-architecture.md) — building blocks and technology stack
 - [Development](en-development.md) — commands, documentation pages, releasing
+- [Offline sync protocol](collab-sync-protocol.md) — signed frames for the `@scelles/collab` offline sync
 - [Requirements](requirements.md) — EARS specification, with priorities and versions

@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 192 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
+- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 197 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
+- The offline sync protocol of the collaboration core (`docs/collab-sync-protocol.md`) is part of the in-app documentation and of the requirements (REQ-COLLAB-090 to 094)
 
 ### Changed
 

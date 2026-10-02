@@ -571,6 +571,8 @@ export const fr: Record<string, string> = {
   "docs.desc.collaboration": "Édition de texte partagée en direct via WebRTC, avec versions nommées.",
   "docs.desc.architecture": "Briques logicielles et pile technique.",
   "docs.desc.development": "Compiler, tester, écrire la documentation et publier une version.",
+  "docs.page.collab-sync": "Protocole de synchronisation hors ligne",
+  "docs.desc.collab-sync": "Des trames signées qui synchronisent un document partagé entre appareils sans réseau.",
   "docs.page.requirements": "Exigences",
   "docs.desc.requirements": "La spécification EARS : chaque exigence, avec sa priorité et la version qui l’a introduite.",
   "docs.inEnglish": "En anglais",

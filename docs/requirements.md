@@ -285,6 +285,11 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-COLLAB-063 | S | 0.2.0 | If IndexedDB is unavailable, then the system shall keep working without persistence. |
 | REQ-COLLAB-070 | M | 0.2.0 | The system shall carry collaboration only over the encrypted peer-to-peer channel, with no additional server or secret. |
 | REQ-COLLAB-080 | C | 0.4.0 | The system shall provide the collaboration engine as an interface-independent package (`@scelles/collab`) that other applications can use with the same protocol. |
+| REQ-COLLAB-090 | C | Unreleased | The system shall let applications sync a shared document between devices without a network, by exchanging binary frames (hello, state vector, update) over any channel such as animated QR codes, as specified in the [offline sync protocol](collab-sync-protocol.md). |
+| REQ-COLLAB-091 | C | Unreleased | Where a peer has been trusted through a signed hello frame, the system shall require its Ed25519 signature on every later frame and reject the frame otherwise. |
+| REQ-COLLAB-092 | C | Unreleased | If a received sync frame is oversized, malformed, of an unknown version or type, or carries an invalid signature, then the system shall reject it before decoding its content and log the reason. |
+| REQ-COLLAB-093 | C | Unreleased | When a sync update is received, the system shall apply it to an isolated copy first and change the document only after the application has validated that copy and the user has accepted it. |
+| REQ-COLLAB-094 | C | Unreleased | The system shall log every received sync frame with its sender, trust, size and result (applied, unchanged, refused, rejected). |
 
 ## 18. System sharing and app handoff (SHARE)
 

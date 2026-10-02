@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
+
 ## [0.5.0] - 2026-10-01
 
 ### Changed

@@ -6,6 +6,8 @@ import {
   parseReturnUrl,
   receiveFromOpener,
   sendFileToWindow,
+  sendToOpener,
+  HANDOFF_MODES,
   type WindowLike,
 } from "@/share/handoff";
 
@@ -116,5 +118,32 @@ describe("REQ-HANDOFF-002/004 handoff between two windows", () => {
   it("resolves null without an opener", async () => {
     const lonely = new FakeWindow("https://qrshare.example");
     expect(await receiveFromOpener(lonely, 50)).toBeNull();
+  });
+});
+
+describe("REQ-HANDOFF-006 version 2: reply to the opener", () => {
+  it("posts the file to the opener, to the origin of the return URL only", async () => {
+    const app = new FakeWindow("https://app.example");
+    const qr = new FakeWindow("https://qr.example");
+    qr.opener = app;
+    app.peer = qr;
+    const got: unknown[] = [];
+    app.addEventListener("message", (e) => got.push(e.data));
+    const file = new File(["hello"], "a.txt", { type: "text/plain" });
+    expect(await sendToOpener(qr, new URL("https://app.example/pwo/?x=1"), file)).toBe("sent");
+    expect(app.sent[0].targetOrigin).toBe("https://app.example");
+    await Promise.resolve();
+    const parsed = parseHandoffMessage(got[0]);
+    expect(parsed?.action).toBe("file");
+  });
+
+  it("reports a missing opener so the caller can open a new window", async () => {
+    const qr = new FakeWindow("https://qr.example");
+    expect(await sendToOpener(qr, new URL("https://app.example/"), new File(["x"], "x.txt"))).toBe("noOpener");
+  });
+
+  it("knows the send modes an application may ask for", () => {
+    expect(HANDOFF_MODES).toContain("animated-qr");
+    expect(HANDOFF_MODES as readonly string[]).not.toContain("static-qr");
   });
 });

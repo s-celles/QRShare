@@ -516,6 +516,7 @@ export const ar: Record<string, string> = {
   "handoff.openIn": "فتح في {host}",
   "handoff.sending": "جارٍ الإرسال إلى {host}…",
   "handoff.sent": "تم الفتح في {host}.",
+  "handoff.sentBack": "أُعيد إلى {host}.",
   "handoff.blocked": "منع المتصفح فتح النافذة الجديدة. اسمح بالنوافذ المنبثقة لـ QRShare ثم حاول مرة أخرى.",
   "handoff.noAnswer": "لم يستجب {host}. نزّل الملف وافتحه هناك.",
 };

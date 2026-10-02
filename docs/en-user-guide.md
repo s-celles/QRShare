@@ -134,6 +134,11 @@ Files shared to QRShare through the system share sheet also open in the transfer
 
 For developers: the two windows exchange `{ type: "qrshare-handoff", version: 1, action }` messages with `postMessage` — `ready` (receiving window → its opener), `file` (`name`, `mimeType`, `data` as an `ArrayBuffer`, posted to the exact origin) and `received`. Files are limited to 200 MB. Applications can check support beforehand: QRShare's `manifest.webmanifest` lists the protocol versions it speaks in `qrshare_handoff.versions`.
 
+**Version 2** adds two optional parameters, announced in the manifest as `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`:
+
+- `mode=animated-qr` (or `cimbar`, `webrtc`, `share`) on `#/send?handoff=1`: once the file is received, QRShare goes straight to that transfer mode, when the policy allows it, instead of showing the chooser.
+- `reply=opener` on `#/receive/...?return=<app>`: after the user clicks *Open in …*, QRShare posts the `file` message back to the window that opened it, to the origin of `return` only, then closes. If that window is gone, it falls back to opening a new one, as in version 1.
+
 ---
 
 ## Sharing Files via Native Share

@@ -10,7 +10,7 @@ import {
   recommendSendModeForSize,
   type SendMode,
 } from "../send-policy";
-import { receiveFromOpener, type WindowLike } from "@/share/handoff";
+import { HANDOFF_MODES, receiveFromOpener, type WindowLike } from "@/share/handoff";
 import { takeSharedFile } from "@/share/shared-target";
 import { t } from "../i18n";
 
@@ -35,6 +35,8 @@ export function SendChooserView() {
   const data = params.get("data") ?? params.get("text") ?? "";
   const policy = parseSendPolicy(params.get("policy"));
   const handoff = params.get("handoff") === "1";
+  // REQ-HANDOFF-006: an application may ask for a send mode (e.g. animated QR) and skip the choice.
+  const askedMode = HANDOFF_MODES.find((m) => m === params.get("mode"));
   const shared = params.get("shared") === "1";
   const file = incomingFile.value;
 
@@ -77,6 +79,10 @@ export function SendChooserView() {
     }
     navigate(MODE_ROUTES[mode]);
   };
+
+  useEffect(() => {
+    if (file && askedMode && modes.includes(askedMode)) void choose(askedMode);
+  }, [file, askedMode]);
 
   const hasPayload = !!file || !!data;
 

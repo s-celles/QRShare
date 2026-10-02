@@ -1,5 +1,5 @@
 import { currentRoute, hashParams } from "./router";
-import { rememberReturnUrl } from "@/share/handoff";
+import { rememberReply, rememberReturnUrl } from "@/share/handoff";
 import { toggleTheme, theme, type Theme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
@@ -27,7 +27,10 @@ const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", da
 const THEME_LABELS: Record<Theme, string> = { auto: "settings.themeAuto", light: "settings.themeLight", dark: "settings.themeDark" };
 
 // REQ-HANDOFF-004: remember which application asked to receive a file.
-hashParams.subscribe((params) => rememberReturnUrl(params.get("return")));
+hashParams.subscribe((params) => {
+  rememberReturnUrl(params.get("return"));
+  rememberReply(params.get("reply"));
+});
 
 function RouteView() {
   const route = currentRoute.value;

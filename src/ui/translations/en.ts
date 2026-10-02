@@ -133,6 +133,7 @@ export const en: Record<string, string> = {
   "handoff.openIn": "Open in {host}",
   "handoff.sending": "Sending to {host}…",
   "handoff.sent": "Opened in {host}.",
+  "handoff.sentBack": "Sent back to {host}.",
   "handoff.blocked": "The browser blocked the new window. Allow pop-ups for QRShare and try again.",
   "handoff.noAnswer": "{host} did not answer. Download the file and open it there instead.",
 

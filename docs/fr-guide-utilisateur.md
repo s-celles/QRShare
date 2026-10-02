@@ -134,6 +134,11 @@ Les fichiers partagés vers QRShare depuis la feuille de partage du système s'o
 
 Pour les développeurs : les deux fenêtres échangent des messages `{ type: "qrshare-handoff", version: 1, action }` avec `postMessage` — `ready` (fenêtre qui reçoit → sa fenêtre d'origine), `file` (`name`, `mimeType`, `data` sous forme d'`ArrayBuffer`, envoyé à l'origine exacte) et `received`. Les fichiers sont limités à 200 Mo. Les applications peuvent vérifier la prise en charge au préalable : le `manifest.webmanifest` de QRShare liste les versions du protocole dans `qrshare_handoff.versions`.
 
+**La version 2** ajoute deux paramètres facultatifs, annoncés dans le manifeste par `"versions": [1, 2]` et `"features": ["mode", "reply-opener"]` :
+
+- `mode=animated-qr` (ou `cimbar`, `webrtc`, `share`) sur `#/send?handoff=1` : une fois le fichier reçu, QRShare passe directement à ce mode de transfert, si la politique l'autorise, sans afficher le sélecteur.
+- `reply=opener` sur `#/receive/...?return=<app>` : après le clic sur *Ouvrir dans …*, QRShare renvoie le message `file` à la fenêtre qui l'a ouvert, uniquement vers l'origine de `return`, puis se ferme. Si cette fenêtre n'existe plus, il ouvre une nouvelle fenêtre comme en version 1.
+
 ---
 
 ## Partager des fichiers via le partage natif

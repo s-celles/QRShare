@@ -24,7 +24,8 @@
     }
   ],
   "qrshare_handoff": {
-    "versions": [1]
+    "versions": [1, 2],
+    "features": ["mode", "reply-opener"]
   },
   "share_target": {
     "action": "./",

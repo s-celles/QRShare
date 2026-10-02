@@ -47,6 +47,10 @@ bun run build
 
 See [Development](https://s-celles.github.io/QRShare/#/docs?page=development) for all commands and the release process.
 
+## Author
+
+[Sébastien Celles](https://github.com/s-celles)
+
 ## License
 
 [BSD-3-Clause](LICENSE)

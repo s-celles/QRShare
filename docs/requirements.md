@@ -89,7 +89,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 
 | ID | Pri | Since | Requirement |
 |----|-----|-------|-------------|
-| REQ-DOC-001 | S | 0.4.0 | When the user opens About, the system shall show a window with the logo and description, version (linked to the changelog), commit (linked to the source), build date, licence, whether the app is installed and whether it works offline. |
+| REQ-DOC-001 | S | 0.4.0 | When the user opens About, the system shall show a window with the logo and description, version (linked to the changelog), commit (linked to the source), build date, author (linked to their GitHub profile), licence, whether the app is installed and whether it works offline. |
 | REQ-DOC-002 | S | 0.4.0 | The system shall show in the About window a QR code of the application address, and shall show it full screen when the user activates it. |
 | REQ-DOC-003 | S | 0.4.0 | When the user selects Copy details in the About window, the system shall copy the version, build, address, browser, language, installed and offline states for a bug report. |
 | REQ-DOC-004 | S | 0.4.0 | The system shall link from the About window to the documentation, the requirements, the source code, the changelog and the issue tracker, and shall show a privacy note, credits and a disclaimer. |

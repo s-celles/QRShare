@@ -417,6 +417,7 @@ export const ar: Record<string, string> = {
   "about.qrAlt": "رمز QR يشير إلى QRShare",
   "about.scanText": "امسح رمز QR هذا لفتح QRShare على جهاز آخر.",
   "about.description": "نقل ملفات بدون شبكة عبر رموز QR متحركة مع رموز نافورية، بالإضافة إلى وضع نظير إلى نظير WebRTC.",
+  "about.author": "المؤلف",
   "about.license": "الرخصة",
   "about.sourceCode": "الكود المصدري على GitHub",
   "about.disclaimer": "إخلاء المسؤولية:",

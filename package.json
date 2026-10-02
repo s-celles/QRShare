@@ -4,6 +4,7 @@
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
   "type": "module",
   "license": "BSD-3-Clause",
+  "author": "Sébastien Celles (https://github.com/s-celles)",
   "scripts": {
     "dev": "bun run --hot src/main.ts",
     "build": "bun run scripts/build.ts",

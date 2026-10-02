@@ -432,6 +432,7 @@ export const en: Record<string, string> = {
   "about.qrAlt": "QR code linking to QRShare",
   "about.scanText": "Scan this QR code to open QRShare on another device.",
   "about.description": "Air-gapped file transfer via animated QR codes with fountain codes, plus WebRTC P2P mode.",
+  "about.author": "Author",
   "about.license": "License",
   "about.sourceCode": "Source code on GitHub",
   "about.disclaimer": "Disclaimer:",

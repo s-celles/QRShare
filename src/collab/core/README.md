@@ -58,7 +58,7 @@ BSD-3-Clause.
 `offline` syncs a Yjs document between devices without a network, in passes
 of short frames (state vector, then the missing updates), signed with
 Ed25519, size-limited and validated on an isolated copy before being
-applied. See [docs/collab-sync-protocol.md](../../../docs/collab-sync-protocol.md).
+applied. See [docs/en-offline-sync-protocol.md](../../../docs/en-offline-sync-protocol.md).
 
 ```ts
 import { offline } from "@scelles/collab";

@@ -15,3 +15,4 @@ header.
 
 - [Architecture](en-architecture.md) — building blocks and technology stack
 - [Development](en-development.md) — commands, documentation pages, releasing
+- [Offline Sync Protocol](en-offline-sync-protocol.md) — frames, passes and threat model of the offline sync of Yjs documents

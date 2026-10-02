@@ -124,7 +124,35 @@ export async function openAndSend(url: URL, file: File, timeoutMs = 60_000): Pro
   return sendFileToWindow(window as unknown as WindowLike, target as unknown as WindowLike, url.origin, file, timeoutMs);
 }
 
+/**
+ * Version 2 (REQ-HANDOFF-006): deliver a received file to the window that
+ * opened QRShare (`reply=opener`), so that the application gets it back in
+ * the same window, after the user's click. Only to the origin of its
+ * `return` URL.
+ */
+export function sendToOpener(self: WindowLike, returnUrl: URL, file: File): Promise<"sent" | "noOpener"> {
+  const opener = self.opener;
+  if (!opener) return Promise.resolve("noOpener");
+  return file.arrayBuffer().then((data) => {
+    opener.postMessage({ type: HANDOFF_TYPE, version: HANDOFF_VERSION, action: "file", name: file.name, mimeType: file.type, data }, returnUrl.origin, [data]);
+    return "sent" as const;
+  });
+}
+
+/** Send modes an application may ask for with `mode=` (REQ-HANDOFF-006). */
+export const HANDOFF_MODES = ["animated-qr", "cimbar", "webrtc", "share"] as const;
+
 const RETURN_KEY = "qrshare-handoff-return";
+const REPLY_KEY = "qrshare-handoff-reply";
+
+/** Remember whether the calling application wants the file back in its own window. */
+export function rememberReply(value: string | null): void {
+  if (typeof sessionStorage === "undefined" || value === null) return;
+  if (value === "opener") sessionStorage.setItem(REPLY_KEY, "opener");
+  else sessionStorage.removeItem(REPLY_KEY);
+}
+
+export const replyToOpener = (): boolean => typeof sessionStorage !== "undefined" && sessionStorage.getItem(REPLY_KEY) === "opener";
 
 /** Remember the calling application's return URL for this browser session. */
 export function rememberReturnUrl(value: string | null): void {

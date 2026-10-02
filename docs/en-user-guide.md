@@ -229,9 +229,12 @@ sequenceDiagram
 
 At the top of every page:
 
-- **QRShare** (left) — Return to the home page. The version number and build hash are shown next to the title
+- **QRShare** (left) — Return to the home page
+- Version and build hash (next to the title) — Open the About window
 - Theme button — Cycle between ◐ Auto (follows the system setting), ☀ Light and ☾ Dark
-- **i** — About page
+- **?** — This user guide
+- Book icon — The full documentation (this guide, how QRShare works, connectivity, collaborative editing, architecture, development)
+- **i** — About window: version, links, QR code of the app
 - Gear icon — Settings (theme, language, WebRTC settings)
 - **← Back** — Return to the home page (present on every sub-page)
 

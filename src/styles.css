@@ -137,7 +137,7 @@ header {
   z-index: 50;
 }
 
-nav {
+header nav {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -205,7 +205,7 @@ nav {
   margin-inline-start: auto;
 }
 
-nav .icon-btn {
+header nav .icon-btn {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
@@ -221,7 +221,7 @@ nav .icon-btn {
   transition: border-color 0.15s;
 }
 
-nav .icon-btn:hover {
+header nav .icon-btn:hover {
   border-color: var(--accent);
 }
 
@@ -1735,7 +1735,194 @@ button.qr-zoom .about-qr {
 }
 
 .guide-content code {
-  font-family: monospace;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+.guide-content :not(pre) > code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.guide-content h4 {
+  font-size: 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.guide-content table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  display: block;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+
+.guide-content th,
+.guide-content td {
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  text-align: start;
+}
+
+.guide-content th {
+  background: var(--bg);
+}
+
+.guide-content blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  border-inline-start: 4px solid var(--accent);
+  color: var(--muted);
+}
+
+/* Documentation */
+.docs-layout {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.docs-nav {
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  font-size: 0.9rem;
+}
+
+.docs-nav-group + .docs-nav-group {
+  margin-top: 1rem;
+}
+
+.docs-nav-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.docs-nav ul {
+  list-style: none;
+}
+
+.docs-nav a {
+  display: block;
+  padding: 4px 8px;
+  border-inline-start: 3px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.docs-nav a:hover {
+  color: var(--accent);
+}
+
+.docs-nav a[aria-current="page"] {
+  border-inline-start-color: var(--accent);
+  background: var(--sel);
+  font-weight: 600;
+}
+
+.docs-article .guide-content {
+  margin: 0;
+}
+
+.docs-article .guide-content > h1:first-child {
+  margin-top: 0;
+}
+
+.docs-lang-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.docs-source {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.docs-source a,
+.docs-index a {
+  color: var(--accent);
+}
+
+.docs-intro {
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.docs-index h3 {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.docs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.docs-index a.docs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 6px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.docs-index a.docs-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.docs-card-title {
+  font-weight: 600;
+}
+
+.docs-card-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.docs-lang {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+@media (max-width: 760px) {
+  .docs-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .docs-nav {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .docs-nav-group + .docs-nav-group {
+    margin-top: 0;
+  }
 }
 
 /* Content Type Toggle */

@@ -229,10 +229,12 @@ sequenceDiagram
 
 En haut de chaque page :
 
-- **QRShare** (à gauche) — Retour à la page d'accueil. Le numéro de version et le hash de build sont affichés à côté du titre
+- **QRShare** (à gauche) — Retour à la page d'accueil
+- Version et hash de build (à côté du titre) — Ouvre la fenêtre « À propos »
 - Bouton de thème — Passer de ◐ Auto (suit le réglage du système) à ☀ Clair puis ☾ Sombre
-- **?** — Guide utilisateur
-- **i** — Page « À propos »
+- **?** — Ce guide utilisateur
+- Icône livre — Toute la documentation (ce guide, fonctionnement, connectivité, édition collaborative, architecture, développement — pages en anglais sauf ce guide)
+- **i** — Fenêtre « À propos » : version, liens, QR code de l'application
 - Roue dentée — Paramètres (langue, thème, paramètres WebRTC)
 - **← Retour** — Retour à la page d'accueil (présent sur chaque sous-page)
 

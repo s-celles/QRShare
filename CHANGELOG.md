@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **In-app documentation** (`#/docs`, book icon in the header): an index of all the pages of `docs/` and each page rendered in the app, with a side menu, links between pages that stay in the app, tables, code and Mermaid diagrams; pages not yet translated are shown in English with a note. `#/guide` (the **?** button) still opens the user guide
+- New documentation pages, moved out of the README: **How QRShare works** (features, transfer modes, encoding presets), **Architecture** (building blocks, technology stack) and **Development** (commands, writing documentation, releasing), plus a `docs/README.md` index
+
+### Changed
+
+- The README is now short: what QRShare is, a link to the app, highlights, links to the documentation and a quick start
+- Documentation is rendered with marked (already used for file previews) instead of a minimal home-made converter
+
 ## [0.5.0] - 2026-10-01
 
 ### Changed

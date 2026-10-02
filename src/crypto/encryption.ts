@@ -160,6 +160,21 @@ export async function decryptText(
   return new TextDecoder().decode(decryptedBytes);
 }
 
+/** Size of the sender fingerprint slot in a contact-encrypted (version 2) payload. */
+const FINGERPRINT_SLOT = 64;
+
+/** The public part of an EC key, small enough for an identity QR code: { kty, crv, x, y }. */
+export function publicEcJwk(jwk: JsonWebKey): JsonWebKey {
+  return { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y };
+}
+
+/** Reads the sender fingerprint of a version 2 payload, without the NUL bytes that pad its slot. */
+export function readFingerprintSlot(slot: Uint8Array): string {
+  let end = slot.length;
+  while (end > 0 && slot[end - 1] === 0) end--;
+  return new TextDecoder().decode(slot.subarray(0, end));
+}
+
 /**
  * Derives an AES-GCM 256-bit key from ECDH shared secret.
  */
@@ -209,7 +224,8 @@ export async function encryptPayloadECDH(
   );
   const ciphertext = new Uint8Array(ciphertextBuffer);
 
-  const fingerprintBytes = new TextEncoder().encode(senderFingerprint); // 64 bytes
+  const fingerprintBytes = new TextEncoder().encode(senderFingerprint);
+  if (fingerprintBytes.length > FINGERPRINT_SLOT) throw new Error("Sender fingerprint too long");
   const packed = new Uint8Array(4 + 1 + 64 + IV_LENGTH + ciphertext.length);
   packed.set(MAGIC, 0);
   packed[4] = 2; // VERSION 2 for ECDH
@@ -235,8 +251,8 @@ export async function decryptPayloadECDH(
     throw new Error("Not an ECDH encrypted payload");
   }
   const subtle = getSubtleCrypto();
-  const fingerprintBytes = encryptedData.subarray(5, 5 + 64);
-  const fingerprint = new TextDecoder().decode(fingerprintBytes);
+  // REQ-SEC-008: the fingerprint is shorter than its slot; drop the padding before the lookup.
+  const fingerprint = readFingerprintSlot(encryptedData.subarray(5, 5 + FINGERPRINT_SLOT));
   const iv = encryptedData.subarray(5 + 64, 5 + 64 + IV_LENGTH);
   const ciphertext = encryptedData.subarray(5 + 64 + IV_LENGTH);
 

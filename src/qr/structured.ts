@@ -4,6 +4,8 @@ export type StructuredQR =
       name: string;
       fingerprint: string;
       publicKeyJwk: JsonWebKey;
+      /** Key to encrypt for this contact (REQ-SEC-008); absent in identity codes made before 0.6.0. */
+      ecdhPublicKeyJwk?: JsonWebKey;
       raw: string;
     }
   | {
@@ -364,6 +366,7 @@ export function parseStructuredQR(raw: string): StructuredQR {
           name: parsed.name,
           fingerprint: parsed.fingerprint,
           publicKeyJwk: parsed.publicKeyJwk,
+          ...(parsed.ecdhPublicKeyJwk ? { ecdhPublicKeyJwk: parsed.ecdhPublicKeyJwk } : {}),
           raw
         };
       }

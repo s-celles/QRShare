@@ -41,6 +41,11 @@ decompressed payload is limited too. Any failure rejects the whole frame
 with an error code (`format`, `version`, `truncated`, `tooLarge`, `type`,
 `signature`, `invalid`).
 
+Frames are self-delimiting, so one transfer can carry several of them,
+simply concatenated (`joinFrames`, `splitFrames`). `splitFrames` checks each
+header and announced length, and the number of frames (8 by default),
+before any frame is decoded.
+
 ## A complete sequence
 
 Ana's laptop is offline; Bob's phone has the document too, with changes
@@ -59,6 +64,12 @@ made on the train. Both apps show and scan QR codes through QRShare.
    document, checks that copy, then applies it to the document.
 4. **Bob pulls**, the same way in the other direction, if he wants Ana's
    changes.
+
+With several frames per transfer, a full two-way sync takes three passes:
+Ana shows `STATE_VECTOR`; Bob shows `UPDATE` (for Ana) and his own
+`STATE_VECTOR`; Ana shows `UPDATE` (for Bob). A `HELLO` can travel in the
+same transfers. A one-way pass is a single `UPDATE` computed against an
+empty state vector: the whole document, which the receiver merges.
 
 Every pass can be cancelled; nothing is applied until step 3 succeeds.
 Replaying a pass changes nothing (Yjs updates are idempotent), and the

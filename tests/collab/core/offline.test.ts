@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import * as Y from "yjs";
 import { offline } from "@/collab/core";
 
-const { FrameError, FrameType, MemoryImportLog, MemoryPeerStore, OfflineSync, decodeFrame, encodeFrame, generatePeerKey, applyValidated, updateFor, stateVector, toHex } = offline;
+const { FrameError, FrameType, MemoryImportLog, MemoryPeerStore, OfflineSync, decodeFrame, encodeFrame, joinFrames, splitFrames, summarize, generatePeerKey, applyValidated, updateFor, stateVector, toHex } = offline;
 
 const DOC_ID = "6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b";
 
@@ -68,6 +68,34 @@ describe("offline sync: frames", () => {
     await expect(decodeFrame(huge)).rejects.toMatchObject({ code: "tooLarge" });
     const big = await encodeFrame({ type: FrameType.UPDATE, docId: DOC_ID, senderId: key.id, payload: new Uint8Array(2000).fill(7) }, { compress: true });
     await expect(decodeFrame(big, { maxBytes: 1000 })).rejects.toMatchObject({ code: "tooLarge" }); // limit on the decompressed payload too
+  });
+});
+
+describe("offline sync: several frames in one transfer", () => {
+  it("splits joined frames back, signed or not", async () => {
+    const key = await generatePeerKey();
+    const a = await encodeFrame({ type: FrameType.HELLO, docId: DOC_ID, senderId: key.id, payload: new Uint8Array(40) }, { signWith: key.privateKey });
+    const b = await encodeFrame({ type: FrameType.STATE_VECTOR, docId: DOC_ID, senderId: key.id, payload: new Uint8Array(3) }, { compress: false });
+    const parts = splitFrames(joinFrames([a, b]));
+    expect(parts.map((p) => p.length)).toEqual([a.length, b.length]);
+    expect((await decodeFrame(parts[1]!)).type).toBe(FrameType.STATE_VECTOR);
+  });
+
+  it("rejects trailing garbage, truncated frames and too many frames", async () => {
+    const key = await generatePeerKey();
+    const f = await encodeFrame({ type: FrameType.STATE_VECTOR, docId: DOC_ID, senderId: key.id, payload: new Uint8Array(3) }, { compress: false });
+    expect(() => splitFrames(joinFrames([f, new Uint8Array([1, 2, 3])]))).toThrow(FrameError);
+    expect(() => splitFrames(f.slice(0, f.length - 1))).toThrow(FrameError);
+    expect(() => splitFrames(new Uint8Array(0))).toThrow(FrameError);
+    expect(() => splitFrames(joinFrames([f, f, f]), { maxFrames: 2 })).toThrow(FrameError);
+  });
+
+  it("does not count skipped ranges as insertions", () => {
+    const a = new Y.Doc();
+    a.getText("t").insert(0, "abc");
+    const sv = Y.encodeStateVector(a);
+    a.getText("t").insert(3, "de");
+    expect(summarize(Y.encodeStateAsUpdate(a, sv)).insertions).toBe(2);
   });
 });
 

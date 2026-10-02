@@ -192,3 +192,45 @@ export async function decodeFrame(bytes: Uint8Array, opts: DecodeOptions = {}): 
     ...(signed ? { signature: bytes.slice(HEADER_BYTES + length) } : {}),
   };
 }
+
+// --- Several frames in one transfer ----------------------------------------
+
+/** Default limit of frames carried by one transfer. */
+export const DEFAULT_MAX_FRAMES = 8;
+
+/** Frames sent together (one QR transfer): they are self-delimiting, so simply concatenated. */
+export function joinFrames(frames: Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(frames.reduce((n, f) => n + f.length, 0));
+  let at = 0;
+  for (const f of frames) {
+    out.set(f, at);
+    at += f.length;
+  }
+  return out;
+}
+
+/**
+ * Split a transfer into its frames, checking each header's magic, version
+ * and announced length (not the content: `decodeFrame` does that).
+ */
+export function splitFrames(bytes: Uint8Array, opts: DecodeOptions & { maxFrames?: number } = {}): Uint8Array[] {
+  const max = opts.maxBytes ?? DEFAULT_MAX_BYTES;
+  const maxFrames = opts.maxFrames ?? DEFAULT_MAX_FRAMES;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const frames: Uint8Array[] = [];
+  let at = 0;
+  while (at < bytes.length) {
+    if (frames.length >= maxFrames) throw new FrameError("tooLarge", `More than ${maxFrames} frames`);
+    if (bytes.length - at < HEADER_BYTES) throw new FrameError("truncated", "Frame shorter than its header");
+    if (MAGIC.some((b, i) => bytes[at + i] !== b)) throw new FrameError("format", "Not an offline sync frame");
+    if (bytes[at + 4] !== FORMAT_VERSION) throw new FrameError("version", `Unknown frame format version ${bytes[at + 4]}`);
+    const length = view.getUint32(at + 40);
+    if (length > max) throw new FrameError("tooLarge", `Payload larger than ${max} bytes`);
+    const end = at + HEADER_BYTES + length + (bytes[at + 6]! & FLAG_SIGNED ? SIGNATURE_BYTES : 0);
+    if (end > bytes.length) throw new FrameError("truncated", "Frame shorter than announced");
+    frames.push(bytes.subarray(at, end));
+    at = end;
+  }
+  if (!frames.length) throw new FrameError("truncated", "No frame");
+  return frames;
+}

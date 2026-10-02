@@ -53,7 +53,7 @@ export function summarize(update: Uint8Array): UpdateSummary {
   const clients = new Set<number>();
   let insertions = 0;
   for (const s of decoded.structs) {
-    if (s.constructor.name === "Skip") continue;
+    if (s instanceof Y.Skip) continue;
     clients.add(s.id.client);
     insertions += s.length;
   }

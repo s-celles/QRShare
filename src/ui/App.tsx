@@ -3,7 +3,6 @@ import { rememberReply, rememberReturnUrl } from "@/share/handoff";
 import { toggleTheme, theme, type Theme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
-import { DOCS_INDEX_URL } from "./links";
 import { Landing } from "./components/Landing";
 import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
@@ -13,7 +12,7 @@ import { CollabEditorView } from "./components/CollabEditorView";
 import { ScannerView } from "./components/ScannerView";
 import { UniversalScannerView } from "./components/UniversalScannerView";
 import { CreatorView } from "./components/CreatorView";
-import { GuideView } from "./components/GuideView";
+import { DocsView } from "./components/DocsView";
 import { Settings } from "./components/Settings";
 import { WebRTCSettings } from "./components/WebRTCSettings";
 import { About } from "./components/About";
@@ -64,7 +63,8 @@ function RouteView() {
     case "/send/share":
       return <WebShareSenderView />;
     case "/guide":
-      return <GuideView />;
+    case "/docs":
+      return <DocsView />;
     case "/settings":
       return <Settings />;
     case "/settings/webrtc":
@@ -119,9 +119,7 @@ export function App() {
               ?
             </a>
             <a
-              href={DOCS_INDEX_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#/docs"
               class="icon-btn"
               aria-label={t("app.docs")}
               title={t("app.docsTitle")}

@@ -52,3 +52,20 @@ Wire protocol (action names, kept compatible across versions): `doc-update`,
 ## License
 
 BSD-3-Clause.
+
+## Offline sync
+
+`offline` syncs a Yjs document between devices without a network, in passes
+of short frames (state vector, then the missing updates), signed with
+Ed25519, size-limited and validated on an isolated copy before being
+applied. See [docs/collab-sync-protocol.md](../../../docs/collab-sync-protocol.md).
+
+```ts
+import { offline } from "@scelles/collab";
+
+const key = await offline.generatePeerKey();
+const sync = new offline.OfflineSync({ doc, docId, key, name: "Ana", peers, log, validate });
+const frame = await sync.stateVector();      // show it
+const received = await sync.receive(bytes);  // a scanned frame
+if (received.type === "update") await received.apply();
+```

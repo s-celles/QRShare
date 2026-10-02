@@ -7,3 +7,4 @@ export { colorOf, createIdentity, loadIdentity, saveIdentity } from "./identity.
 export { attachDocPersistence, isPersistenceAvailable, loadVersionEntries, saveVersionEntry } from "./persistence.js";
 export { docFromSnapshot, restoreShared, setText } from "./restore.js";
 export { CollabSession } from "./session.js";
+export * as offline from "./offline/index.js";

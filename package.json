@@ -1,9 +1,9 @@
 {
   "name": "@scelles/collab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Serverless real-time collaboration for web apps: Yjs document sync over a peer-to-peer room, presence with friendly names, and a convergent version history kept by every participant.",
   "type": "module",
-  "license": "AGPL-3.0-or-later",
+  "license": "BSD-3-Clause",
   "exports": {
     ".": {
       "types": "./index.d.ts",

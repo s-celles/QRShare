@@ -9,6 +9,7 @@ step by step. For day-to-day use, see the [User Guide](en-user-guide.md).
 - **QR Code Scanner** — Scan any QR code with your camera and view its decoded content. URLs are displayed as clickable links. Scanned content can be shared, copied, or forwarded via QR/WebRTC. The camera area disappears after reception.
 - **QR Code Creator** — Generate QR codes from arbitrary text with full control over QR version (1–40) and error correction level (L/M/Q/H). Live preview, real-time capacity display, PNG download, and one-tap sharing via Web Share API, QR transfer, or WebRTC.
 - **Guided Transfer Preparation** — Select text or one or more files, choose a network policy, let QRShare recommend a transport, then show the receiver an invitation QR code before sending the payload.
+- **App Handoff** — Other web apps, such as [Progressive Web Office](https://github.com/s-celles/progressive-web-office), hand files to QRShare and get received files back, without a network (see *Exchanging Files with Other Web Apps* in the [User Guide](en-user-guide.md)).
 - **Native Share** — Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** — Send files between devices using animated QR codes. No internet connection required — works completely air-gapped.
 - **CIMBAR Transfer (Experimental)** — High-speed air-gapped color-barcode transfer using libcimbar WASM. The browser decoder is beta, so standard animated QR remains the compatibility fallback.

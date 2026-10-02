@@ -31,21 +31,10 @@ folder:
 ## Used by Progressive Web Office
 
 [Progressive Web Office](https://github.com/s-celles/progressive-web-office)
-([demo](https://s-celles.github.io/progressive-web-office/)), an office suite
-that runs entirely in the browser, uses QRShare to exchange documents
-between devices without a network:
-
-- **From an app to QRShare**: the app opens `#/send?handoff=1` and hands the
-  file over with `postMessage` (up to 200 MB); small text files can travel in
-  the address instead (`#/send?data=`). QRShare then offers the transfer, by
-  default preferring channels that need no network.
-- **From QRShare to an app**: the app opens `#/receive/qr?return=<app URL>`;
-  after reception, an *Open in …* button sends the file back to the app.
-- Apps detect support from `manifest.webmanifest`
-  (`qrshare_handoff.versions`).
-
-The protocol is described in the [user guide](docs/en-user-guide.md); any web
-app can use it.
+([demo](https://s-celles.github.io/progressive-web-office/)), an office suite that
+runs entirely in the browser, uses QRShare to exchange documents between devices
+without a network. Any web app can do the same with the app handoff protocol,
+described in the [user guide](docs/en-user-guide.md#exchanging-files-with-other-web-apps).
 
 ## Quick Start
 

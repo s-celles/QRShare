@@ -8,7 +8,7 @@ and talk to it inside the browser: nothing goes through a server.
 | App | What it is | Sends with QRShare | Receives with QRShare | Status |
 |-----|------------|--------------------|-----------------------|--------|
 | [Progressive Web Office](#progressive-web-office) | Office suite in the browser | Documents | Documents | In use |
-| [CAScad](#cascad) | Computer algebra notebook | Notebooks | Notebooks | In progress |
+| [CAScad](#cascad) | Computer algebra notebook | Notebooks | Notebooks | In use |
 
 ## Progressive Web Office
 
@@ -44,17 +44,23 @@ QRShare can point to a self-hosted copy.
 algebra notebook in the browser (Giac/Xcas and CortexJS kernels, reactive cells,
 plots).
 
-Its QRShare integration is **in progress** (not yet released). It will:
+It relies on QRShare to:
 
 - **Send a notebook** — *Send to device* hands `notebook.cascad.json` to QRShare
-  with the app handoff protocol, with the same transfer policies as Progressive
-  Web Office; with an older QRShare, the notebook is downloaded and QRShare opens
-  its *Prepare a transfer* screen.
-- **Receive a notebook** — *Receive* opens QRShare's receive screen; **Open in …**
-  opens the received notebook in CAScad, accepting only files that come from the
-  configured QRShare address.
+  with the [app handoff protocol](en-user-guide.md#exchanging-files-with-other-web-apps),
+  after checking QRShare's manifest, with the same transfer policies as
+  Progressive Web Office (air-gapped only, prefer air-gapped, any mode). With an
+  older QRShare, the notebook is downloaded and QRShare opens its *Prepare a
+  transfer* screen.
+- **Receive a notebook** — *Receive* opens QRShare's receive screen with a
+  `return` address; **Open in …** opens the received notebook in CAScad, which
+  accepts only files coming from the configured QRShare address.
 
-CAScad already shares QRShare's visual style.
+The address of QRShare can point to a self-hosted copy. CAScad's own
+[sharing guide](https://s-celles.github.io/CAScad/#/docs?page=sharing) describes
+these features from its side.
+
+CAScad also shares QRShare's visual style.
 
 ## Building on QRShare
 

@@ -10,6 +10,7 @@ import connectivityEn from "../../docs/en-connectivity-and-turn.md" with { type:
 import collaborationEn from "../../docs/en-collaborative-editing.md" with { type: "text" };
 import architectureEn from "../../docs/en-architecture.md" with { type: "text" };
 import developmentEn from "../../docs/en-development.md" with { type: "text" };
+import requirementsEn from "../../docs/requirements.md" with { type: "text" };
 
 export type DocGroup = "using" | "developing";
 
@@ -57,6 +58,12 @@ export const DOC_PAGES: readonly DocPage[] = [
     group: "developing",
     files: { en: "en-development.md" },
     content: { en: developmentEn },
+  },
+  {
+    slug: "requirements",
+    group: "developing",
+    files: { en: "requirements.md" },
+    content: { en: requirementsEn },
   },
 ];
 

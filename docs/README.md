@@ -15,3 +15,4 @@ header.
 
 - [Architecture](en-architecture.md) — building blocks and technology stack
 - [Development](en-development.md) — commands, documentation pages, releasing
+- [Requirements](requirements.md) — EARS specification, with priorities and versions

@@ -25,6 +25,7 @@ The documentation opens **in the app** (book icon in the header):
 - [Collaborative Editing](https://s-celles.github.io/QRShare/#/docs?page=collaboration)
 - [Architecture](https://s-celles.github.io/QRShare/#/docs?page=architecture) — building blocks and technology stack
 - [Development](https://s-celles.github.io/QRShare/#/docs?page=development) — build, test and release
+- [Requirements](https://s-celles.github.io/QRShare/#/docs?page=requirements) — EARS specification
 
 Its Markdown sources are in the [`docs/`](docs/) folder.
 

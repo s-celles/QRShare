@@ -1770,6 +1770,11 @@ button.qr-zoom .about-qr {
   background: var(--bg);
 }
 
+/* Identifiers and names in the first column stay on one line. */
+.guide-content td:first-child {
+  white-space: nowrap;
+}
+
 .guide-content blockquote {
   margin: 1rem 0;
   padding: 0.25rem 1rem;

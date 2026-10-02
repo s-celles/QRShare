@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 192 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
+
 ### Changed
 
 - The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)

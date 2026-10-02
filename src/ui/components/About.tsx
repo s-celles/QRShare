@@ -199,6 +199,9 @@ export function About() {
             <a href={docRoute("collaboration")}>{t("about.collab")}</a>
           </li>
           <li>
+            <a href={docRoute("requirements")}>{t("about.requirements")}</a>
+          </li>
+          <li>
             <ExternalLink href={SOURCE_URL}>{t("about.sourceCode")}</ExternalLink>
           </li>
           <li>

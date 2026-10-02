@@ -24,7 +24,8 @@ bun run build
 # Serve dist/ locally
 bun run serve
 
-# Package as a single HTML file
+# Package the main script and styles into qrshare.html
+# (workers and WebAssembly files must stay next to it)
 bun run package
 ```
 

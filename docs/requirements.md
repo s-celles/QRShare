@@ -46,7 +46,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-PLT-010 | M | 0.1.0 | The system shall route views through the URL fragment (`#/path?query`) and shall show the home screen for an unknown path. |
 | REQ-PLT-011 | M | 0.1.0 | The system shall run QR encoding and decoding pipelines in Web Workers, off the main thread. |
 | REQ-PLT-012 | M | 0.1.0 | The system shall build with Bun into `dist/`, with content-hashed script and style names. |
-| REQ-PLT-013 | C | 0.1.0 | The system shall be packageable as a single self-contained HTML file holding the core application (the CIMBAR runtime stays a separate asset). |
+| REQ-PLT-013 | C | 0.1.0 | The system shall be packageable as a single HTML file holding the main script, the styles and the icon, served next to the Web Workers and WebAssembly runtimes of the build. |
 | REQ-PLT-014 | M | 0.1.0 | When a commit reaches the `main` branch, the system shall be type-checked, tested, built and deployed to GitHub Pages. |
 | REQ-PLT-015 | M | 0.1.4 | The system shall show its version and build (git short commit) next to its name in the header. |
 | REQ-PLT-016 | M | 0.5.0 | The system shall be distributed under the BSD-3-Clause license, bundled third-party components keeping their own licences (libcimbar: MPL-2.0). |
@@ -172,7 +172,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-QRX-001 | M | 0.1.0 | When the sender starts a transfer, the system shall compress the content (raw deflate, kept uncompressed when that is not smaller), encode it with a fountain code and show the symbols as an endless animation of QR codes. |
 | REQ-QRX-002 | M | 0.1.0 | The system shall offer three presets: High Speed (up to version 25, ECC L), Balanced (version 20, ECC M; the default) and High Reliability (version 15, ECC Q). |
 | REQ-QRX-003 | S | 0.1.4 | The system shall let the sender adjust the frame rate (1 to 30 frames per second) and the block size (50 to 1,000 bytes) during the transfer. |
-| REQ-QRX-004 | M | 0.1.4 | The system shall make every frame self-contained (protocol version 3: header with content hash, block count, block size, compressed size, compression and symbol identifiers, followed by file size, full SHA-256 and file name), so that reception can start from any frame. |
+| REQ-QRX-004 | M | 0.1.4 | The system shall make every frame self-contained (protocol version 3: header with content hash, block count (saturating at 65,535; the exact count follows from the compressed size and block size), block size, compressed size, compression and symbol identifiers, followed by file size, full SHA-256 and file name), so that reception can start from any frame. |
 | REQ-QRX-005 | M | 0.1.0 | The system shall rebuild the received content from any sufficient set of distinct frames, whatever their order and whichever frames were missed. |
 | REQ-QRX-006 | M | 0.1.0 | If a frame is unreadable, of an unknown protocol version, a duplicate or from another transfer, then the system shall ignore it on reception. |
 | REQ-QRX-007 | M | 0.1.4 | While receiving, the system shall show progress, transfer speed (average, instant and a speed graph) and elapsed time. |
@@ -321,12 +321,23 @@ See the [roadmap](https://github.com/s-celles/QRShare/blob/main/ROADMAP.md) for 
 
 ## 20. Known deviations
 
-Differences between the code and this specification, found while rebuilding it:
+None known. The deviations found while rebuilding this specification were fixed
+in the next release (*Unreleased*):
 
-- **REQ-SEC-008** — the sender identity slot of a contact-encrypted payload is 64 bytes but holds an 8-character fingerprint, so the receiver's contact lookup is likely to fail; contacts added by scanning an identity QR code carry no ECDH key, so encrypting for them reports a missing key.
-- **REQ-QRX-004** — the block count is a 16-bit field: a 50 MB file with small blocks exceeds it. Reception sizes itself from the compressed size and block size, so it is unaffected, but the field is wrong.
-- **REQ-QRX-003** — the frame rate chosen before starting is not sent with the start message; the animation starts at the preset's 10 frames per second until the slider is moved.
-- **REQ-RTC-004** — a file handed to the WebRTC sender from another view is announced as `image/png` whatever its type.
-- **REQ-I18N-001** — the Arabic interface lacks about 70 strings (shown in English), and the vCard preview has untranslated French labels.
-- **REQ-DISC-001 / REQ-DISC-020** — the original discovery specification named the room `qrshare-discovery-v1` and enabled discovery by default; the code uses `qrshare-local-discovery-v1` and starts with discovery off, which this specification adopts.
-- **REQ-PLT-013** — the single-file package does not inline the WebAssembly runtimes, contrary to the packaging script's header comment.
+- **REQ-SEC-008** — contact encryption failed end to end: identity QR codes
+  carried no encryption key, and the receiver read the sender fingerprint with
+  its padding. Identity codes made before the fix carry no encryption key:
+  scan the contact's identity again to update it.
+- **REQ-QRX-004** — the 16-bit block count wrapped around for large transfers;
+  it now saturates.
+- **REQ-QRX-003** — the frame rate chosen before starting was ignored.
+- **REQ-RTC-004** — a file handed over from another view was announced as
+  `image/png`.
+- **REQ-I18N-001 / REQ-I18N-005** — 70 Arabic texts were missing, and some keys
+  existed in no language, so their identifiers were shown; the vCard and file
+  previews had hard-coded labels.
+- **REQ-PLT-013** — the packaging script claimed to inline the WebAssembly
+  runtimes; the requirement and the documentation now describe what it does.
+- **REQ-DISC-001 / REQ-DISC-020** — the original discovery specification named
+  the room `qrshare-discovery-v1` and enabled discovery by default; this
+  specification adopts the code's `qrshare-local-discovery-v1` and off by default.

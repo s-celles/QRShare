@@ -23,7 +23,7 @@ step by step. For day-to-day use, see the [User Guide](en-user-guide.md).
 - **Progressive Web App** — Install on any device, works offline after first load, and offers to reload when a new version is available.
 - **Web Share Integration** — Share received files, created QR codes, and scanned content directly to other apps using the Web Share API.
 - **Dark/Light Theme** — Automatic theme detection with manual override.
-- **Single-File Distribution** — Package the core app into a single self-contained HTML file. The experimental CIMBAR runtime remains a separate WASM asset and is available in the standard PWA build.
+- **Single-File Packaging** — Package the main script, styles and icon into one HTML file (`qrshare.html`). The Web Workers and WebAssembly runtimes stay separate files, so the page must be served next to the files of `dist/` for QR and CIMBAR transfers.
 
 ## QR Utilities
 

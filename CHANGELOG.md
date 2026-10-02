@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Encryption for a trusted contact did not work.** Identity QR codes carried no encryption key, so a contact added by scanning could never be chosen, and the receiver looked the sender up with a padded fingerprint, so decryption always failed. Identity codes now carry the encryption key and the fingerprint is read correctly; contacts added before must be scanned again
+- QR transfers ignored the frame rate chosen before pressing Start, and the 16-bit block count of their frames wrapped around for large files (it now saturates; receivers were not affected)
+- A file handed to the WebRTC sender from another screen was always announced as a PNG image; files now keep their type
+- Some labels showed raw identifiers (`receiver.downloaded`, `receiver.instantSpeed`, the contact encryption options); 70 texts were missing in Arabic; the vCard preview had French labels and the file preview English ones. A test now checks that every language has every text the code uses
+- The single-file package was described as self-contained although its workers and WebAssembly runtimes stay separate files; the script, the documentation and the requirements now say so
+
 ### Added
 
 - **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 197 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern

@@ -70,6 +70,23 @@ Five buttons for transferring files between devices:
 
 **Information displayed while scanning**: active camera name and resolution. If you have multiple cameras, a dropdown lets you choose which one to use.
 
+### Passkey Sign-in Codes (FIDO)
+
+When you sign in to a website on a computer with a passkey kept on your phone, the
+computer shows a QR code starting with `FIDO:/`. QRShare recognises it and shows a
+**Passkey sign-in code** card: whether the computer asks to sign in or to create a
+passkey, and when the code was made (a warning appears if it is more than five
+minutes old and has most likely expired).
+
+QRShare cannot sign you in itself: a web page cannot use your phone's passkeys.
+Scan the code with the camera or QR reader of the phone that holds the passkey,
+next to the computer — the phone checks over Bluetooth that it is close. Where the
+system handles these codes (for example on Android), **Open with this device**
+hands it over.
+
+For your safety, QRShare offers no copy, share or send button for these codes:
+**never forward a passkey code** to another person or device.
+
 ---
 
 ## Creating a QR Code

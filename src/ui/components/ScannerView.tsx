@@ -7,6 +7,7 @@ import { renderQRCustomToDataURL } from "@/qr/renderer";
 import { WifiResultCard } from "./WifiResultCard";
 import { ContactResultCard } from "./ContactResultCard";
 import { IdentityResultCard } from "./IdentityResultCard";
+import { FidoResultCard } from "./FidoResultCard";
 import { WifiPrintModal } from "./WifiPrintModal";
 import { pendingFile, pendingText } from "../shared-file";
 import { t } from "../i18n";
@@ -373,6 +374,10 @@ export function ScannerView() {
               <IdentityResultCard identity={structured} />
             )}
 
+            {structured.kind === "fido" && !showRaw && (
+              <FidoResultCard fido={structured} raw={structured.raw} />
+            )}
+
             {(structured.kind === "text" || structured.kind === "url" || showRaw) && (
               isHttpUrl(scannedText.value) ? (
                 <div class="result-content">
@@ -397,7 +402,7 @@ export function ScannerView() {
               )
             )}
 
-            {(structured.kind === "wifi" || structured.kind === "contact" || structured.kind === "trusted-identity") && (
+            {(structured.kind === "wifi" || structured.kind === "contact" || structured.kind === "trusted-identity" || structured.kind === "fido") && (
               <div class="card-toggle-row">
                 <button class="icon-btn-text" onClick={() => setShowRaw(!showRaw)}>
                   {showRaw ? t("structured.toggleStructured") : t("structured.toggleRaw")}
@@ -405,25 +410,28 @@ export function ScannerView() {
               </div>
             )}
 
-            <div class="share-actions">
-              <button class="copy-btn" onClick={handleCopy}>
-                {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
-              </button>
-              {shareService.isShareSupported() && (
-                <button class="start-btn share-action" onClick={handleShare}>
-                  {t("common.share")}
+            {/* REQ-STRUCT-009: a passkey code is not copied, shared or sent on. */}
+            {structured.kind !== "fido" && (
+              <div class="share-actions">
+                <button class="copy-btn" onClick={handleCopy}>
+                  {copyFeedback.value ? t("scanner.copied") : t("scanner.copyToClipboard")}
                 </button>
-              )}
-              <button class="start-btn share-action" onClick={handleSendStaticQR}>
-                {t("scanner.sendStaticQR")}
-              </button>
-              <button class="start-btn share-action" onClick={handleSendQR}>
-                {t("scanner.sendAnimatedQR")}
-              </button>
-              <button class="start-btn share-action" onClick={handleSendWebRTC}>
-                {t("common.sendWebRTC")}
-              </button>
-            </div>
+                {shareService.isShareSupported() && (
+                  <button class="start-btn share-action" onClick={handleShare}>
+                    {t("common.share")}
+                  </button>
+                )}
+                <button class="start-btn share-action" onClick={handleSendStaticQR}>
+                  {t("scanner.sendStaticQR")}
+                </button>
+                <button class="start-btn share-action" onClick={handleSendQR}>
+                  {t("scanner.sendAnimatedQR")}
+                </button>
+                <button class="start-btn share-action" onClick={handleSendWebRTC}>
+                  {t("common.sendWebRTC")}
+                </button>
+              </div>
+            )}
 
             {showPrintModal && structured.kind === "wifi" && (
               <WifiPrintModal

@@ -70,6 +70,25 @@ Cinq boutons pour le transfert de fichiers entre appareils :
 
 **Informations affichées pendant le scan** : nom de la caméra utilisée et résolution. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
 
+### Codes de connexion par passkey (FIDO)
+
+Quand vous vous connectez à un site sur un ordinateur avec une passkey conservée
+sur votre téléphone, l'ordinateur affiche un QR code qui commence par `FIDO:/`.
+QRShare le reconnaît et affiche une carte **Code de connexion par passkey** : si
+l'ordinateur demande de se connecter ou de créer une passkey, et quand le code a
+été créé (un avertissement apparaît s'il date de plus de cinq minutes et a très
+probablement expiré).
+
+QRShare ne peut pas vous connecter lui-même : une page web n'a pas accès aux
+passkeys de votre téléphone. Scannez le code avec l'appareil photo ou le lecteur QR
+du téléphone qui contient la passkey, à côté de l'ordinateur — le téléphone vérifie
+par Bluetooth qu'il est proche. Là où le système gère ces codes (par exemple sur
+Android), **Ouvrir avec cet appareil** le lui transmet.
+
+Pour votre sécurité, QRShare ne propose ni copie, ni partage, ni envoi pour ces
+codes : **ne transmettez jamais un code de passkey** à une autre personne ni à un
+autre appareil.
+
 ---
 
 ## Créer un QR code

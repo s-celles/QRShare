@@ -137,6 +137,11 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-STRUCT-004 | S | 0.4.0 | When scanned or received text is a contact card, the system shall show a contact card with call, e-mail and web links and a Save contact action that downloads a `.vcf` file. |
 | REQ-STRUCT-005 | S | 0.4.0 | When scanned text is a QRShare identity, the system shall show its name and fingerprint and offer to add it as a trusted contact. |
 | REQ-STRUCT-006 | S | 0.4.0 | The system shall let the user switch between the structured card and the raw text. |
+| REQ-STRUCT-007 | S | Unreleased | When scanned or received text is a FIDO hybrid sign-in code (`FIDO:/` followed by digits encoding the CTAP 2.2 hybrid data), the system shall show a passkey card with the request (sign in or create a passkey) and the code's creation time, explaining that the code must be scanned by the phone holding the passkey, near the computer. |
+| REQ-STRUCT-008 | S | Unreleased | If a passkey code was created more than five minutes earlier, then the system shall warn that it has most likely expired. |
+| REQ-STRUCT-009 | S | Unreleased | The system shall not offer to copy, share, save or send on a passkey code, and shall warn the user never to forward it to another person or device. |
+| REQ-STRUCT-010 | C | Unreleased | Where the operating system handles passkey codes, the system shall offer to hand the scanned code to it. |
+| REQ-STRUCT-011 | S | Unreleased | If a code starting with `FIDO:/` is not a well-formed hybrid code, then the system shall show it as plain text. |
 
 ## 10. Encryption, identity and integrity (SEC)
 

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Passkey sign-in codes** (`FIDO:/…` QR codes, FIDO hybrid transport): the scanner recognises and decodes them, shows what the computer asks (sign in or create a passkey) and when the code was made, explains that the phone holding the passkey must scan it, warns when it has likely expired, and offers no copy, share or send action so that the code is never forwarded
 - App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
 - **Requirements specification** (`docs/requirements.md`), rebuilt from the code and tests in EARS notation like Progressive Web Office's: 199 requirements in 17 areas with MoSCoW priorities and the release that introduced each one, the requirement IDs already cited in the code kept, and a list of known deviations between code and specification. It is shown in the in-app documentation and linked from the About window (**Requirements**); a test checks that every requirement ID cited in code and tests is defined, unique and written in an EARS pattern
 - The offline sync protocol of the collaboration core (`docs/collab-sync-protocol.md`) is part of the in-app documentation and of the requirements (REQ-COLLAB-090 to 094)

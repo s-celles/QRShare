@@ -2481,3 +2481,49 @@ button.qr-zoom .about-qr {
     display: none !important;
   }
 }
+
+/* Passkey (FIDO) sign-in codes */
+.fido-explanation {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.fido-warning,
+.fido-expired {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.75rem;
+}
+
+.fido-warning {
+  background: var(--warning-bg);
+  color: var(--text);
+  border-inline-start: 4px solid var(--warning);
+}
+
+.fido-expired {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Label / value rows of the result cards (identity, passkey) */
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.info-label {
+  color: var(--muted);
+  min-width: 7rem;
+}
+
+/* Buttons that are links keep the look of buttons */
+a.start-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}

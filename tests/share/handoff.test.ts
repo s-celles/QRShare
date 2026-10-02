@@ -121,7 +121,7 @@ describe("REQ-HANDOFF-002/004 handoff between two windows", () => {
   });
 });
 
-describe("REQ-HANDOFF-006 version 2: reply to the opener", () => {
+describe("REQ-HANDOFF-007 version 2: reply to the opener", () => {
   it("posts the file to the opener, to the origin of the return URL only", async () => {
     const app = new FakeWindow("https://app.example");
     const qr = new FakeWindow("https://qr.example");

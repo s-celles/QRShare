@@ -303,8 +303,10 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-HANDOFF-002 | S | 0.4.0 | When an application opens `#/send?handoff=1`, the system shall announce that it is ready to its opener, accept one file from it, confirm reception and open the transfer chooser, sending nothing before the user picks a mode. |
 | REQ-HANDOFF-003 | S | 0.4.0 | If a handoff message is malformed, comes from a window other than the opener, or carries more than 200 MB, then the system shall ignore it. |
 | REQ-HANDOFF-004 | S | 0.4.0 | Where the receive screen was opened with a `return` web address, the system shall offer an Open in &lt;host&gt; button that delivers the received file to that address's origin only. |
-| REQ-HANDOFF-005 | S | 0.4.0 | The system shall advertise the handoff protocol versions it supports in its web app manifest (`qrshare_handoff.versions`). |
-| REQ-HANDOFF-006 | S | 0.4.0 | If no file arrives within 30 seconds of the handoff, or no answer within 60 seconds of an Open in &lt;host&gt; delivery, then the system shall report a timeout. |
+| REQ-HANDOFF-005 | S | 0.4.0 | The system shall advertise the handoff protocol versions and optional features it supports in its web app manifest (`qrshare_handoff.versions`, `qrshare_handoff.features`). |
+| REQ-HANDOFF-006 | S | Unreleased | Where an application hands a file over with a send mode (`mode=animated-qr`, `cimbar`, `webrtc` or `share`, protocol version 2), the system shall go straight to that mode once the file is received, when the policy allows it, instead of showing the chooser. |
+| REQ-HANDOFF-007 | S | Unreleased | Where the receive screen was opened with `reply=opener` (protocol version 2), when the user selects Open in &lt;host&gt;, the system shall post the received file back to the window that opened QRShare, to the origin of the `return` address only, and fall back to opening a new window if that window is gone. |
+| REQ-HANDOFF-008 | S | 0.4.0 | If no file arrives within 30 seconds of the handoff, or no answer within 60 seconds of an Open in &lt;host&gt; delivery, then the system shall report a timeout. |
 
 ## 19. Not planned for now (W)
 

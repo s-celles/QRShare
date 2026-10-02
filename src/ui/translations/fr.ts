@@ -131,6 +131,7 @@ export const fr: Record<string, string> = {
   "sendChooser.loadingShared": "Chargement du fichier partagé…",
   "handoff.openIn": "Ouvrir dans {host}",
   "handoff.sending": "Envoi vers {host}…",
+  "handoff.sentBack": "Renvoyé à {host}.",
   "handoff.sent": "Ouvert dans {host}.",
   "handoff.blocked": "Le navigateur a bloqué la nouvelle fenêtre. Autorisez les fenêtres pop-up pour QRShare et réessayez.",
   "handoff.noAnswer": "{host} n’a pas répondu. Téléchargez le fichier et ouvrez-le dans l’application.",

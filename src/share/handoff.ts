@@ -125,7 +125,7 @@ export async function openAndSend(url: URL, file: File, timeoutMs = 60_000): Pro
 }
 
 /**
- * Version 2 (REQ-HANDOFF-006): deliver a received file to the window that
+ * Version 2 (REQ-HANDOFF-007): deliver a received file to the window that
  * opened QRShare (`reply=opener`), so that the application gets it back in
  * the same window, after the user's click. Only to the origin of its
  * `return` URL.

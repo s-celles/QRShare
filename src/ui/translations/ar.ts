@@ -542,6 +542,7 @@ export const ar: Record<string, string> = {
   "sendChooser.loadingShared": "جارٍ تحميل الملف المشترك…",
   "handoff.openIn": "فتح في {host}",
   "handoff.sending": "جارٍ الإرسال إلى {host}…",
+  "handoff.sentBack": "أُعيد الإرسال إلى {host}.",
   "handoff.sent": "تم الفتح في {host}.",
   "handoff.blocked": "منع المتصفح فتح النافذة الجديدة. اسمح بالنوافذ المنبثقة لـ QRShare ثم حاول مرة أخرى.",
   "handoff.noAnswer": "لم يستجب {host}. نزّل الملف وافتحه هناك.",

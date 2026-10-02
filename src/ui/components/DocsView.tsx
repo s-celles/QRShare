@@ -50,11 +50,14 @@ async function renderMermaid(container: HTMLElement, theme: string): Promise<voi
   }
 }
 
-/** Links to another docs/ file stay in the app; anything else is external. */
-function resolveDocLink(href: string): string | null {
-  if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith("#")) return null;
-  const page = findDocByFile(href.split("#")[0]);
-  return page ? docRoute(page.slug) : null;
+/** Links to a docs/ file or to a section of the current page stay in the app; anything else is external. */
+function docLinkResolver(current: DocPage): (href: string) => string | null {
+  return (href) => {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return null;
+    const [file, section] = href.split("#", 2);
+    const page = file ? findDocByFile(file) : current;
+    return page ? docRoute(page.slug, section) : null;
+  };
 }
 
 const GROUPS: DocGroup[] = ["using", "developing"];
@@ -111,17 +114,22 @@ function DocsIndex() {
 export function DocsView() {
   const containerRef = useRef<HTMLDivElement>(null);
   // #/guide is the user guide; #/docs?page=<slug> any page; #/docs alone the index.
-  const page = currentRoute.value === "/guide" ? findDocPage("user-guide") : findDocPage(hashParams.value.get("page"));
-  const lang = page ? docLanguage(page, locale.value) : "en";
+  const params = hashParams.value;
+  const page = currentRoute.value === "/guide" ? findDocPage("user-guide") : findDocPage(params.get("page"));
+  // &lang=fr shows a translation whatever the interface language (links from the README).
+  const lang = page ? docLanguage(page, params.get("lang") ?? locale.value) : "en";
+  const section = params.get("section");
   const html = useMemo(
-    () => (page ? markdownToHtml(page.content[lang] ?? page.content.en, resolveDocLink) : ""),
+    () => (page ? markdownToHtml(page.content[lang] ?? page.content.en, docLinkResolver(page)) : ""),
     [page, lang],
   );
   const theme = effectiveTheme.value;
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [page]);
+    const target = section ? document.getElementById(section) : null;
+    if (target) target.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }, [page, lang, section]);
 
   useEffect(() => {
     if (containerRef.current) void renderMermaid(containerRef.current, theme);
@@ -141,7 +149,9 @@ export function DocsView() {
         <div class="docs-layout">
           <DocsNav current={page} />
           <article class="docs-article">
-            {lang !== locale.value && <p class="docs-lang-note">{t("docs.englishOnly")}</p>}
+            {locale.value !== "en" && !(locale.value in page.content) && (
+              <p class="docs-lang-note">{t("docs.englishOnly")}</p>
+            )}
             <div ref={containerRef} class="guide-content" dangerouslySetInnerHTML={{ __html: html }} />
             <p class="docs-source">
               <a href={`${DOCS_URL}/${page.files[lang] ?? page.files.en}`} target="_blank" rel="noopener noreferrer">

@@ -33,8 +33,16 @@ bun run package
 The pages in `docs/` are Markdown files. They are bundled into the app and shown
 in-app under `#/docs`; the list of pages lives in `src/ui/docs.ts`. To add a page,
 create the Markdown file, then register it there with its title. Links between
-pages use the relative file name (for example `en-user-guide.md`), which works both
-on GitHub and in the app.
+pages use the relative file name (for example `en-user-guide.md`, or
+`en-user-guide.md#section-title` for a section), which works both on GitHub and in
+the app.
+
+A page has its own address in the app, used by the README links:
+
+- `#/docs?page=<slug>` — a page, in the interface language when translated
+- `&lang=fr` — force a translation (`en` or `fr`)
+- `&section=<anchor>` — scroll to a heading; anchors follow GitHub's rules
+  (`Exchanging Files with Other Web Apps` → `exchanging-files-with-other-web-apps`)
 
 ## Releasing a New Version
 

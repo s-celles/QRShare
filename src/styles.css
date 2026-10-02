@@ -1831,6 +1831,11 @@ button.qr-zoom .about-qr {
   margin: 0;
 }
 
+/* Section links (&section=…) land below the sticky header. */
+.docs-article [id] {
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
 .docs-article .guide-content > h1:first-child {
   margin-top: 0;
 }

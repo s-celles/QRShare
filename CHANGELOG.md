@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
+
+### Fixed
+
+- Placeholders such as `<app>` or `<host>` in the documentation were hidden as unknown HTML tags; they are shown as text
+
 ### Added
 
 - **In-app documentation** (`#/docs`, book icon in the header): an index of all the pages of `docs/` and each page rendered in the app, with a side menu, links between pages that stay in the app, tables, code and Mermaid diagrams; pages not yet translated are shown in English with a note. `#/guide` (the **?** button) still opens the user guide

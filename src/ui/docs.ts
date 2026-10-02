@@ -75,5 +75,7 @@ export function docLanguage(page: DocPage, locale: string): "en" | "fr" {
   return locale === "fr" && page.content.fr ? "fr" : "en";
 }
 
-/** The in-app address of a page. */
-export const docRoute = (slug: string): string => `#/docs?page=${slug}`;
+/** The in-app address of a page, optionally of one of its sections (heading anchor). */
+export function docRoute(slug: string, section?: string): string {
+  return `#/docs?page=${slug}${section ? `&section=${encodeURIComponent(section)}` : ""}`;
+}

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded to Preact 11; the password field of the unlock card follows its stricter input types
 - Transfer frames gain a `FLAG_WIREHAIR` (`0x02`) flag that tells the receiver which fountain codec produced the symbols; only the audio transport sets it, so QR frames are unchanged on the wire
 - The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
 - The README is now short: what QRShare is, a link to the app, highlights, links to the documentation and a quick start

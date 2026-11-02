@@ -305,18 +305,30 @@ export function AudioSessionView() {
           </ol>
 
           <form class="audio-session-input" onSubmit={(e) => { e.preventDefault(); send(); }}>
-            <input
-              class="creator-input-field"
+            <textarea
+              class="creator-input-field audio-session-textarea"
+              rows={3}
               value={draft}
               placeholder={members.length < 2 ? t("audioSession.waiting") : t("audioSession.placeholder")}
               disabled={members.length < 2}
-              onInput={(e) => setDraft((e.target as HTMLInputElement).value)}
+              onInput={(e) => setDraft((e.target as HTMLTextAreaElement).value)}
+              onKeyDown={(e) => {
+                // Enter sends; Shift+Enter starts a new line.
+                if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
               aria-label={t("audioSession.placeholder")}
             />
-            <span class={`settings-hint ${draftBytes > MAX_CHAT_BYTES ? "error-msg" : ""}`}>{draftBytes}/{MAX_CHAT_BYTES}</span>
-            <button type="submit" class="start-btn" disabled={members.length < 2 || !draft.trim() || draftBytes > MAX_CHAT_BYTES}>
-              {t("audioSession.send")}
-            </button>
+            <div class="audio-session-input-bar">
+              <span class={`settings-hint ${draftBytes > MAX_CHAT_BYTES ? "error-msg" : ""}`}>
+                {t("audioSession.bytesLeft", { used: draftBytes, max: MAX_CHAT_BYTES })}
+              </span>
+              <button type="submit" class="start-btn" disabled={members.length < 2 || !draft.trim() || draftBytes > MAX_CHAT_BYTES}>
+                {t("audioSession.send")}
+              </button>
+            </div>
           </form>
 
           <div class="audio-controls">

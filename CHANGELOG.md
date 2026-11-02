@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Audio sessions: the message box was a single tiny line; it is now a full-width, multi-line text area (Enter sends, Shift+Enter adds a line) with the byte count below, and messages keep their line breaks
 - Audio sessions: joining could hang on "Joining…" because the joining device's sound output was created after the microphone prompt, so browsers (notably Safari on iOS) kept it muted and the host never heard the request. The output now starts within the tap, every tap (Join, Send) re-enables it, a **Tap to enable the sound** button appears when it is still muted, and the joining screen shows how many requests were sent
 
 ## [0.6.0] - 2026-11-02

@@ -1477,6 +1477,7 @@ button.qr-zoom .about-qr {
 .audio-session-log li {
   margin: 0.35rem 0;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .audio-session-log li.mine {
@@ -1496,12 +1497,25 @@ button.qr-zoom .about-qr {
 
 .audio-session-input {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
+  width: 100%;
 }
 
-.audio-session-input input {
-  flex: 1;
+.audio-session-textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.audio-session-input-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .audio-tap-start {

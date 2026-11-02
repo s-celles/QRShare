@@ -766,6 +766,7 @@ export const fr: Record<string, string> = {
   "audioSession.listening": "Écoute",
   "audioSession.placeholder": "Message",
   "audioSession.send": "Envoyer",
+  "audioSession.bytesLeft": "{used}/{max} octets · Entrée pour envoyer, Maj+Entrée pour aller à la ligne",
   "audioSession.notDelivered": "non remis",
   "audioSession.memberLeft": "{name} a quitté la session.",
   "audioSession.sendFile": "Envoyer un fichier :",

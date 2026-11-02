@@ -6,7 +6,9 @@ import { MAX_CHAT_BYTES } from "@/audio/link/protocol";
 import { AudioLinkRuntime, createOutputContext } from "@/audio/web/link-runtime";
 import { MicrophoneError } from "@/audio/web/capture";
 import { StartGuard, runGuarded } from "@/audio/web/start-guard";
-import { AUDIO_PROFILES, profileIndex, type AudioProfileId } from "@/audio/profiles";
+import { AUDIO_PROFILES, profileByIndex, profileIndex, type AudioProfileId } from "@/audio/profiles";
+import { estimateChatSeconds, estimateSessionFileSeconds } from "@/audio/link/estimate";
+import { formatDuration } from "../send-policy";
 import { createIdentity } from "@/collab/core/identity";
 import { ReceivedResultView, type ReceivedPayload } from "./ReceivedResultView";
 
@@ -187,13 +189,19 @@ export function AudioSessionView() {
     if (!file || !runtimeRef.current) return;
     try {
       await runtimeRef.current.sendFile(new Uint8Array(await file.arrayBuffer()), file.name, file.type.startsWith("text/"));
-      addEntry({ kind: "system", key: nextKey(), text: t("audioSession.fileSending", { name: file.name }) });
+      const sec = estimateSessionFileSeconds(file.size, sessionProfile());
+      addEntry({ kind: "system", key: nextKey(), text: t("audioSession.fileSending", { name: file.name, duration: formatDuration(sec) }) });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
   };
 
   const draftBytes = utf8Len(draft);
+  /** Profile of the session (the host's choice, learnt from its beacon when joining). */
+  function sessionProfile() {
+    return profileByIndex(roomRef.current?.profileIndex ?? profileIndex(profileId)) ?? AUDIO_PROFILES[0];
+  }
+  const chatEstimate = formatDuration(estimateChatSeconds(draftBytes, sessionProfile(), Math.max(2, members.length)));
 
   return (
     <section aria-label={t("audioSession.section")}>
@@ -226,6 +234,12 @@ export function AudioSessionView() {
                   {AUDIO_PROFILES.map((p) => <option value={p.id}>{t(PROFILE_KEYS[p.id])}</option>)}
                 </select>
               </label>
+              <span class="settings-hint">
+                {t("audioSession.profileEstimates", {
+                  chat: formatDuration(estimateChatSeconds(40, AUDIO_PROFILES[profileIndex(profileId)], 2)),
+                  file: formatDuration(estimateSessionFileSeconds(1024, AUDIO_PROFILES[profileIndex(profileId)])),
+                })}
+              </span>
               <button class="start-btn" onClick={() => void start("host")}>{t("audioSession.createButton")}</button>
             </div>
             <div class="mode-btn mode-btn--receive">
@@ -323,7 +337,7 @@ export function AudioSessionView() {
             />
             <div class="audio-session-input-bar">
               <span class={`settings-hint ${draftBytes > MAX_CHAT_BYTES ? "error-msg" : ""}`}>
-                {t("audioSession.bytesLeft", { used: draftBytes, max: MAX_CHAT_BYTES })}
+                {t("audioSession.bytesLeft", { used: draftBytes, max: MAX_CHAT_BYTES })} · {t("audioSession.chatEstimate", { duration: chatEstimate })}
               </span>
               <button type="submit" class="start-btn" disabled={members.length < 2 || !draft.trim() || draftBytes > MAX_CHAT_BYTES}>
                 {t("audioSession.send")}

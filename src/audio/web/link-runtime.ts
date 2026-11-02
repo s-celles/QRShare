@@ -15,8 +15,7 @@ import type { AudioRoom, LinkPacket, RoomEvent } from "../link/room";
 import { startCapture, type CaptureHandle } from "./capture";
 
 const TICK_MS = 100;
-/** Silence after each file metadata packet, so members can acknowledge (REQ-ALS-031). */
-const FILE_LISTEN_MS = 1500;
+import { FILE_LISTEN_MS } from "../link/estimate";
 
 export interface LinkRuntimeHandlers {
   onRoomEvents(events: RoomEvent[]): void;

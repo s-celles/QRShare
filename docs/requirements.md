@@ -288,6 +288,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-ALS-031 | C | Unreleased | While sending a session file, the system shall pause after each metadata packet and stop once every member reported the file as received. |
 | REQ-ALS-032 | C | Unreleased | When a member completes a session file, the system shall report it and show the file in the conversation. |
 | REQ-ALS-040 | C | Unreleased | The system shall offer an experimental audio session screen with create and join, verification code, members, conversation with delivery marks, message input, file sending and leave. |
+| REQ-ALS-042 | C | Unreleased | The system shall estimate the transmission time of a session message while it is typed, of a session file when it is sent, and of each profile on the session start screen. |
 | REQ-ALS-041 | C | Unreleased | The system shall provide the audio session texts in English and French, Arabic showing them in English for now. |
 
 ## 14. Text sharing (TEXT)

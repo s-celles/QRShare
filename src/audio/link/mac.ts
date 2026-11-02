@@ -9,13 +9,19 @@ export interface MacOptions {
   readonly maxBackoffMs: number;
 }
 
+/** Default turn rules: quiet guard time, then a random back-off up to `maxBackoffMs`. */
+export const MAC_DEFAULTS: MacOptions = { guardMs: 400, maxBackoffMs: 1000 };
+
+/** Average wait before a turn (guard + mean back-off), in seconds. */
+export const MEAN_TURN_WAIT_SEC = (MAC_DEFAULTS.guardMs + MAC_DEFAULTS.maxBackoffMs / 2) / 1000;
+
 export class LinkMac {
   private quietSince = 0;
   private backoffUntil: number | null = null;
   private readonly opts: MacOptions;
 
   constructor(private readonly random: () => number = Math.random, opts: Partial<MacOptions> = {}) {
-    this.opts = { guardMs: 400, maxBackoffMs: 1000, ...opts };
+    this.opts = { ...MAC_DEFAULTS, ...opts };
   }
 
   /** Returns true when the caller may start transmitting now. */

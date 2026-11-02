@@ -12,6 +12,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 - **Native Share** -- Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** -- Send files between devices using animated QR codes. No internet connection required -- works completely air-gapped.
 - **CIMBAR Transfer (Experimental)** -- High-speed air-gapped color-barcode transfer using libcimbar WASM. The browser decoder is beta, so standard animated QR remains the compatibility fallback.
+- **Audio Transfer (Experimental)** -- Air-gapped transfer of short texts and small files (up to 8 KB, best under 1 KB) as sound, from loudspeaker to microphone, with no network, camera or line of sight. A pure-TypeScript multi-tone FSK modem with chirp synchronisation, Reed-Solomon and CRC32 per packet, and fountain codes; three profiles (Robust about 22 B/s, Fast about 53 B/s, Ultrasonic under Advanced). Works in the PWA and in the single-file build.
 - **WebRTC Transfer** -- Direct peer-to-peer file transfer over WebRTC DataChannel with 4-digit confirmation code for security verification.
 - **Fountain Codes** -- Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
 - **Internationalization** -- Full EN/FR interface with auto-detection from browser language and manual selection in Settings.
@@ -20,7 +21,7 @@ Air-gapped peer-to-peer file transfer via animated QR codes with fountain codes.
 - **Web Share Integration** -- Share received files, created QR codes, and scanned content directly to other apps using the Web Share API.
 - **Dark/Light Theme** -- Automatic theme detection with manual override.
 - **SHA-256 Verification** -- End-to-end integrity verification of transferred files.
-- **Single-File Distribution** -- Package the core app into a single self-contained HTML file. The experimental CIMBAR runtime remains a separate WASM asset and is available in the standard PWA build.
+- **Single-File Distribution** -- Package the core app into a single self-contained HTML file. The experimental CIMBAR runtime remains a separate WASM asset and is available in the standard PWA build; the experimental audio transport is fully contained in the main bundle.
 
 ## Quick Start
 

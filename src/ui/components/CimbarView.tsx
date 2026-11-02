@@ -2,11 +2,8 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { pendingFile, pendingText, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { t } from "../i18n";
-import { ShareService } from "@/share/service";
-import { TextResultView } from "./TextResultView";
-import { TransferSummary } from "./TransferSummary";
-import { FilePreview } from "./FilePreview";
 import { SpeedGraph } from "./SpeedGraph";
+import { ReceivedResultView, type ReceivedPayload } from "./ReceivedResultView";
 
 type CimbarMode = 68 | 67 | 66;
 
@@ -32,7 +29,6 @@ function formatBytes(value: number): string {
 }
 
 const workerUrl = (name: string) => new URL(`cimbar/${name}`, window.location.href).toString();
-const shareService = new ShareService();
 
 function preparedContent(): File | null {
   const pending = pendingFile.value;
@@ -146,7 +142,6 @@ function CimbarReceiver() {
   const workerRef = useRef<Worker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationRef = useRef(0);
-  const resultUrlRef = useRef<string | null>(null);
   const busyRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -155,15 +150,7 @@ function CimbarReceiver() {
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState<CimbarReceiveStats>(emptyReceiveStats);
   const [error, setError] = useState("");
-  const [shareStatus, setShareStatus] = useState<"" | "shared" | "cancelled" | "unsupported">("");
-  const [result, setResult] = useState<{
-    filename: string;
-    url: string;
-    file: File;
-    text: string | null;
-    sha256: string;
-    verified: boolean | null;
-  } | null>(null);
+  const [result, setResult] = useState<ReceivedPayload | null>(null);
 
   const instantSpeedRef = useRef(0);
   const speedHistory = useRef<number[]>([]);
@@ -196,19 +183,10 @@ function CimbarReceiver() {
         
         setStats(message);
       } else if (message.type === "complete") {
-        const isText = message.filename === TEXT_FILENAME;
-        const file = new File([message.file], message.filename, {
-          type: isText ? TEXT_MIME_TYPE : "application/octet-stream",
-        });
-        const url = URL.createObjectURL(file);
-        if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
-        resultUrlRef.current = url;
         setResult({
+          file: new Uint8Array(message.file),
           filename: message.filename,
-          url,
-          file,
-          text: isText ? new TextDecoder().decode(message.file) : null,
-          sha256: message.sha256 || "",
+          isText: null, // inferred from the filename, as before
           verified: typeof message.verified === "boolean" ? message.verified : null,
         });
         setProgress(100);
@@ -219,7 +197,6 @@ function CimbarReceiver() {
     return () => {
       worker.terminate();
       stopCamera();
-      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
     };
   }, []);
 
@@ -325,35 +302,16 @@ function CimbarReceiver() {
         </>
       )}
       {result && (
-        <div class="result-section">
-          <p>{t("cimbar.complete", { filename: result.filename })}</p>
-          <TransferSummary
-            bytes={stats.expectedSize || stats.receivedBytes}
-            durationSec={stats.elapsedMs / 1000}
-            speedBytesPerSec={stats.speedBytesPerSec}
-            detail={`${stats.detectedFrames} / ${stats.scannedFrames} ${t("transfer.matrices")}${result.verified === true ? " · SHA-256 ✓" : result.verified === false ? " · SHA-256 ✗" : ""}`}
-          />
-          {result.verified === false && <p class="error-msg" role="alert">{t("receiver.hashWarning")}</p>}
-          {result.text != null ? (
-            <TextResultView text={result.text} filename={result.filename} />
-          ) : (
-            <div class="share-actions">
-              <FilePreview url={result.url} filename={result.filename} />
-              <a class="download-btn" href={result.url} download={result.filename}>{t("common.download")}</a>
-              {shareService.isShareSupported() && (
-                <button class="start-btn share-action" onClick={async () => {
-                  const outcome = await shareService.shareFile(result.file);
-                  setShareStatus(outcome.kind === "shared" || outcome.kind === "cancelled" || outcome.kind === "unsupported" ? outcome.kind : "shared");
-                }}>
-                  {t("common.share")}
-                </button>
-              )}
-            </div>
-          )}
-          {shareStatus === "unsupported" && <p class="error-msg" role="alert">{t("cimbar.shareUnsupported")}</p>}
-          {shareStatus === "cancelled" && <p class="settings-hint">{t("cimbar.shareCancelled")}</p>}
-          {shareStatus === "shared" && <p class="settings-hint">{t("cimbar.shareSuccess")}</p>}
-        </div>
+        <ReceivedResultView
+          payload={result}
+          message={t("cimbar.complete", { filename: result.filename })}
+          summary={{
+            bytes: stats.expectedSize || stats.receivedBytes,
+            durationSec: stats.elapsedMs / 1000,
+            speedBytesPerSec: stats.speedBytesPerSec,
+            detail: `${stats.detectedFrames} / ${stats.scannedFrames} ${t("transfer.matrices")}`,
+          }}
+        />
       )}
     </section>
   );

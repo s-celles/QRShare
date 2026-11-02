@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-02
+
+### Added
+
+- **Audio transfer (Experimental)**: a fourth air-gapped transport that sends a short text or a small file as sound, from the sender's loudspeaker to the receiver's microphone, with no network, camera or line of sight. It reuses the compression, fountain codes, transfer metadata and SHA-256 verification of the QR transport on top of a new pure-TypeScript modem (multi-tone FSK with a chirp preamble per packet, Reed-Solomon with erasures and CRC32 per packet, one fountain symbol per packet); no new dependency
+- Three audio profiles: **Robust** (default, about 22 bytes/s), **Fast** (about 53 bytes/s) and, under **Advanced**, **Ultrasonic** (17–19.5 kHz, about 10 bytes/s, flagged as less reliable); the receiver detects the profile automatically. Audio uses the Wirehair fountain codec by default, with **LT (compatibility)** available under Advanced
+- New **Send (Audio — Experimental)** and **Receive (Audio — Experimental)** screens (`#/send/audio`, `#/receive/audio`) and an **Audio (Experimental)** group on the home screen; the receiver shows the input level, a signal indicator, decoded and rejected packets and the effective rate, and honours `autostart=1` with a **Tap to start listening** fallback when the browser needs a gesture
+- Audio is offered in the transfer chooser and in **Prepare a transfer** for content up to 8 KB (described as suitable up to 1 KB, with an estimated duration, and as slow above), under every policy since it is air-gapped; it is recommended only when the device has no camera and the content is at most 1 KB
+- The audio transport works offline in the PWA and in the single-file `qrshare.html` (its capture worklet is loaded from an inline Blob URL, so no new asset is needed)
+- The audio sender can encrypt the content with a password (AES-256-GCM, as in the other senders); the receiver offers the unlock card. Changing the profile or codec on the sender mid-transfer is followed by the receiver, which switches to the new transmission of the same content
+- The CIMBAR receiver now also offers **Open in …** for files and unlocks password- or contact-encrypted payloads, through a result view shared with the audio receiver
+
+### Fixed
+
+- **Prepare a transfer**: with several files, the CIMBAR (and audio) size limits now apply to the ZIP archive that is actually sent, and a selected mode that no longer fits the content falls back to the recommended mode
+
+### Changed
+
+- Transfer frames gain a `FLAG_WIREHAIR` (`0x02`) flag that tells the receiver which fountain codec produced the symbols; only the audio transport sets it, so QR frames are unchanged on the wire
+
 ## [0.5.0] - 2026-10-01
 
 ### Changed

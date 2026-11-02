@@ -21,6 +21,7 @@ import { WebShareSenderView } from "./components/WebShareSenderView";
 import { SendChooserView } from "./components/SendChooserView";
 import { UrlCreatorView } from "./components/UrlCreatorView";
 import { CimbarView } from "./components/CimbarView";
+import { AudioView } from "./components/AudioView";
 
 /** Header theme button: auto (system) → light → dark. */
 const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
@@ -52,6 +53,10 @@ function RouteView() {
       return <CimbarView direction="send" />;
     case "/receive/cimbar":
       return <CimbarView direction="receive" />;
+    case "/send/audio":
+      return <AudioView direction="send" />;
+    case "/receive/audio":
+      return <AudioView direction="receive" />;
     case "/send/webrtc":
       return <WebRTCSenderView />;
     case "/receive/webrtc":

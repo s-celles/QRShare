@@ -4,20 +4,32 @@ export const PROTOCOL_VERSION = 0x03;
 
 // Flag constants for frame.flags byte
 export const FLAG_TEXT = 0x01;
+/**
+ * The fountain symbols were produced by Wirehair rather than LT. Only the audio
+ * transport sets it; QR transfers always use LT and leave it clear, so their
+ * frames are unchanged on the wire.
+ */
+export const FLAG_WIREHAIR = 0x02;
+
+export type FrameCodec = "lt" | "wirehair";
 
 export interface FrameFlags {
   readonly isText: boolean;
+  /** Fountain codec of the payload symbols (default `"lt"`). */
+  readonly codec?: FrameCodec;
 }
 
 export function encodeFlags(flags: FrameFlags): number {
   let bits = 0;
   if (flags.isText) bits |= FLAG_TEXT;
+  if (flags.codec === "wirehair") bits |= FLAG_WIREHAIR;
   return bits;
 }
 
-export function decodeFlags(flagsByte: number): FrameFlags {
+export function decodeFlags(flagsByte: number): Required<FrameFlags> {
   return {
     isText: (flagsByte & FLAG_TEXT) !== 0,
+    codec: (flagsByte & FLAG_WIREHAIR) !== 0 ? "wirehair" : "lt",
   };
 }
 

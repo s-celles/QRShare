@@ -13,6 +13,7 @@ export type Route =
   | "/receive/cimbar"
   | "/send/audio"
   | "/receive/audio"
+  | "/audio/session"
   | "/send/webrtc"
   | "/receive/webrtc"
   | "/collab"
@@ -36,6 +37,7 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/receive/cimbar",
   "/send/audio",
   "/receive/audio",
+  "/audio/session",
   "/send/webrtc",
   "/receive/webrtc",
   "/collab",

@@ -21,6 +21,7 @@ import { SendChooserView } from "./components/SendChooserView";
 import { UrlCreatorView } from "./components/UrlCreatorView";
 import { CimbarView } from "./components/CimbarView";
 import { AudioView } from "./components/AudioView";
+import { AudioSessionView } from "./components/AudioSessionView";
 
 /** Header theme button: auto (system) → light → dark. */
 const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
@@ -59,6 +60,8 @@ function RouteView() {
       return <AudioView direction="send" />;
     case "/receive/audio":
       return <AudioView direction="receive" />;
+    case "/audio/session":
+      return <AudioSessionView />;
     case "/send/webrtc":
       return <WebRTCSenderView />;
     case "/receive/webrtc":

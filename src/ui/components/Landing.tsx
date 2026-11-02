@@ -122,6 +122,11 @@ export function Landing() {
           <span class="mode-label">{t("landing.receiveAudioTitle")}</span>
           <span class="mode-desc">{t("landing.receiveAudioDesc")}</span>
         </button>
+        <button class="mode-btn mode-btn--full mode-btn--tool" onClick={() => navigate("/audio/session")} aria-label={t("landing.audioSessionAria")}>
+          <span class="mode-icon" aria-hidden="true">&#x1F4AC;</span>
+          <span class="mode-label">{t("landing.audioSessionTitle")}</span>
+          <span class="mode-desc">{t("landing.audioSessionDesc")}</span>
+        </button>
       </div>
 
       <h3 class="mode-group-title">{t("landing.webrtcGroup")}</h3>

@@ -436,6 +436,49 @@ What stays visible: how long the sender plays, and therefore the size range.
 
 ---
 
+## Experimental Audio Sessions (chat over sound)
+
+An audio session connects two devices (or a small group) **over sound**, like a
+WebRTC connection but with no network at all. Once connected, participants chat
+with short messages and send files, everything encrypted.
+
+1. On one device, open **Audio session — chat (Experimental)**, keep or change
+   your name, choose a profile (Fast by default; Robust for noisy rooms;
+   Ultrasonic, barely audible but less reliable) and press **Create**. The device
+   announces the session with short beeps every few seconds.
+2. On the other device, open the same screen and press **Join**. The sessions
+   heard nearby are listed; press **Join** next to the right one.
+3. Both screens show the members and a **4-digit verification code**. Check that
+   the code is the same on every device: if it differs, someone may be in the
+   middle — leave the session.
+4. Type messages (up to 180 bytes each). Your messages show **✓ 0/1** while
+   waiting, then **✓✓** once everyone received them, or **✗ not delivered**
+   after several attempts. A file can be sent to the session with **Send a
+   file**; members receive it automatically and it appears in the conversation.
+
+How it works, in short:
+
+- **Encryption without a password to share**: when joining, the two devices
+  exchange public keys (P-256) over sound and derive a common key; the host
+  then hands over the session key. Every message and file is encrypted
+  (AES-256-GCM). The verification code is computed from the keys, so a device
+  relaying the exchange would show a different code.
+- **One device speaks at a time**: each device waits for silence and a short
+  random delay before sending, like a walkie-talkie. Messages that are not
+  acknowledged are sent again automatically.
+- **Several participants**: up to 6 devices can join the same session; every
+  message reaches everyone and the code is the same on every device. Every
+  device must hear every other one (no relaying yet).
+- A member silent for more than 75 seconds is shown as *away*; **Leave the
+  session** tells the others.
+
+Expect about 2–3 seconds per short message with the Fast profile, and about 10
+seconds with Ultrasonic. Keep both screens open, the devices within a few metres
+(less than 1–2 m for Ultrasonic), and the media volume high. On iPhone, recording
+and playing at the same time may route the sound to the earpiece at a lower volume.
+
+---
+
 ## Sharing Text Messages
 
 All three transfer methods (Share, QR, WebRTC) support sending text messages in addition to files. When entering a sender view, a **File / Text** toggle at the top lets you choose what to send.

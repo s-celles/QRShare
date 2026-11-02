@@ -36,6 +36,10 @@ export const PACKET_TYPE_SEALED_METADATA = 0x2;
  * encrypted v3 frame header (57 + filename) + GCM tag (16) + CRC32 (4).
  */
 export const SEALED_METADATA_OVERHEAD = 1 + 4 + 16 + 12 + 57 + 16 + 4;
+/** Audio session packet (see `link/`): clear header + payload. */
+export const PACKET_TYPE_LINK = 0x3;
+/** Link header: type (1) + room id (4) + sender id (4) + kind (1) + counter (4). */
+export const LINK_HEADER_BYTES = 14;
 const HEADER_CHECK_XOR = 0xa5;
 const MIN_BODY_LEN = DATA_BODY_OVERHEAD + 1;
 const MAX_CODEWORD = 255;
@@ -50,7 +54,24 @@ export type AudioPacket =
       iv: Uint8Array;
       /** Encrypted v3 frame header with its GCM tag. */
       ciphertext: Uint8Array;
+    }
+  | {
+      kind: "link";
+      /** The 14 clear header bytes (associated data of the encryption). */
+      header: Uint8Array;
+      roomId: Uint8Array;
+      from: number;
+      linkKind: number;
+      counter: number;
+      payload: Uint8Array;
     };
+
+export interface LinkHeaderFields {
+  readonly roomId: Uint8Array;
+  readonly from: number;
+  readonly kind: number;
+  readonly counter: number;
+}
 
 export type RejectReason = "header_rs" | "body_rs" | "crc" | "version" | "malformed";
 
@@ -87,6 +108,33 @@ export function encodeDataBody(metadataHash: Uint8Array, symbolId: number, symbo
 /** Largest UTF-8 filename (bytes) that keeps a metadata body codeword ≤ 255 bytes. */
 export function maxFilenameBytes(profile: AudioProfile, sealed = false): number {
   return MAX_CODEWORD - profile.parity - (sealed ? SEALED_METADATA_OVERHEAD : METADATA_BODY_OVERHEAD);
+}
+
+/** Largest link payload that fits one packet of `profile`. */
+export function maxLinkPayload(profile: AudioProfile): number {
+  return MAX_CODEWORD - profile.parity - LINK_HEADER_BYTES - 4;
+}
+
+/** The clear 14-byte link header (also the AAD of its encrypted payload). */
+export function encodeLinkHeader(h: LinkHeaderFields): Uint8Array {
+  if (h.roomId.length !== 4) throw new Error("room id must be 4 bytes");
+  const out = new Uint8Array(LINK_HEADER_BYTES);
+  const v = new DataView(out.buffer);
+  out[0] = (AUDIO_PACKET_VERSION << 4) | PACKET_TYPE_LINK;
+  out.set(h.roomId, 1);
+  v.setUint32(5, h.from >>> 0);
+  out[9] = h.kind;
+  v.setUint32(10, h.counter >>> 0);
+  return out;
+}
+
+/** Body of an audio session packet: header ‖ payload ‖ CRC32. */
+export function encodeLinkBody(h: LinkHeaderFields, payload: Uint8Array): Uint8Array {
+  const header = encodeLinkHeader(h);
+  const content = new Uint8Array(header.length + payload.length);
+  content.set(header);
+  content.set(payload, header.length);
+  return withCrc(content);
 }
 
 /** Body of a sealed metadata packet (the frame is encrypted by the caller). */
@@ -224,6 +272,23 @@ export function parseAudioPacket(body: Uint8Array): PacketDecodeResult {
         metadataHash: content.slice(1, 5),
         symbolId,
         symbol: content.slice(7),
+      },
+    };
+  }
+  if (type === PACKET_TYPE_LINK) {
+    if (content.length < LINK_HEADER_BYTES) return { kind: "rejected", reason: "malformed" };
+    const v = new DataView(content.buffer, content.byteOffset, content.byteLength);
+    return {
+      kind: "ok",
+      correctedBytes: 0,
+      packet: {
+        kind: "link",
+        header: content.slice(0, LINK_HEADER_BYTES),
+        roomId: content.slice(1, 5),
+        from: v.getUint32(5),
+        linkKind: content[9],
+        counter: v.getUint32(10),
+        payload: content.slice(LINK_HEADER_BYTES),
       },
     };
   }

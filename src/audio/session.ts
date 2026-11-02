@@ -353,6 +353,11 @@ export class AudioReceiveSession {
     return this.done || this.failed;
   }
 
+  /** Hex id of the transfer this receiver locked onto (null before the first packet). */
+  get lockedSessionId(): string | null {
+    return this.lockedHash ? toHex(this.lockedHash) : null;
+  }
+
   /** Feeds microphone samples; returns demodulator and transfer events in order. */
   async push(samples: Float32Array): Promise<ReceiveEvent[]> {
     const out: ReceiveEvent[] = [];
@@ -371,6 +376,7 @@ export class AudioReceiveSession {
       return [this.progress()];
     }
     const packet = result.packet;
+    if (packet.kind === "link") return []; // audio session traffic, not a transfer
     if (packet.kind === "sealed-metadata") return this.ingestSealed(packet, profile);
     const hash = packet.kind === "data" ? packet.metadataHash : packet.frame.metadataHash;
     if (!this.lockedHash) this.lockedHash = hash;

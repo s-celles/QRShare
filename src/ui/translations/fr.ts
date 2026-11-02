@@ -751,6 +751,8 @@ export const fr: Record<string, string> = {
   "audioSession.searching": "Écoute des sessions à proximité…",
   "audioSession.roomOf": "Session de {name}",
   "audioSession.joining": "Connexion… gardez les appareils proches.",
+  "audioSession.joinAttempts": "Demandes envoyées : {n}. Si rien ne se passe, montez le volume de cet appareil et rapprochez-le de l’hôte.",
+  "audioSession.enableSound": "Touchez pour activer le son — cet appareil n’est pas encore audible",
   "audioSession.joinFailed": "L’hôte n’a pas répondu. Rapprochez-vous et réessayez.",
   "audioSession.joined": "Connecté. Vérifiez que le code est identique sur chaque appareil.",
   "audioSession.securityWarning": "Alerte de sécurité : la session a répondu avec une clé qui n’est pas la vôtre. Quelqu’un s’est peut-être intercalé ; n’utilisez pas cette session.",

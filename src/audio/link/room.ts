@@ -197,6 +197,11 @@ export class AudioRoom {
     return this.roomId ? hex(this.roomId) : null;
   }
 
+  /** Join requests sent so far (shown while joining). */
+  get joinAttempts(): number {
+    return this.joinTries;
+  }
+
   get verificationCode(): string {
     return this.code;
   }

@@ -748,6 +748,8 @@ export const en: Record<string, string> = {
   "audioSession.searching": "Listening for sessions nearby…",
   "audioSession.roomOf": "Session of {name}",
   "audioSession.joining": "Joining… keep the devices close.",
+  "audioSession.joinAttempts": "Join requests sent: {n}. If nothing happens, raise this device's volume and bring it closer to the host.",
+  "audioSession.enableSound": "Tap to enable the sound — this device cannot be heard yet",
   "audioSession.joinFailed": "The host did not answer. Move closer and try again.",
   "audioSession.joined": "Connected. Check that the code is the same on every device.",
   "audioSession.securityWarning": "Security warning: the session answered with a key that is not yours. Someone may be in the middle; do not use this session.",

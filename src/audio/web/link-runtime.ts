@@ -24,7 +24,26 @@ export interface LinkRuntimeHandlers {
   onFileReceived?(file: ReceiveComplete): void;
   onFileSendProgress?(state: { packets: number; done: number; total: number; active: boolean }): void;
   onTransmitting?(active: boolean): void;
+  /** true while the sound output is suspended (it needs a tap to start). */
+  onAudioState?(suspended: boolean): void;
   onError?(message: string): void;
+}
+
+export interface LinkRuntimeDeps {
+  /**
+   * Output context. Create it synchronously in the click handler (`createOutputContext`):
+   * created after the microphone permission prompt, it would stay suspended in many
+   * browsers (Safari/iOS) and nothing would be heard.
+   */
+  readonly out?: AudioContext;
+  readonly startCapture?: typeof startCapture;
+}
+
+/** Creates (and starts) the output context; call it synchronously inside a user gesture. */
+export function createOutputContext(): AudioContext {
+  const out = new AudioContext({ latencyHint: "interactive" });
+  void out.resume().catch(() => {});
+  return out;
 }
 
 const hexToBytes = (h: string) => Uint8Array.from(h.match(/../g) ?? [], (x) => parseInt(x, 16));
@@ -41,7 +60,7 @@ interface FileSend {
 export class AudioLinkRuntime {
   private readonly mac = new LinkMac();
   private readonly demod: StreamingDemodulator;
-  private readonly out: AudioContext;
+  private lastSuspended: boolean | null = null;
   private interval: ReturnType<typeof setInterval> | null = null;
   private chain: Promise<void> = Promise.resolve();
   private busyUntil = 0;
@@ -54,16 +73,23 @@ export class AudioLinkRuntime {
     private readonly room: AudioRoom,
     private readonly capture: CaptureHandle,
     private readonly handlers: LinkRuntimeHandlers,
+    private readonly out: AudioContext,
   ) {
     this.demod = new StreamingDemodulator(capture.sampleRate);
-    this.out = new AudioContext({ latencyHint: "interactive" });
   }
 
   /** Must be called from a user gesture (microphone permission, audio output). */
-  static async start(room: AudioRoom, handlers: LinkRuntimeHandlers): Promise<AudioLinkRuntime> {
+  static async start(room: AudioRoom, handlers: LinkRuntimeHandlers, deps: LinkRuntimeDeps = {}): Promise<AudioLinkRuntime> {
     let runtime: AudioLinkRuntime | null = null;
-    const capture = await startCapture((chunk) => runtime?.onChunk(chunk));
-    runtime = new AudioLinkRuntime(room, capture, handlers);
+    const out = deps.out ?? createOutputContext();
+    let capture: CaptureHandle;
+    try {
+      capture = await (deps.startCapture ?? startCapture)((chunk) => runtime?.onChunk(chunk));
+    } catch (err) {
+      await out.close().catch(() => {});
+      throw err;
+    }
+    runtime = new AudioLinkRuntime(room, capture, handlers, out);
     if (capture.suspended) await capture.resume();
     if (runtime.out.state === "suspended") await runtime.out.resume().catch(() => {});
     runtime.interval = setInterval(() => runtime!.enqueue(() => runtime!.tick()), TICK_MS);
@@ -74,9 +100,11 @@ export class AudioLinkRuntime {
     return this.capture.suspended || this.out.state === "suspended";
   }
 
+  /** Call from a click: browsers only start audio during a user gesture. */
   async resume(): Promise<void> {
     await this.capture.resume();
     await this.out.resume().catch(() => {});
+    this.reportAudioState();
   }
 
   private get profile(): AudioProfile {
@@ -185,8 +213,17 @@ export class AudioLinkRuntime {
     this.handlers.onFileSendProgress?.({ packets: tx.packets, done, total, active: true });
   }
 
+  private reportAudioState(): void {
+    const suspended = this.suspended;
+    if (suspended !== this.lastSuspended) {
+      this.lastSuspended = suspended;
+      this.handlers.onAudioState?.(suspended);
+    }
+  }
+
   private async tick(): Promise<void> {
     if (this.stopped) return;
+    this.reportAudioState();
     this.onRoomEvents(this.room.tick());
     const now = performance.now();
     const busy = this.sending || this.demod.busy || now < this.busyUntil;

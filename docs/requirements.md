@@ -222,6 +222,10 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-AUD-019 | C | 0.6.0 | While playing, the system shall keep the screen awake where supported and ask for playback audio that ignores the silent switch where supported. |
 | REQ-AUD-020 | C | 0.6.0 | When the user stops or leaves the audio sender, the system shall stop every scheduled sound and close the audio context. |
 | REQ-AUD-021 | C | 0.6.0 | Where the user enables password encryption on the audio sender, the system shall encrypt the content with AES-256-GCM before sending it. |
+| REQ-AUD-022 | C | Unreleased | Where the audio sender uses a password, the system shall encrypt the transfer metadata (file name, size, SHA-256, content type, fountain parameters) and use a random transfer identifier. |
+| REQ-AUD-023 | C | Unreleased | Where the audio sender uses a password, the system shall pad the encrypted content to a multiple of 256 bytes. |
+| REQ-AUD-024 | C | Unreleased | When the audio receiver detects an encrypted transfer without a password, the system shall ask for it and keep listening and buffering packets meanwhile. |
+| REQ-AUD-025 | C | Unreleased | If the password does not decrypt the transfer metadata, then the system shall report a wrong password at once and accept a corrected one without restarting. |
 | REQ-AUD-030 | C | 0.6.0 | When the user starts listening, the system shall open the microphone mono without echo cancellation, noise suppression or automatic gain control. |
 | REQ-AUD-031 | C | 0.6.0 | If microphone access is denied or unavailable, then the system shall explain how to grant it. |
 | REQ-AUD-032 | C | 0.6.0 | When the audio receiver is opened with `autostart=1`, the system shall start listening, or show a prominent tap-to-start button if the browser requires a gesture. |

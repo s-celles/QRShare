@@ -29,13 +29,28 @@ import { parseFrame, serializeFrame, PROTOCOL_VERSION, type Frame } from "@/prot
 export const AUDIO_PACKET_VERSION = 0x1;
 export const PACKET_TYPE_DATA = 0x0;
 export const PACKET_TYPE_METADATA = 0x1;
+/** Metadata encrypted with the transfer password (see `sealed.ts`). */
+export const PACKET_TYPE_SEALED_METADATA = 0x2;
+/**
+ * Sealed metadata body: type (1) + session id (4) + salt (16) + IV (12) +
+ * encrypted v3 frame header (57 + filename) + GCM tag (16) + CRC32 (4).
+ */
+export const SEALED_METADATA_OVERHEAD = 1 + 4 + 16 + 12 + 57 + 16 + 4;
 const HEADER_CHECK_XOR = 0xa5;
 const MIN_BODY_LEN = DATA_BODY_OVERHEAD + 1;
 const MAX_CODEWORD = 255;
 
 export type AudioPacket =
   | { kind: "data"; metadataHash: Uint8Array; symbolId: number; symbol: Uint8Array }
-  | { kind: "metadata"; frame: Frame };
+  | { kind: "metadata"; frame: Frame }
+  | {
+      kind: "sealed-metadata";
+      metadataHash: Uint8Array;
+      salt: Uint8Array;
+      iv: Uint8Array;
+      /** Encrypted v3 frame header with its GCM tag. */
+      ciphertext: Uint8Array;
+    };
 
 export type RejectReason = "header_rs" | "body_rs" | "crc" | "version" | "malformed";
 
@@ -70,8 +85,25 @@ export function encodeDataBody(metadataHash: Uint8Array, symbolId: number, symbo
 }
 
 /** Largest UTF-8 filename (bytes) that keeps a metadata body codeword ≤ 255 bytes. */
-export function maxFilenameBytes(profile: AudioProfile): number {
-  return MAX_CODEWORD - profile.parity - METADATA_BODY_OVERHEAD;
+export function maxFilenameBytes(profile: AudioProfile, sealed = false): number {
+  return MAX_CODEWORD - profile.parity - (sealed ? SEALED_METADATA_OVERHEAD : METADATA_BODY_OVERHEAD);
+}
+
+/** Body of a sealed metadata packet (the frame is encrypted by the caller). */
+export function encodeSealedMetadataBody(
+  sessionId: Uint8Array,
+  salt: Uint8Array,
+  iv: Uint8Array,
+  ciphertext: Uint8Array,
+): Uint8Array {
+  if (sessionId.length !== 4 || salt.length !== 16 || iv.length !== 12) throw new Error("Invalid sealed metadata fields");
+  const content = new Uint8Array(1 + 4 + 16 + 12 + ciphertext.length);
+  content[0] = (AUDIO_PACKET_VERSION << 4) | PACKET_TYPE_SEALED_METADATA;
+  content.set(sessionId, 1);
+  content.set(salt, 5);
+  content.set(iv, 21);
+  content.set(ciphertext, 33);
+  return withCrc(content);
 }
 
 const utf8Len = (s: string): number => new TextEncoder().encode(s).length;
@@ -192,6 +224,20 @@ export function parseAudioPacket(body: Uint8Array): PacketDecodeResult {
         metadataHash: content.slice(1, 5),
         symbolId,
         symbol: content.slice(7),
+      },
+    };
+  }
+  if (type === PACKET_TYPE_SEALED_METADATA) {
+    if (content.length < SEALED_METADATA_OVERHEAD - 4) return { kind: "rejected", reason: "malformed" };
+    return {
+      kind: "ok",
+      correctedBytes: 0,
+      packet: {
+        kind: "sealed-metadata",
+        metadataHash: content.slice(1, 5),
+        salt: content.slice(5, 21),
+        iv: content.slice(21, 33),
+        ciphertext: content.slice(33),
       },
     };
   }

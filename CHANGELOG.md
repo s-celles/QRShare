@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Sealed audio transfers**: with a password, nothing readable goes on the air any more. The file name, exact size, content type and SHA-256 are encrypted along with the content (AES-256-GCM, PBKDF2-SHA256), the size sent is rounded up to 256-byte steps and each transfer uses a random identifier. The receiver can take the password before listening, or asks for it when it detects an encrypted transfer while it keeps listening; a wrong password is reported at once and can be corrected without restarting, and the content is shown already decrypted
+
 ## [0.6.0] - 2026-11-02
 
 ### Added

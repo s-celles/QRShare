@@ -16,10 +16,20 @@ import { getCodecFactory } from "@/codec/factory";
 import { LTCodecFactory } from "@/codec/lt-adapter";
 import { WirehairCodecFactory } from "@/codec/wirehair-adapter";
 import type { FountainCodecFactory, FountainDecoder, FountainEncoder } from "@/codec/types";
-import { decodeFlags, encodeFlags, type Frame, type FrameCodec } from "@/protocol/frame";
+import { decodeFlags, encodeFlags, parseFrame, serializeFrame, PROTOCOL_VERSION, type Frame, type FrameCodec } from "@/protocol/frame";
 import { StreamingDemodulator, type DemodEvent } from "./demodulator";
 import { modulate } from "./modem";
-import { encodeDataBody, encodeMetadataBody, encodeOnAir, truncateFilename, maxFilenameBytes, type PacketDecodeResult } from "./packet";
+import {
+  encodeDataBody,
+  encodeMetadataBody,
+  encodeOnAir,
+  encodeSealedMetadataBody,
+  truncateFilename,
+  maxFilenameBytes,
+  type AudioPacket,
+  type PacketDecodeResult,
+} from "./packet";
+import { SALT_BYTES, deriveSealKey, openMetadata, openPayload, randomBytes as cryptoRandomBytes, sealMetadata, sealPayload } from "./sealed";
 import {
   AUDIO_MAX_BYTES,
   META_INTERVAL,
@@ -89,6 +99,11 @@ export interface AudioSendOptions {
   readonly autoFactory?: () => Promise<FountainCodecFactory>;
   /** First fountain symbol index (tests / resume). */
   readonly startIndex?: number;
+  /**
+   * Seals the transfer: metadata and payload are encrypted with this password, the
+   * payload padded to 256-byte steps and the session id random (see `sealed.ts`).
+   */
+  readonly password?: string;
 }
 
 export interface AudioSendInfo {
@@ -102,6 +117,8 @@ export interface AudioSendInfo {
   readonly estimatedMinSec: number;
   /** Hex of the 4-byte session id carried by every packet. */
   readonly sessionId: string;
+  /** Password-sealed transfer (nothing readable on the air). */
+  readonly sealed: boolean;
 }
 
 export interface AudioOutgoingPacket {
@@ -130,8 +147,20 @@ export class AudioSendSession {
 
     const sha256 = await hashSha256(data);
     const compressed = compress(data);
-    const blockSize = effectiveBlockSize(profile.blockSize, compressed.data.length);
-    const k = Math.ceil(compressed.data.length / blockSize);
+    const password = opts.password?.trim() ? opts.password : undefined;
+
+    // Sealed transfers fountain-encode the encrypted, padded payload instead.
+    let salt: Uint8Array | null = null;
+    let key: CryptoKey | null = null;
+    let onAir = compressed.data;
+    if (password) {
+      salt = cryptoRandomBytes(SALT_BYTES);
+      key = await deriveSealKey(password, salt);
+      onAir = await sealPayload(compressed.data, key);
+    }
+
+    const blockSize = effectiveBlockSize(profile.blockSize, onAir.length);
+    const k = Math.ceil(onAir.length / blockSize);
 
     // Wirehair needs K ≥ 2; a 1-byte payload falls back to LT.
     let factory: FountainCodecFactory = new LTCodecFactory();
@@ -144,36 +173,45 @@ export class AudioSendSession {
       }
     }
     const encoder = await factory.createEncoder();
-    encoder.init(compressed.data, blockSize);
+    encoder.init(onAir, blockSize);
 
-    const safeName = truncateFilename(filename, maxFilenameBytes(profile));
+    const safeName = truncateFilename(filename, maxFilenameBytes(profile, !!password));
     const flags = encodeFlags({ isText: opts.isText, codec });
-    const metadataHash = await audioSessionId(sha256, blockSize, flags, compressed.data.length, compressed.algorithm);
-    const metadataBody = encodeMetadataBody(
-      {
-        flags,
-        metadataHash,
-        sourceBlockCount: k,
-        blockSize,
-        compressedSize: compressed.data.length,
-        compressionId: compressed.algorithm,
-        filename: safeName,
-        fileSize: data.length,
-        sha256,
-      },
-      profile,
-    );
+    // A sealed session id is random: it must not let anyone confirm a guess of the content.
+    const metadataHash = password
+      ? cryptoRandomBytes(4)
+      : await audioSessionId(sha256, blockSize, flags, compressed.data.length, compressed.algorithm);
+    const meta = {
+      flags,
+      metadataHash,
+      sourceBlockCount: k,
+      blockSize,
+      compressedSize: onAir.length,
+      compressionId: compressed.algorithm,
+      filename: safeName,
+      fileSize: data.length,
+      sha256,
+    };
+    let metadataBody: Uint8Array;
+    if (password && key && salt) {
+      const frame = serializeFrame({ ...meta, version: PROTOCOL_VERSION, symbolId: 0, payload: new Uint8Array(0) });
+      const { iv, ciphertext } = await sealMetadata(frame, key, metadataHash, salt);
+      metadataBody = encodeSealedMetadataBody(metadataHash, salt, iv, ciphertext);
+    } else {
+      metadataBody = encodeMetadataBody(meta, profile);
+    }
 
     const info: AudioSendInfo = {
       k,
       blockSize,
-      compressedSize: compressed.data.length,
+      compressedSize: onAir.length,
       fileSize: data.length,
       sha256Hex: toHex(sha256),
       codec,
       filename: safeName,
       sessionId: toHex(metadataHash),
-      estimatedMinSec: estimateDurationSec(compressed.data.length, profile, {
+      sealed: !!password,
+      estimatedMinSec: estimateDurationSec(onAir.length, profile, {
         codec,
         filenameBytes: new TextEncoder().encode(safeName).length,
       }),
@@ -243,21 +281,33 @@ export interface ReceiveComplete {
   readonly sha256Hex: string;
   readonly verified: boolean;
   readonly isText: boolean;
+  /** The transfer was password-sealed (and has been decrypted). */
+  readonly sealed: boolean;
 }
 
 export interface ReceiveError {
   readonly kind: "error";
-  readonly code: "wirehair_unavailable" | "decode_failed";
+  /** `wrong_password` is not final: listening goes on and `setPassword` can retry. */
+  readonly code: "wirehair_unavailable" | "decode_failed" | "wrong_password";
   readonly message: string;
 }
 
-export type ReceiveEvent = DemodEvent | ReceiveProgress | ReceiveComplete | ReceiveError;
+/** A sealed transfer was detected and no password is set yet; listening goes on. */
+export interface ReceivePasswordRequired {
+  readonly kind: "password_required";
+}
+
+export type ReceiveEvent = DemodEvent | ReceiveProgress | ReceiveComplete | ReceiveError | ReceivePasswordRequired;
 
 export interface AudioReceiveOptions {
   readonly wirehairFactory?: FountainCodecFactory;
   readonly ltFactory?: FountainCodecFactory;
   readonly profiles?: readonly AudioProfile[];
+  /** Password for sealed transfers, when known before listening. */
+  readonly password?: string;
 }
+
+type SealedMetadataPacket = Extract<AudioPacket, { kind: "sealed-metadata" }>;
 
 function sameParameters(a: Frame, b: Frame): boolean {
   return a.blockSize === b.blockSize && a.sourceBlockCount === b.sourceBlockCount && a.flags === b.flags
@@ -279,9 +329,18 @@ export class AudioReceiveSession {
   private profile: AudioProfileId | null = null;
   private done = false;
   private failed = false;
+  private password: string | null = null;
+  private readonly keys = new Map<string, CryptoKey>();
+  /** Key of the locked sealed session (null for a clear session). */
+  private sealKey: CryptoKey | null = null;
+  /** Latest sealed metadata of the locked session that could not be opened yet. */
+  private unopened: SealedMetadataPacket | null = null;
+  private passwordRequested = false;
+  private wrongReported: string | null = null;
 
   constructor(sampleRate: number, opts: AudioReceiveOptions = {}) {
     this.demod = new StreamingDemodulator(sampleRate, opts.profiles);
+    this.password = opts.password?.trim() ? opts.password : null;
     this.wirehairFactory = opts.wirehairFactory ?? new WirehairCodecFactory();
     this.ltFactory = opts.ltFactory ?? new LTCodecFactory();
   }
@@ -312,11 +371,12 @@ export class AudioReceiveSession {
       return [this.progress()];
     }
     const packet = result.packet;
+    if (packet.kind === "sealed-metadata") return this.ingestSealed(packet, profile);
     const hash = packet.kind === "data" ? packet.metadataHash : packet.frame.metadataHash;
     if (!this.lockedHash) this.lockedHash = hash;
     else if (!equalBytes(this.lockedHash, hash)) {
       // Same content re-sent with other parameters (profile / codec): follow it.
-      if (packet.kind === "metadata" && this.frame && equalBytes(packet.frame.sha256, this.frame.sha256)) {
+      if (packet.kind === "metadata" && this.frame && !this.sealKey && equalBytes(packet.frame.sha256, this.frame.sha256)) {
         this.resetSession(hash);
       } else {
         return []; // another session (REQ-AUD-036)
@@ -327,30 +387,7 @@ export class AudioReceiveSession {
     this.accepted++;
     this.profile = profile;
 
-    const events: ReceiveEvent[] = [];
-    if (packet.kind === "metadata") {
-      if (!this.frame) {
-        const error = await this.startDecoder(packet.frame);
-        if (error) {
-          this.failed = true;
-          return [error];
-        }
-        for (const [id, symbol] of this.pending) {
-          if (symbol.length !== packet.frame.blockSize) {
-            this.seen.delete(id); // unusable: let a valid copy of this id in later
-            continue;
-          }
-          const done = await this.addSymbol(id, symbol);
-          if (done) {
-            this.pending.clear();
-            return [done];
-          }
-        }
-        this.pending.clear();
-      }
-      events.push(this.progress());
-      return events;
-    }
+    if (packet.kind === "metadata") return this.acceptFrame(packet.frame, null);
 
     // A symbol of the wrong size can never be used: do not let it shadow a valid one.
     if (this.frame && packet.symbol.length !== this.frame.blockSize) return [this.progress()];
@@ -371,6 +408,97 @@ export class AudioReceiveSession {
     return [this.progress()];
   }
 
+  /** Sets (or corrects) the password for a sealed transfer; retries the metadata heard so far. */
+  async setPassword(password: string): Promise<ReceiveEvent[]> {
+    this.password = password.trim() ? password : null;
+    this.keys.clear();
+    this.wrongReported = null;
+    if (this.isDone || !this.unopened) return [];
+    const packet = this.unopened;
+    const opened = await this.open(packet);
+    if (opened === "no_password") return [];
+    if (opened === "wrong") return [this.wrongPassword()];
+    this.unopened = null;
+    return this.acceptFrame(opened.frame, opened.key);
+  }
+
+  private wrongPassword(): ReceiveError {
+    this.wrongReported = this.password;
+    return { kind: "error", code: "wrong_password", message: "Wrong password" };
+  }
+
+  private async open(packet: SealedMetadataPacket): Promise<{ frame: Frame; key: CryptoKey } | "no_password" | "wrong"> {
+    if (!this.password) return "no_password";
+    const saltHex = toHex(packet.salt);
+    let key = this.keys.get(saltHex);
+    if (!key) {
+      key = await deriveSealKey(this.password, packet.salt);
+      this.keys.set(saltHex, key);
+    }
+    const plain = await openMetadata(packet.ciphertext, packet.iv, key, packet.metadataHash, packet.salt);
+    if (!plain) return "wrong";
+    const parsed = parseFrame(plain);
+    if (parsed.kind !== "data" || !equalBytes(parsed.frame.metadataHash, packet.metadataHash)) return "wrong";
+    return { frame: parsed.frame, key };
+  }
+
+  private async ingestSealed(packet: SealedMetadataPacket, profile: AudioProfileId): Promise<ReceiveEvent[]> {
+    const hash = packet.metadataHash;
+    if (this.lockedHash && !equalBytes(this.lockedHash, hash)) {
+      // Another session: follow it only if it is the same content (sender re-prepared).
+      if (!this.frame) return [];
+      const opened = await this.open(packet);
+      if (typeof opened === "string" || !equalBytes(opened.frame.sha256, this.frame.sha256)) return [];
+      this.resetSession(hash);
+      this.accepted++;
+      this.profile = profile;
+      return this.acceptFrame(opened.frame, opened.key);
+    }
+    if (!this.lockedHash) this.lockedHash = hash;
+    this.accepted++;
+    this.profile = profile;
+    if (this.frame) return [this.progress()];
+
+    const opened = await this.open(packet);
+    if (opened === "no_password") {
+      this.unopened = packet;
+      if (this.passwordRequested) return [this.progress()];
+      this.passwordRequested = true;
+      return [{ kind: "password_required" }, this.progress()];
+    }
+    if (opened === "wrong") {
+      this.unopened = packet;
+      if (this.wrongReported === this.password) return [this.progress()];
+      return [this.wrongPassword(), this.progress()];
+    }
+    this.unopened = null;
+    return this.acceptFrame(opened.frame, opened.key);
+  }
+
+  /** Starts decoding with the session's metadata and replays the buffered symbols. */
+  private async acceptFrame(frame: Frame, key: CryptoKey | null): Promise<ReceiveEvent[]> {
+    if (this.frame) return [this.progress()];
+    this.sealKey = key;
+    const error = await this.startDecoder(frame);
+    if (error) {
+      this.failed = true;
+      return [error];
+    }
+    for (const [id, symbol] of this.pending) {
+      if (symbol.length !== frame.blockSize) {
+        this.seen.delete(id); // unusable: let a valid copy of this id in later
+        continue;
+      }
+      const done = await this.addSymbol(id, symbol);
+      if (done) {
+        this.pending.clear();
+        return [done];
+      }
+    }
+    this.pending.clear();
+    return [this.progress()];
+  }
+
   /** Drops the decoder state and locks onto session `hash` (sender re-prepared). */
   private resetSession(hash: Uint8Array): void {
     this.decoder?.free();
@@ -380,6 +508,8 @@ export class AudioReceiveSession {
     this.seen.clear();
     this.duplicates = 0;
     this.lockedHash = hash;
+    this.sealKey = null;
+    this.unopened = null;
   }
 
   private async startDecoder(frame: Frame): Promise<ReceiveError | null> {
@@ -404,7 +534,8 @@ export class AudioReceiveSession {
     const status = this.decoder!.addSymbol(symbolId - 1, symbol);
     if (status.kind !== "complete") return null;
     try {
-      const compressed = this.decoder!.recover();
+      const recovered = this.decoder!.recover();
+      const compressed = this.sealKey ? await openPayload(recovered, this.sealKey) : recovered;
       const file = decompress(compressed, frame.compressionId);
       const sha = await hashSha256(file);
       this.done = true;
@@ -417,6 +548,7 @@ export class AudioReceiveSession {
         sha256Hex: toHex(sha),
         verified: equalBytes(sha, frame.sha256),
         isText: decodeFlags(frame.flags).isText,
+        sealed: this.sealKey !== null,
       };
     } catch (err) {
       this.failed = true;

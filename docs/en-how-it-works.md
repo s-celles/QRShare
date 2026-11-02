@@ -89,5 +89,12 @@ approximately 33 MB after compression by the upstream protocol.
 3. Each fountain symbol becomes one packet: a chirp preamble, a Reed-Solomon protected header, and a body protected by Reed-Solomon and CRC32, sent as multi-tone FSK through the loudspeaker; a metadata packet (the v3 frame header) is repeated every 8 data packets
 4. The receiver listens with the microphone, detects the profile from the preamble, rejects damaged packets and rebuilds the content once it has enough symbols, then verifies the SHA-256
 
+With a password the transfer is **sealed**: the metadata packet (file name,
+real size, SHA-256, text flag, fountain parameters) is encrypted with
+AES-256-GCM and authenticated together with the session id and the salt, the
+fountain code carries the encrypted payload padded to 256-byte steps, and the
+session id is random. The receiver detects a wrong password from the first
+metadata packet and buffers data packets while the password is typed.
+
 The modem is pure TypeScript with no dependency, and works at any sample rate
 from 22.05 to 96 kHz. See the user guide for profiles, speeds and tips.

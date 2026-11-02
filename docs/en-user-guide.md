@@ -369,7 +369,7 @@ decoded and rejected, the unique symbols received against those needed, and the
 effective rate. When the transfer completes, the microphone is released and the
 result appears as for the other receivers: the SHA-256 check, text displayed
 directly, or a file with preview, **Download**, **Share** and **Open in …**;
-password-encrypted content shows the unlock card.
+content received from an older QRShare version encrypted with a password shows the unlock card.
 
 ### Profiles and speeds
 
@@ -408,12 +408,31 @@ refuses and suggests animated QR codes or CIMBAR.
 - Some browsers (notably on iOS) may still apply voice processing to the
   microphone, which lowers reliability.
 - Sound is a broadcast: anyone within hearing range, or any recording device,
-  can capture the transfer. For sensitive content, tick **Encrypt with
-  password** on the audio sender and give the password to the receiver by
-  another means; the receiver will ask for it to unlock the content. Encryption
-  adds 49 bytes and encrypted data no longer compresses, so the transfer takes a
-  little longer. The microphone
-  is used only while the receive screen is listening, and no audio is stored.
+  can capture the transfer. For sensitive content, see *Encrypted (sealed)
+  transfers* below. The microphone is used only while the receive screen is
+  listening, and no audio is stored.
+
+### Encrypted (sealed) transfers
+
+Tick **Encrypt with password** on the audio sender and give the password to the
+receiver by another means (spoken, written, never through the same sound
+channel). The transfer is then **sealed**: nothing readable goes on the air.
+
+- The content, the file name, its exact size and whether it is a text or a file
+  are all encrypted (AES-256-GCM, key derived from the password with
+  PBKDF2-SHA256).
+- The size sent is rounded up to the next multiple of 256 bytes, so a listener
+  only learns a size range; small transfers take a few seconds longer.
+- Each transfer uses a random identifier, which cannot be linked to its content.
+
+On the receiver, type the password in the **Password** field before pressing
+**Start listening**, or later: when a sealed transfer is detected, the receiver
+asks for the password and **keeps listening** meanwhile, so nothing is lost. A
+wrong password is reported as soon as the first metadata packet is heard;
+correct it and press **Unlock**. When the transfer completes, the content is
+shown already decrypted.
+
+What stays visible: how long the sender plays, and therefore the size range.
 
 ---
 

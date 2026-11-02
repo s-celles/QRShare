@@ -1399,6 +1399,20 @@ button.qr-zoom .about-qr {
   font-weight: 600;
 }
 
+.audio-password.required {
+  padding: 0.75rem;
+  border: 2px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--warning-bg);
+}
+
+.audio-password-title {
+  width: 100%;
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}
+
 .audio-tap-start {
   display: block;
   width: 100%;

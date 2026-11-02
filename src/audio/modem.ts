@@ -17,8 +17,6 @@ import {
   type AudioProfile,
 } from "./profiles";
 
-/** Total peak amplitude budget shared by the simultaneous tones. */
-export const TONE_PEAK = 0.9;
 
 export function bytesToNibbles(bytes: Uint8Array): number[] {
   const out: number[] = new Array(bytes.length * 2);
@@ -93,7 +91,7 @@ export function modulate(onAir: Uint8Array, p: AudioProfile, sampleRate: number)
   const out = new Float32Array(packetSampleCount(p, sampleRate, symbols.length));
   out.set(makeChirp(p, sampleRate), 0);
 
-  const amp = TONE_PEAK / p.channels;
+  const amp = p.peak / p.channels; // summed tones never exceed the profile's peak
   const rampN = Math.max(1, Math.round(p.rampSec * sampleRate));
   const omegas = new Float64Array(p.channels);
   const phases = new Float64Array(p.channels);

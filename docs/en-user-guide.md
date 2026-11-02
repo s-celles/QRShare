@@ -377,7 +377,7 @@ content received from an older QRShare version encrypted with a password shows t
 |---|---|---|---|
 | **Robust** (default) | 1.5–6.3 kHz, audible | about 22 bytes/s | Normal use, phones and laptops |
 | **Fast** | 1.5–6.3 kHz, audible | about 53 bytes/s | Quiet room, devices close together |
-| **Ultrasonic** (Advanced, less reliable) | 17–19.5 kHz, barely audible | about 10 bytes/s | When audible tones are a problem; many speakers and microphones attenuate it |
+| **Ultrasonic** (Advanced, less reliable) | 18.5–19.8 kHz, half level, hard to hear for most adults | about 5 bytes/s | When audible tones are a problem; keep the volume around 50–70% (louder adds audible distortion); many speakers and microphones attenuate it |
 
 For example, a 1 KB text compressed to about 600 bytes takes about half a
 minute with Robust and about 13 seconds with Fast. The sender shows the
@@ -472,7 +472,7 @@ How it works, in short:
 - A member silent for more than 75 seconds is shown as *away*; **Leave the
   session** tells the others.
 
-Expect about 2–3 seconds per short message with the Fast profile, and about 10
+Expect about 2–3 seconds per short message with the Fast profile, and about 20
 seconds with Ultrasonic. Keep both screens open, the devices within a few metres
 (less than 1–2 m for Ultrasonic), and the media volume high. If a **Tap to enable
 the sound** button appears, tap it: the browser keeps the sound muted until then.

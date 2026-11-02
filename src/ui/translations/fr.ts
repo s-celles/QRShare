@@ -228,7 +228,7 @@ export const fr: Record<string, string> = {
   "audio.profileRobust": "Robuste (environ {rate} o/s)",
   "audio.profileFast": "Rapide (environ {rate} o/s)",
   "audio.profileUltrasonic": "Ultrasonique (moins fiable, environ {rate} o/s)",
-  "audio.ultrasonicWarning": "Le quasi-ultrason (17 à 19,5 kHz) est à peine audible, mais beaucoup de haut-parleurs et de microphones l’atténuent ; il exige une fréquence d’échantillonnage d’au moins 44,1 kHz. À n’utiliser que si le profil Robuste est trop gênant.",
+  "audio.ultrasonicWarning": "Le quasi-ultrason (18,5 à 19,8 kHz, joué à mi-niveau) est difficile à entendre pour la plupart des adultes, mais certaines personnes, surtout les enfants, l’entendent encore, et un haut-parleur poussé fort ajoute une distorsion audible : gardez le volume vers 50 à 70 %. Beaucoup de haut-parleurs et de micros atténuent cette bande, et elle exige au moins 44,1 kHz : elle est donc plus lente (environ 5 octets/s) et moins fiable que Robuste.",
   "audio.advanced": "Avancé",
   "audio.codec": "Code fontaine :",
   "audio.codecAuto": "Automatique (Wirehair)",

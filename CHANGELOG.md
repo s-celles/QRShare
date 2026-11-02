@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Audio sessions (Experimental)**: connect devices over sound, like a WebRTC connection but with no network, then chat and send files. Joining exchanges P-256 keys over sound and shows a 4-digit verification code on every device; all traffic is encrypted with AES-256-GCM. Messages are acknowledged (✓ / ✓✓) and resent when lost, devices take turns (listen before talking), up to 6 participants share a session, and files are sent as sealed transfers that members decrypt automatically
 - **Sealed audio transfers**: with a password, nothing readable goes on the air any more. The file name, exact size, content type and SHA-256 are encrypted along with the content (AES-256-GCM, PBKDF2-SHA256), the size sent is rounded up to 256-byte steps and each transfer uses a random identifier. The receiver can take the password before listening, or asks for it when it detects an encrypted transfer while it keeps listening; a wrong password is reported at once and can be corrected without restarting, and the content is shown already decrypted
 
+### Changed
+
+- The **Ultrasonic** audio profile is quieter: it moved up to 18.5–19.8 kHz (heard by fewer adults), plays 2 tones at a time instead of 4 and at half level, which cuts the audible loudspeaker distortion (simulated: −42 dB instead of −37 dB below the signal). It is slower (about 5 bytes/s instead of 10) and not compatible with the previous version: update both devices
+
 ### Fixed
 
 - Audio sessions: the message box was a single tiny line; it is now a full-width, multi-line text area (Enter sends, Shift+Enter adds a line) with the byte count below, and messages keep their line breaks

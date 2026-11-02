@@ -32,6 +32,12 @@ export interface AudioProfile {
   readonly parity: number;
   readonly minSampleRate: number;
   readonly lessReliable: boolean;
+  /**
+   * Peak amplitude of the packet (chirp and summed tones). Ultrasonic plays at half
+   * level: loudspeaker distortion turns near-ultrasonic tones into audible sound, and
+   * halving the level removes about 6 dB of it.
+   */
+  readonly peak: number;
 }
 
 export const TONES_PER_CHANNEL = 16;
@@ -68,6 +74,7 @@ export const AUDIO_PROFILES: readonly AudioProfile[] = [
     parity: 16,
     minSampleRate: 22050,
     lessReliable: false,
+    peak: 0.9,
   },
   {
     id: "fast",
@@ -83,21 +90,25 @@ export const AUDIO_PROFILES: readonly AudioProfile[] = [
     parity: 12,
     minSampleRate: 22050,
     lessReliable: false,
+    peak: 0.9,
   },
   {
+    // 18.5–19.74 kHz, 2 tones at a time, half level: fewer adults hear this band, and
+    // fewer simultaneous tones at a lower level produce less audible distortion.
     id: "ultrasonic",
-    baseHz: 17000,
+    baseHz: 18500,
     toneSpacingHz: 40,
-    channels: 4,
+    channels: 2,
     windowSec: 0.05,
     guardSec: 0.025,
     rampSec: 0.005,
-    chirp: { f0: 17000, f1: 19500, durationSec: 0.1 },
+    chirp: { f0: 18500, f1: 19800, durationSec: 0.1 },
     gapSec: 0.08,
     blockSize: 32,
     parity: 16,
     minSampleRate: 44100,
     lessReliable: true,
+    peak: 0.45,
   },
 ];
 

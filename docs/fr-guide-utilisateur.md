@@ -386,7 +386,7 @@ QRShare et chiffré par mot de passe affiche la carte de déverrouillage.
 |---|---|---|---|
 | **Robuste** (par défaut) | 1,5–6,3 kHz, audible | environ 22 octets/s | Usage normal, téléphones et ordinateurs portables |
 | **Rapide** | 1,5–6,3 kHz, audible | environ 53 octets/s | Pièce calme, appareils proches |
-| **Ultrasonique** (Avancé, moins fiable) | 17–19,5 kHz, à peine audible | environ 10 octets/s | Quand les tonalités audibles posent problème ; beaucoup de haut-parleurs et de microphones l'atténuent |
+| **Ultrasonique** (Avancé, moins fiable) | 18,5–19,8 kHz, mi-niveau, difficile à entendre pour la plupart des adultes | environ 5 octets/s | Quand les tonalités audibles posent problème ; gardez le volume vers 50–70 % (plus fort ajoute une distorsion audible) ; beaucoup de haut-parleurs et de micros l'atténuent |
 
 Par exemple, un texte de 1 Ko compressé à environ 600 octets prend environ une
 demi-minute avec Robuste et environ 13 secondes avec Rapide. Le donneur affiche
@@ -490,7 +490,7 @@ En bref, le fonctionnement :
 - Un membre silencieux depuis plus de 75 secondes est affiché *absent* ;
   **Quitter la session** prévient les autres.
 
-Comptez environ 2 à 3 secondes par message court en profil Rapide, environ 10
+Comptez environ 2 à 3 secondes par message court en profil Rapide, environ 20
 secondes en Ultrasonique. Gardez les deux écrans ouverts, les appareils à
 quelques mètres (moins de 1 à 2 m en Ultrasonique) et le volume multimédia élevé.
 Si un bouton **Touchez pour activer le son** apparaît, touchez-le : le navigateur

@@ -4,7 +4,8 @@ import { navigate } from "../router";
 import { renderQRToDataURL } from "@/qr/renderer";
 import { t, locale } from "../i18n";
 import { APP_VERSION, BUILD_HASH, BUILD_DATE } from "../../version";
-import { SOURCE_URL, DOCS_URL } from "../links";
+import { AUTHOR_NAME, AUTHOR_URL, SOURCE_URL } from "../links";
+import { docRoute } from "../docs";
 
 /** About window, modelled on the one of Progressive Web Office. */
 
@@ -128,6 +129,7 @@ export function About() {
     [t("about.version"), <ExternalLink href={CHANGELOG_URL}>{APP_VERSION}</ExternalLink>],
     [t("about.commit"), commit],
     [t("about.built"), buildDateText()],
+    [t("about.author"), <ExternalLink href={AUTHOR_URL}>{AUTHOR_NAME}</ExternalLink>],
     [t("about.license"), <ExternalLink href={LICENSE_URL}>BSD-3-Clause</ExternalLink>],
     [t("about.installed"), yesNo(installed())],
     [t("about.offline"), yesNo(offlineReady())],
@@ -189,15 +191,16 @@ export function About() {
             <a href="#/guide">{t("app.guide")}</a>
           </li>
           <li>
-            <ExternalLink href={`${DOCS_URL}/${locale.value === "fr" ? "fr-guide-utilisateur.md" : "en-user-guide.md"}`}>
-              {t("about.docs")}
-            </ExternalLink>
+            <a href="#/docs">{t("about.docs")}</a>
           </li>
           <li>
-            <ExternalLink href={`${DOCS_URL}/en-connectivity-and-turn.md`}>{t("about.connectivity")}</ExternalLink>
+            <a href={docRoute("connectivity")}>{t("about.connectivity")}</a>
           </li>
           <li>
-            <ExternalLink href={`${DOCS_URL}/en-collaborative-editing.md`}>{t("about.collab")}</ExternalLink>
+            <a href={docRoute("collaboration")}>{t("about.collab")}</a>
+          </li>
+          <li>
+            <a href={docRoute("requirements")}>{t("about.requirements")}</a>
           </li>
           <li>
             <ExternalLink href={SOURCE_URL}>{t("about.sourceCode")}</ExternalLink>

@@ -1,9 +1,8 @@
 import { currentRoute, hashParams } from "./router";
-import { rememberReturnUrl } from "@/share/handoff";
+import { rememberReply, rememberReturnUrl } from "@/share/handoff";
 import { toggleTheme, theme, type Theme } from "./theme";
 import { t, locale } from "./i18n";
 import { APP_VERSION, BUILD_HASH } from "../version";
-import { DOCS_INDEX_URL } from "./links";
 import { Landing } from "./components/Landing";
 import { SenderView } from "./components/SenderView";
 import { ReceiverView } from "./components/ReceiverView";
@@ -13,7 +12,7 @@ import { CollabEditorView } from "./components/CollabEditorView";
 import { ScannerView } from "./components/ScannerView";
 import { UniversalScannerView } from "./components/UniversalScannerView";
 import { CreatorView } from "./components/CreatorView";
-import { GuideView } from "./components/GuideView";
+import { DocsView } from "./components/DocsView";
 import { Settings } from "./components/Settings";
 import { WebRTCSettings } from "./components/WebRTCSettings";
 import { About } from "./components/About";
@@ -28,7 +27,10 @@ const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", da
 const THEME_LABELS: Record<Theme, string> = { auto: "settings.themeAuto", light: "settings.themeLight", dark: "settings.themeDark" };
 
 // REQ-HANDOFF-004: remember which application asked to receive a file.
-hashParams.subscribe((params) => rememberReturnUrl(params.get("return")));
+hashParams.subscribe((params) => {
+  rememberReturnUrl(params.get("return"));
+  rememberReply(params.get("reply"));
+});
 
 function RouteView() {
   const route = currentRoute.value;
@@ -66,7 +68,8 @@ function RouteView() {
     case "/send/share":
       return <WebShareSenderView />;
     case "/guide":
-      return <GuideView />;
+    case "/docs":
+      return <DocsView />;
     case "/settings":
       return <Settings />;
     case "/settings/webrtc":
@@ -121,9 +124,7 @@ export function App() {
               ?
             </a>
             <a
-              href={DOCS_INDEX_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#/docs"
               class="icon-btn"
               aria-label={t("app.docs")}
               title={t("app.docsTitle")}

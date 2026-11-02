@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { addContact } from "@/crypto/contacts";
 import { t } from "../i18n";
 
-export function IdentityResultCard({ identity }: { identity: { name: string; fingerprint: string; publicKeyJwk: JsonWebKey } }) {
+export function IdentityResultCard({ identity }: { identity: { name: string; fingerprint: string; publicKeyJwk: JsonWebKey; ecdhPublicKeyJwk?: JsonWebKey } }) {
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
@@ -10,6 +10,7 @@ export function IdentityResultCard({ identity }: { identity: { name: string; fin
       name: identity.name,
       fingerprint: identity.fingerprint,
       publicKeyJwk: identity.publicKeyJwk,
+      ...(identity.ecdhPublicKeyJwk ? { ecdhPublicKeyJwk: identity.ecdhPublicKeyJwk } : {}),
       addedAt: Date.now()
     });
     setAdded(true);

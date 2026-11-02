@@ -1,9 +1,18 @@
+import { parseFidoUri, type FidoHybridCode } from "./fido";
+
 export type StructuredQR =
+  | ({
+      /** A passkey sign-in code shown by a computer ("FIDO:/…", REQ-STRUCT-007). */
+      kind: "fido";
+      raw: string;
+    } & FidoHybridCode)
   | {
       kind: "trusted-identity";
       name: string;
       fingerprint: string;
       publicKeyJwk: JsonWebKey;
+      /** Key to encrypt for this contact (REQ-SEC-008); absent in identity codes made before 0.6.0. */
+      ecdhPublicKeyJwk?: JsonWebKey;
       raw: string;
     }
   | {
@@ -345,6 +354,11 @@ export function parseContactString(raw: string): StructuredQR | null {
 export function parseStructuredQR(raw: string): StructuredQR {
   const trimmed = raw.trim();
 
+  if (/^FIDO:\//i.test(trimmed)) {
+    const fido = parseFidoUri(trimmed);
+    if (fido) return { kind: "fido", raw: trimmed, ...fido };
+  }
+
   if (/^WIFI:/i.test(trimmed)) {
     const wifi = parseWifiString(trimmed);
     if (wifi) return wifi;
@@ -364,6 +378,7 @@ export function parseStructuredQR(raw: string): StructuredQR {
           name: parsed.name,
           fingerprint: parsed.fingerprint,
           publicKeyJwk: parsed.publicKeyJwk,
+          ...(parsed.ecdhPublicKeyJwk ? { ecdhPublicKeyJwk: parsed.ecdhPublicKeyJwk } : {}),
           raw
         };
       }

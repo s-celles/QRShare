@@ -2,6 +2,7 @@ import { useState, useEffect } from "preact/hooks";
 import { getLocalIdentity, type StoredIdentity } from "@/crypto/identity";
 import { getContacts, removeContact, importContactsFromJson, exportContactsAsJson, type TrustedContact } from "@/crypto/contacts";
 import { renderQRToDataURL } from "@/qr/renderer";
+import { publicEcJwk } from "@/crypto/encryption";
 import { t } from "../i18n";
 
 export function ContactsModal({ onClose }: { onClose: () => void }) {
@@ -18,7 +19,9 @@ export function ContactsModal({ onClose }: { onClose: () => void }) {
         qrshare_identity: true,
         name: localDiscoveryName(), // Need to get device name
         fingerprint: id.fingerprint,
-        publicKeyJwk: id.publicKeyJwk
+        publicKeyJwk: publicEcJwk(id.publicKeyJwk),
+        // REQ-SEC-008: whoever adds this identity can then encrypt for this device.
+        ...(id.ecdhPublicKeyJwk ? { ecdhPublicKeyJwk: publicEcJwk(id.ecdhPublicKeyJwk) } : {}),
       });
       const buffer = new TextEncoder().encode(payload);
       setIdentityQr(renderQRToDataURL(buffer, "balanced"));

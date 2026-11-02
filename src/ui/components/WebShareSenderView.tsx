@@ -2,7 +2,7 @@ import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect } from "preact/hooks";
 import { navigate } from "../router";
 import { ShareService } from "@/share/service";
-import { pendingFile, pendingText } from "../shared-file";
+import { pendingFile, pendingFileMimeType, type PendingFile, pendingText } from "../shared-file";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { t } from "../i18n";
@@ -14,7 +14,7 @@ const textInput = signal("");
 const selectedFiles = signal<File[]>([]);
 const error = signal<string | null>(null);
 const isShared = signal(false);
-const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
+const preloadedFile = signal<PendingFile | null>(
   null,
 );
 
@@ -133,7 +133,7 @@ export function WebShareSenderView() {
     const pre = preloadedFile.value;
     if (!pre) return;
     const file = new File([pre.buffer], pre.filename, {
-      type: "application/octet-stream",
+      type: pendingFileMimeType(pre),
     });
     doShare([file]);
   }, [doShare]);

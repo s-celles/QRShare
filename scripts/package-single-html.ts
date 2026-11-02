@@ -1,7 +1,11 @@
 #!/usr/bin/env bun
 /**
- * Packages the built QRShare app into a single self-contained HTML file.
- * All JS, CSS are inlined; WASM and icons are base64-encoded as data URIs.
+ * Packages the built QRShare app into a single HTML file (qrshare.html).
+ * The main script and the styles are inlined and the icon becomes a data URI.
+ * The Web Workers (encode-worker.js, decode-worker.js, cimbar/), the
+ * WebAssembly runtimes (*.wasm) and the service worker are NOT inlined: they
+ * load from the same folder, so qrshare.html must sit next to the files of
+ * dist/ for the QR, CIMBAR and offline features to work (REQ-PLT-013).
  * Run `bun run build` first, then `bun run package`.
  */
 import { readFileSync, existsSync } from "fs";

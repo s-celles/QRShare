@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { marked } from "marked";
 import { ShareService } from "@/share/service";
+import { t } from "../i18n";
 
 interface FilePreviewProps {
   url: string;
@@ -19,7 +20,10 @@ function kindOf(filename: string, mimeType = ""): "image" | "video" | "audio" | 
   return "none";
 }
 
-type ContactField = { label: string; value: string };
+/** A vCard field, by its property name (FN, TEL…); the label comes from the translations. */
+type ContactField = { code: string; value: string };
+
+const VCARD_FIELDS = ["FN", "N", "ORG", "TITLE", "TEL", "EMAIL", "ADR", "URL", "NOTE"];
 
 function unescapeVCard(value: string): string {
   return value.replace(/\\n/gi, "\n").replace(/\\([\\,;:])/g, "$1").trim();
@@ -27,19 +31,17 @@ function unescapeVCard(value: string): string {
 
 function parseVCard(value: string): ContactField[] {
   const lines = value.replace(/\r\n[ \t]/g, "").replace(/\n[ \t]/g, "").split(/\r?\n/);
-  const labels: Record<string, string> = { FN: "Name", N: "Full name", ORG: "Organization", TITLE: "Title", TEL: "Phone", EMAIL: "Email", ADR: "Address", URL: "Website", NOTE: "Note" };
   const fields: ContactField[] = [];
   for (const line of lines) {
     if (!line || line.startsWith("BEGIN:") || line.startsWith("END:") || line.startsWith("VERSION:")) continue;
     const separator = line.indexOf(":");
     if (separator < 0) continue;
     const name = line.slice(0, separator).split(";")[0].toUpperCase();
-    const label = labels[name];
-    if (!label) continue;
+    if (!VCARD_FIELDS.includes(name)) continue;
     let fieldValue = unescapeVCard(line.slice(separator + 1));
     if (name === "N" && fieldValue.includes(";")) fieldValue = fieldValue.split(";").filter(Boolean).join(" ");
     if (name === "ADR" && fieldValue.includes(";")) fieldValue = fieldValue.split(";").filter(Boolean).join(", ");
-    if (fieldValue) fields.push({ label, value: fieldValue });
+    if (fieldValue) fields.push({ code: name, value: fieldValue });
   }
   return fields;
 }
@@ -52,16 +54,16 @@ function VCardPreview({ url, filename, text }: { url: string; filename: string; 
     setSharing(true); setMessage("");
     const result = await new ShareService().shareFile(new File([text], filename, { type: "text/vcard" }));
     setSharing(false);
-    if (result.kind === "unsupported") setMessage("Le partage de fichiers n’est pas disponible dans ce navigateur.");
-    else if (result.kind === "cancelled") setMessage("Partage annulé.");
+    if (result.kind === "unsupported") setMessage(t("preview.shareUnsupported"));
+    else if (result.kind === "cancelled") setMessage(t("preview.shareCancelled"));
   };
   return <div class="file-preview file-preview-vcard">
-    <div class="vcard-heading"><span class="vcard-avatar" aria-hidden="true">👤</span><div><strong>{fields.find((field) => field.label === "Name")?.value || filename}</strong><small>Contact vCard</small></div></div>
-    {fields.length > 0 && <dl>{fields.map((field, index) => <div key={`${field.label}-${index}`}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}</dl>}
+    <div class="vcard-heading"><span class="vcard-avatar" aria-hidden="true">👤</span><div><strong>{fields.find((field) => field.code === "FN")?.value || filename}</strong><small>{t("preview.vcard")}</small></div></div>
+    {fields.length > 0 && <dl>{fields.map((field, index) => <div key={`${field.code}-${index}`}><dt>{t(`preview.vcard.${field.code}`)}</dt><dd>{field.value}</dd></div>)}</dl>}
     <div class="vcard-actions">
-      <a class="share-action" href={url} download={filename}>Ajouter aux contacts</a>
-      <a class="share-action" href={url} download={filename}>Télécharger</a>
-      <button class="share-action" onClick={share} disabled={sharing}>{sharing ? "Partage…" : "Partager"}</button>
+      <a class="share-action" href={url} download={filename}>{t("preview.addToContacts")}</a>
+      <a class="share-action" href={url} download={filename}>{t("common.download")}</a>
+      <button class="share-action" onClick={share} disabled={sharing}>{sharing ? t("preview.sharing") : t("common.share")}</button>
     </div>
     {message && <p class="share-status" role="status">{message}</p>}
   </div>;
@@ -98,8 +100,8 @@ function parseFrontmatter(markdown: string): { entries: FrontmatterEntry[]; body
 function FrontmatterView({ entries }: { entries: FrontmatterEntry[] }) {
   if (!entries.length) return null;
   return (
-    <section class="file-frontmatter" aria-label="Document metadata">
-      <div class="file-frontmatter-heading"><span aria-hidden="true">✦</span> Metadata</div>
+    <section class="file-frontmatter" aria-label={t("preview.metadataLabel")}>
+      <div class="file-frontmatter-heading"><span aria-hidden="true">✦</span> {t("preview.metadata")}</div>
       <table>
         <tbody>{entries.map(({ key, value }) => (
           <tr key={key}><th scope="row">{key}</th><td>{value || <span class="file-frontmatter-empty">—</span>}</td></tr>
@@ -128,7 +130,7 @@ export function FilePreview({ url, filename, mimeType }: FilePreviewProps) {
   if (kind === "image") return <div class="file-preview file-preview-media"><img src={url} alt={filename} loading="lazy" /></div>;
   if (kind === "video") return <div class="file-preview file-preview-media"><video src={url} controls aria-label={filename} /></div>;
   if (kind === "audio") return <div class="file-preview file-preview-audio"><audio src={url} controls aria-label={filename} /></div>;
-  if (kind === "pdf") return <div class="file-preview file-preview-pdf"><object data={url} type="application/pdf" aria-label={filename}><p>PDF Preview not available.</p></object></div>;
+  if (kind === "pdf") return <div class="file-preview file-preview-pdf"><object data={url} type="application/pdf" aria-label={filename}><p>{t("preview.pdfUnavailable")}</p></object></div>;
   if (kind === "vcard" && text != null) return <VCardPreview url={url} filename={filename} text={text} />;
   if (kind === "text" && text != null) {
     const markdown = /\.(md|markdown)$/i.test(filename);

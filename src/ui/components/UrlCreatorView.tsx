@@ -108,6 +108,7 @@ export function UrlCreatorView() {
         pendingFile.value = {
           buffer: await files[0].arrayBuffer(),
           filename: files[0].name,
+          mimeType: files[0].type || undefined,
         };
       } else {
         const entries = await Promise.all(files.map(async (file) => ({
@@ -118,6 +119,7 @@ export function UrlCreatorView() {
         pendingFile.value = {
           buffer: bundle.buffer.slice(bundle.byteOffset, bundle.byteOffset + bundle.byteLength) as ArrayBuffer,
           filename: makeBundleName(files.length),
+          mimeType: "application/zip",
         };
       }
       navigate(SEND_ROUTES[mode]);

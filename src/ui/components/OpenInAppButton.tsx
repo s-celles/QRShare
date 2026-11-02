@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { getReturnUrl, openAndSend } from "@/share/handoff";
+import { getReturnUrl, openAndSend, replyToOpener, sendToOpener, type WindowLike } from "@/share/handoff";
 import { t } from "../i18n";
 
 /**
@@ -17,6 +17,12 @@ export function OpenInAppButton({ url, filename, mimeType }: { url: string; file
     const blob = await (await fetch(url)).blob();
     const file = new File([blob], filename, { type: mimeType || blob.type });
     setStatus(t("handoff.sending", { host }));
+    // Version 2: back to the application's own window, when it asked for it and is still open.
+    if (replyToOpener() && (await sendToOpener(window as unknown as WindowLike, target, file)) === "sent") {
+      setStatus(t("handoff.sentBack", { host }));
+      setTimeout(() => window.close(), 800);
+      return;
+    }
     const result = await openAndSend(target, file);
     setStatus(
       result === "sent"

@@ -76,6 +76,25 @@ plus bas).
 
 **Informations affichées pendant le scan** : nom de la caméra utilisée et résolution. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
 
+### Codes de connexion par passkey (FIDO)
+
+Quand vous vous connectez à un site sur un ordinateur avec une passkey conservée
+sur votre téléphone, l'ordinateur affiche un QR code qui commence par `FIDO:/`.
+QRShare le reconnaît et affiche une carte **Code de connexion par passkey** : si
+l'ordinateur demande de se connecter ou de créer une passkey, et quand le code a
+été créé (un avertissement apparaît s'il date de plus de cinq minutes et a très
+probablement expiré).
+
+QRShare ne peut pas vous connecter lui-même : une page web n'a pas accès aux
+passkeys de votre téléphone. Scannez le code avec l'appareil photo ou le lecteur QR
+du téléphone qui contient la passkey, à côté de l'ordinateur — le téléphone vérifie
+par Bluetooth qu'il est proche. Là où le système gère ces codes (par exemple sur
+Android), **Ouvrir avec cet appareil** le lui transmet.
+
+Pour votre sécurité, QRShare ne propose ni copie, ni partage, ni envoi pour ces
+codes : **ne transmettez jamais un code de passkey** à une autre personne ni à un
+autre appareil.
+
 ---
 
 ## Créer un QR code
@@ -139,6 +158,11 @@ Des applications web comme [Progressive Web Office](https://github.com/s-celles/
 Les fichiers partagés vers QRShare depuis la feuille de partage du système s'ouvrent également dans le sélecteur de transfert.
 
 Pour les développeurs : les deux fenêtres échangent des messages `{ type: "qrshare-handoff", version: 1, action }` avec `postMessage` — `ready` (fenêtre qui reçoit → sa fenêtre d'origine), `file` (`name`, `mimeType`, `data` sous forme d'`ArrayBuffer`, envoyé à l'origine exacte) et `received`. Les fichiers sont limités à 200 Mo. Les applications peuvent vérifier la prise en charge au préalable : le `manifest.webmanifest` de QRShare liste les versions du protocole dans `qrshare_handoff.versions`.
+
+**La version 2** ajoute deux paramètres facultatifs, annoncés dans le manifeste par `"versions": [1, 2]` et `"features": ["mode", "reply-opener"]` :
+
+- `mode=animated-qr` (ou `cimbar`, `webrtc`, `share`) sur `#/send?handoff=1` : une fois le fichier reçu, QRShare passe directement à ce mode de transfert, si la politique l'autorise, sans afficher le sélecteur.
+- `reply=opener` sur `#/receive/...?return=<app>` : après le clic sur *Ouvrir dans …*, QRShare renvoie le message `file` à la fenêtre qui l'a ouvert, uniquement vers l'origine de `return`, puis se ferme. Si cette fenêtre n'existe plus, il ouvre une nouvelle fenêtre comme en version 1.
 
 ---
 
@@ -235,10 +259,12 @@ sequenceDiagram
 
 En haut de chaque page :
 
-- **QRShare** (à gauche) — Retour à la page d'accueil. Le numéro de version et le hash de build sont affichés à côté du titre
+- **QRShare** (à gauche) — Retour à la page d'accueil
+- Version et hash de build (à côté du titre) — Ouvre la fenêtre « À propos »
 - Bouton de thème — Passer de ◐ Auto (suit le réglage du système) à ☀ Clair puis ☾ Sombre
-- **?** — Guide utilisateur
-- **i** — Page « À propos »
+- **?** — Ce guide utilisateur
+- Icône livre — Toute la documentation (ce guide, fonctionnement, connectivité, édition collaborative, architecture, développement — pages en anglais sauf ce guide)
+- **i** — Fenêtre « À propos » : version, liens, QR code de l'application
 - Roue dentée — Paramètres (langue, thème, paramètres WebRTC)
 - **← Retour** — Retour à la page d'accueil (présent sur chaque sous-page)
 

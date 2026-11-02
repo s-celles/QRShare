@@ -3,11 +3,39 @@ import {
   serializeFrame,
   parseFrame,
   PROTOCOL_VERSION,
+  MAX_SOURCE_BLOCK_COUNT_FIELD,
+  sourceBlockCountOf,
   type Frame,
 } from "@/protocol/frame";
 import { compress, decompress } from "@/compression/compression";
 
 describe("Frame Protocol extended tests", () => {
+  it("REQ-QRX-004 saturates the 16-bit block count of large transfers, the exact count staying derivable", () => {
+    // 50 MB in 250-byte blocks: about 210,000 blocks, more than 16 bits can hold.
+    const compressedSize = 50 * 1024 * 1024;
+    const blockSize = 250;
+    const frame: Frame = {
+      version: PROTOCOL_VERSION,
+      flags: 0x00,
+      metadataHash: new Uint8Array([1, 2, 3, 4]),
+      sourceBlockCount: Math.ceil(compressedSize / blockSize),
+      blockSize,
+      compressedSize,
+      compressionId: 0x00,
+      symbolId: 7,
+      filename: "big.bin",
+      fileSize: compressedSize,
+      sha256: new Uint8Array(32),
+      payload: new Uint8Array(blockSize),
+    };
+    const result = parseFrame(serializeFrame(frame));
+    expect(result.kind).toBe("data");
+    if (result.kind === "data") {
+      expect(result.frame.sourceBlockCount).toBe(MAX_SOURCE_BLOCK_COUNT_FIELD);
+      expect(sourceBlockCountOf(result.frame)).toBe(frame.sourceBlockCount);
+    }
+  });
+
   it("handles empty payload data frame", () => {
     const frame: Frame = {
       version: PROTOCOL_VERSION,

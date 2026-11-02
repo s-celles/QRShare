@@ -151,6 +151,8 @@ export function SenderView() {
             isText: finalIsText,
             preset: preset.value,
             blockSize: blockSizeValue.value,
+            // REQ-QRX-003: start at the frame rate chosen before starting.
+            fps: fps.value,
           } satisfies EncodeWorkerInput,
           [finalBuffer],
         );

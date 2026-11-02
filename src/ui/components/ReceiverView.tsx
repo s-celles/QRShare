@@ -381,7 +381,7 @@ export function ReceiverView() {
             {receivedFileSize.value > 0 && (
               <>
                 <div class="stat">
-                  <span class="stat-label">{t("receiver.downloaded") || "Downloaded"}</span>
+                  <span class="stat-label">{t("receiver.downloaded")}</span>
                   <span class="stat-value">
                     {(bytesReceived / 1024).toFixed(1)} KB / {(receivedFileSize.value / 1024).toFixed(1)} KB
                   </span>
@@ -391,7 +391,7 @@ export function ReceiverView() {
                   <span class="stat-value">{formatSpeed(speedBytesPerSec)}</span>
                 </div>
                 <div class="stat">
-                  <span class="stat-label">{(t("receiver.instantSpeed") || "Instant Speed")}</span>
+                  <span class="stat-label">{t("receiver.instantSpeed")}</span>
                   <span class="stat-value">{formatSpeed(instantSpeedBytesPerSec.value)}</span>
                 </div>
               </>

@@ -5,7 +5,7 @@
  * dependency (e.g. `github:s-celles/QRShare#collab-dist-v0.1.0`).
  */
 import { $ } from "bun";
-import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "..");
@@ -38,12 +38,25 @@ writeFileSync(
 await $`bunx tsc -p ${tsconfig}`.cwd(root);
 rmSync(tsconfig);
 
-// Node-style ESM needs explicit extensions on relative imports.
-for (const file of readdirSync(out)) {
-  if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
-  const path = join(out, file);
-  writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+["'])(\.\/[\w-]+)(["'])/g, "$1$2.js$3"));
-}
+// Node-style ESM needs explicit extensions on relative imports, and
+// `index.js` for a folder (e.g. `./offline`), in every output folder.
+const fixImports = (dir: string): void => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      fixImports(path);
+      continue;
+    }
+    if (!entry.name.endsWith(".js") && !entry.name.endsWith(".d.ts")) continue;
+    writeFileSync(
+      path,
+      readFileSync(path, "utf8").replace(/(from\s+["'])(\.\.?\/[\w./-]+?)(["'])/g, (_m, a: string, spec: string, b: string) =>
+        spec.endsWith(".js") ? `${a}${spec}${b}` : `${a}${spec}${existsSync(join(dir, spec)) && statSync(join(dir, spec)).isDirectory() ? "/index.js" : ".js"}${b}`,
+      ),
+    );
+  }
+};
+fixImports(out);
 
 const pkg = JSON.parse(readFileSync(join(src, "package.json"), "utf8"));
 pkg.exports = { ".": { types: "./index.d.ts", import: "./index.js" } };

@@ -1,6 +1,7 @@
 import { signal } from "@preact/signals";
 import { useState } from "preact/hooks";
 import { parseStructuredQR } from "@/qr/structured";
+import { FidoResultCard } from "./FidoResultCard";
 import { isEncryptedText, decryptText } from "@/crypto/encryption";
 import { renderQRCustomToDataURL } from "@/qr/renderer";
 import { ShareService } from "@/share/service";
@@ -92,13 +93,17 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
         <ContactResultCard contact={structured} />
       )}
 
+      {structured.kind === "fido" && !showRaw && (
+        <FidoResultCard fido={structured} raw={structured.raw} />
+      )}
+
       {(structured.kind === "text" || structured.kind === "url" || showRaw) && (
         <div class="text-result-content" aria-label={t("text.receivedMessage")}>
           <pre class="text-result-pre">{activeText}</pre>
         </div>
       )}
 
-      {(structured.kind === "wifi" || structured.kind === "contact") && (
+      {(structured.kind === "wifi" || structured.kind === "contact" || structured.kind === "fido") && (
         <div class="card-toggle-row">
           <button class="icon-btn-text" onClick={() => setShowRaw(!showRaw)}>
             {showRaw ? t("structured.toggleStructured") : t("structured.toggleRaw")}
@@ -106,19 +111,22 @@ export function TextResultView({ text, filename }: TextResultViewProps) {
         </div>
       )}
 
-      <div class="text-result-actions">
-        <button class="copy-btn" onClick={handleCopy} aria-label={t("text.copyToClipboard")}>
-          {copyFeedback.value ? t("text.copied") : t("text.copyToClipboard")}
-        </button>
-        <button class="start-btn share-action" onClick={handleDownload} aria-label={t("text.downloadAsFile")}>
-          {t("text.downloadAsFile")}
-        </button>
-        {shareService.isShareSupported() && (
-          <button class="start-btn share-action" onClick={handleShare} aria-label={t("text.shareText")}>
-            {t("text.shareText")}
+      {/* REQ-STRUCT-009: a passkey code is not copied, saved or shared on. */}
+      {structured.kind !== "fido" && (
+        <div class="text-result-actions">
+          <button class="copy-btn" onClick={handleCopy} aria-label={t("text.copyToClipboard")}>
+            {copyFeedback.value ? t("text.copied") : t("text.copyToClipboard")}
           </button>
-        )}
-      </div>
+          <button class="start-btn share-action" onClick={handleDownload} aria-label={t("text.downloadAsFile")}>
+            {t("text.downloadAsFile")}
+          </button>
+          {shareService.isShareSupported() && (
+            <button class="start-btn share-action" onClick={handleShare} aria-label={t("text.shareText")}>
+              {t("text.shareText")}
+            </button>
+          )}
+        </div>
+      )}
 
       {showPrintModal && structured.kind === "wifi" && (
         <WifiPrintModal

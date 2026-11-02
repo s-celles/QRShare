@@ -75,6 +75,23 @@ payloads as sound (see *Experimental Audio Transfer* below).
 
 **Information displayed while scanning**: active camera name and resolution. If you have multiple cameras, a dropdown lets you choose which one to use.
 
+### Passkey Sign-in Codes (FIDO)
+
+When you sign in to a website on a computer with a passkey kept on your phone, the
+computer shows a QR code starting with `FIDO:/`. QRShare recognises it and shows a
+**Passkey sign-in code** card: whether the computer asks to sign in or to create a
+passkey, and when the code was made (a warning appears if it is more than five
+minutes old and has most likely expired).
+
+QRShare cannot sign you in itself: a web page cannot use your phone's passkeys.
+Scan the code with the camera or QR reader of the phone that holds the passkey,
+next to the computer — the phone checks over Bluetooth that it is close. Where the
+system handles these codes (for example on Android), **Open with this device**
+hands it over.
+
+For your safety, QRShare offers no copy, share or send button for these codes:
+**never forward a passkey code** to another person or device.
+
 ---
 
 ## Creating a QR Code
@@ -138,6 +155,11 @@ Web applications such as [Progressive Web Office](https://github.com/s-celles/pr
 Files shared to QRShare through the system share sheet also open in the transfer chooser.
 
 For developers: the two windows exchange `{ type: "qrshare-handoff", version: 1, action }` messages with `postMessage` — `ready` (receiving window → its opener), `file` (`name`, `mimeType`, `data` as an `ArrayBuffer`, posted to the exact origin) and `received`. Files are limited to 200 MB. Applications can check support beforehand: QRShare's `manifest.webmanifest` lists the protocol versions it speaks in `qrshare_handoff.versions`.
+
+**Version 2** adds two optional parameters, announced in the manifest as `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`:
+
+- `mode=animated-qr` (or `cimbar`, `webrtc`, `share`) on `#/send?handoff=1`: once the file is received, QRShare goes straight to that transfer mode, when the policy allows it, instead of showing the chooser.
+- `reply=opener` on `#/receive/...?return=<app>`: after the user clicks *Open in …*, QRShare posts the `file` message back to the window that opened it, to the origin of `return` only, then closes. If that window is gone, it falls back to opening a new one, as in version 1.
 
 ---
 
@@ -234,9 +256,12 @@ sequenceDiagram
 
 At the top of every page:
 
-- **QRShare** (left) — Return to the home page. The version number and build hash are shown next to the title
+- **QRShare** (left) — Return to the home page
+- Version and build hash (next to the title) — Open the About window
 - Theme button — Cycle between ◐ Auto (follows the system setting), ☀ Light and ☾ Dark
-- **i** — About page
+- **?** — This user guide
+- Book icon — The full documentation (this guide, how QRShare works, connectivity, collaborative editing, architecture, development)
+- **i** — About window: version, links, QR code of the app
 - Gear icon — Settings (theme, language, WebRTC settings)
 - **← Back** — Return to the home page (present on every sub-page)
 

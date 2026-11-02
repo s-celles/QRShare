@@ -30,7 +30,7 @@ test:
 check:
     bun run typecheck
 
-# Bundle into a single self-contained qrshare.html
+# Bundle the main script and styles into qrshare.html (workers and WebAssembly stay in dist/)
 package:
     bun run package
 

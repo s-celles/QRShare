@@ -13,7 +13,7 @@ import {
   recommendSendModeForSize,
   type SendMode,
 } from "../send-policy";
-import { receiveFromOpener, type WindowLike } from "@/share/handoff";
+import { HANDOFF_MODES, receiveFromOpener, type WindowLike } from "@/share/handoff";
 import { takeSharedFile } from "@/share/shared-target";
 import { t } from "../i18n";
 
@@ -39,6 +39,8 @@ export function SendChooserView() {
   const data = params.get("data") ?? params.get("text") ?? "";
   const policy = parseSendPolicy(params.get("policy"));
   const handoff = params.get("handoff") === "1";
+  // REQ-HANDOFF-006: an application may ask for a send mode (e.g. animated QR) and skip the choice.
+  const askedMode = HANDOFF_MODES.find((m) => m === params.get("mode"));
   const shared = params.get("shared") === "1";
   const file = incomingFile.value;
   // Audio is recommended only when this device has no camera (REQ-AUD-003).
@@ -88,7 +90,7 @@ export function SendChooserView() {
 
   const choose = async (mode: SendMode) => {
     if (file) {
-      pendingFile.value = { buffer: await file.arrayBuffer(), filename: file.name, isText: file.type.startsWith("text/") };
+      pendingFile.value = { buffer: await file.arrayBuffer(), filename: file.name, isText: file.type.startsWith("text/"), mimeType: file.type || undefined };
       incomingFile.value = null;
       incomingOrigin.value = null;
     } else if (data) {
@@ -98,6 +100,10 @@ export function SendChooserView() {
     }
     navigate(MODE_ROUTES[mode]);
   };
+
+  useEffect(() => {
+    if (file && askedMode && modes.includes(askedMode)) void choose(askedMode);
+  }, [file, askedMode]);
 
   const hasPayload = !!file || !!data;
 

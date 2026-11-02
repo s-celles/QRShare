@@ -3,7 +3,7 @@ import { useRef, useEffect, useCallback } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { WebRTCService } from "@/webrtc/service";
 import type { TransferProgress, MultiFileProgress } from "@/webrtc/types";
-import { pendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
+import { pendingFile, pendingFileMimeType, type PendingFile, pendingText, textToBuffer, TEXT_FILENAME, TEXT_MIME_TYPE } from "../shared-file";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
 import { SpeedGraph } from "./SpeedGraph";
@@ -25,7 +25,7 @@ const isScanning = signal(false);
 const totalFiles = signal(0);
 const currentFileIndex = signal(0);
 const selectedFileNames = signal<string[]>([]);
-const preloadedFile = signal<{ buffer: ArrayBuffer; filename: string } | null>(
+const preloadedFile = signal<PendingFile | null>(
   null,
 );
 const instantSpeedBytesPerSec = signal(0);
@@ -204,7 +204,7 @@ export function WebRTCSenderView() {
 
     try {
       const file = new File([pre.buffer], pre.filename, {
-        type: "image/png",
+        type: pendingFileMimeType(pre),
       });
       await svc.sendFile(file, (p) => {
         progress.value = p;
@@ -473,7 +473,7 @@ export function WebRTCSenderView() {
               <span class="stat-value">{pct}%</span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.downloaded") || "Uploaded"}</span>
+              <span class="stat-label">{t("sender.uploaded")}</span>
               <span class="stat-value">
                 {(progress.value.bytesSent / 1024).toFixed(1)} KB / {(progress.value.totalBytes / 1024).toFixed(1)} KB
               </span>
@@ -485,7 +485,7 @@ export function WebRTCSenderView() {
               </span>
             </div>
             <div class="stat">
-              <span class="stat-label">{t("receiver.instantSpeed") || "Instant Speed"}</span>
+              <span class="stat-label">{t("receiver.instantSpeed")}</span>
               <span class="stat-value">
                 {instantSpeedBytesPerSec.value >= 1024 * 1024 ? `${(instantSpeedBytesPerSec.value / (1024 * 1024)).toFixed(1)} MB/s` : instantSpeedBytesPerSec.value >= 1024 ? `${(instantSpeedBytesPerSec.value / 1024).toFixed(1)} KB/s` : `${instantSpeedBytesPerSec.value.toFixed(0)} B/s`}
               </span>

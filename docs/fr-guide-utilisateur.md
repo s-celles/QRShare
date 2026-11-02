@@ -450,6 +450,54 @@ taille.
 
 ---
 
+## Sessions audio expérimentales (chat par le son)
+
+Une session audio connecte deux appareils (ou un petit groupe) **par le son**,
+comme une connexion WebRTC mais sans aucun réseau. Une fois connectés, les
+participants discutent par messages courts et s'envoient des fichiers, le tout
+chiffré.
+
+1. Sur un appareil, ouvrez **Session audio — chat (Expérimental)**, gardez ou
+   changez votre nom, choisissez un profil (Rapide par défaut ; Robuste pour les
+   pièces bruyantes ; Ultrasonique, à peine audible mais moins fiable) et
+   appuyez sur **Créer**. L'appareil annonce la session par de courts bips toutes
+   les quelques secondes.
+2. Sur l'autre appareil, ouvrez le même écran et appuyez sur **Rejoindre**. Les
+   sessions entendues à proximité s'affichent ; appuyez sur **Rejoindre** à côté
+   de la bonne.
+3. Les deux écrans affichent les membres et un **code de vérification à 4
+   chiffres**. Vérifiez que le code est identique sur chaque appareil : s'il
+   diffère, quelqu'un s'est peut-être intercalé — quittez la session.
+4. Écrivez vos messages (180 octets au plus chacun). Vos messages affichent
+   **✓ 0/1** en attente, puis **✓✓** une fois reçus par tous, ou **✗ non remis**
+   après plusieurs tentatives. Un fichier peut être envoyé à la session avec
+   **Envoyer un fichier** ; les membres le reçoivent automatiquement et il
+   apparaît dans la conversation.
+
+En bref, le fonctionnement :
+
+- **Chiffrement sans mot de passe à transmettre** : à la connexion, les deux
+  appareils échangent des clés publiques (P-256) par le son et en déduisent une
+  clé commune ; l'hôte transmet ensuite la clé de session. Chaque message et
+  fichier est chiffré (AES-256-GCM). Le code de vérification est calculé à partir
+  des clés : un appareil qui relaierait l'échange afficherait un autre code.
+- **Un seul appareil parle à la fois** : chaque appareil attend le silence et un
+  court délai aléatoire avant d'émettre, comme un talkie-walkie. Les messages non
+  confirmés sont renvoyés automatiquement.
+- **Plusieurs participants** : jusqu'à 6 appareils peuvent rejoindre la même
+  session ; chaque message parvient à tous et le code est le même partout.
+  Chaque appareil doit entendre tous les autres (pas encore de relais).
+- Un membre silencieux depuis plus de 75 secondes est affiché *absent* ;
+  **Quitter la session** prévient les autres.
+
+Comptez environ 2 à 3 secondes par message court en profil Rapide, environ 10
+secondes en Ultrasonique. Gardez les deux écrans ouverts, les appareils à
+quelques mètres (moins de 1 à 2 m en Ultrasonique) et le volume multimédia élevé.
+Sur iPhone, enregistrer et jouer en même temps peut faire passer le son par
+l'écouteur, à volume réduit.
+
+---
+
 ## Partage de messages texte
 
 Les trois méthodes de transfert (Partage, QR, WebRTC) prennent en charge l'envoi de messages texte en plus des fichiers. En entrant dans une vue d'envoi, un bouton **Fichier / Texte** en haut permet de choisir le type de contenu.

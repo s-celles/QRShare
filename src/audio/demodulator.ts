@@ -144,6 +144,11 @@ export class StreamingDemodulator {
     return this.armed.map((a) => a.profile.id);
   }
 
+  /** A preamble was detected and its packet is being received (carrier sense). */
+  get busy(): boolean {
+    return this.pending !== null || this.cand !== null;
+  }
+
   reset(): void {
     this.buf = new Float32Array(0);
     this.bufStart = 0;

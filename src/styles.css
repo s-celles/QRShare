@@ -1413,6 +1413,97 @@ button.qr-zoom .about-qr {
   text-align: center;
 }
 
+.audio-session-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 1rem 0;
+}
+
+.audio-session-code-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.audio-session-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0;
+  list-style: none;
+}
+
+.audio-session-members li {
+  padding: 0.2rem 0.6rem;
+  border: 2px solid;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.audio-session-members li.away {
+  opacity: 0.5;
+}
+
+.audio-session-rooms {
+  list-style: none;
+  padding: 0;
+}
+
+.audio-session-rooms li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.audio-session-log {
+  list-style: none;
+  padding: 0.5rem;
+  margin: 1rem 0;
+  min-height: 8rem;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.audio-session-log li {
+  margin: 0.35rem 0;
+  overflow-wrap: anywhere;
+}
+
+.audio-session-log li.mine {
+  text-align: end;
+}
+
+.audio-session-log li.system {
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.audio-session-log .delivery {
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.audio-session-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.audio-session-input input {
+  flex: 1;
+}
+
 .audio-tap-start {
   display: block;
   width: 100%;

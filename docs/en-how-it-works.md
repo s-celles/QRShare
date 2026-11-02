@@ -98,3 +98,11 @@ metadata packet and buffers data packets while the password is typed.
 
 The modem is pure TypeScript with no dependency, and works at any sample rate
 from 22.05 to 96 kHz. See the user guide for profiles, speeds and tips.
+
+## Audio Sessions (Experimental, Air-Gapped)
+
+1. The host announces a room with beacons (room id, public key, profile, name); a guest answers with a join request carrying its own P-256 public key
+2. The host derives a pairwise key (ECDH + HKDF) and sends the group key and member list encrypted with it; every member shows a 4-digit code computed from the group key, the host key and the member list
+3. Every session packet is then encrypted with AES-256-GCM under the group key, the clear header (room, sender, kind, counter) as associated data
+4. Messages carry per-sender sequence numbers; presence packets acknowledge, for every member, the highest contiguous number received; unacknowledged messages are resent
+5. A device transmits only after silence plus a random back-off; files travel as sealed transfers whose password derives from the group key

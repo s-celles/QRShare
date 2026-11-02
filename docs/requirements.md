@@ -264,6 +264,32 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-AUD-113 | C | 0.6.0 | The system shall rebuild a file sent through audio with 30% of the packets lost, with both codecs. |
 | REQ-AUD-120 | C | 0.6.0 | The system shall provide the audio texts in English and French, Arabic showing them in English for now. |
 
+## 13b. Audio sessions (ALS)
+
+| ID | Pri | Since | Requirement |
+|----|-----|-------|-------------|
+| REQ-ALS-001 | C | Unreleased | When the user creates an audio session, the system shall pick random room and member ids, a P-256 key pair, a group key and a name, and announce the session with beacons while it accepts members. |
+| REQ-ALS-002 | C | Unreleased | While joining an audio session, the system shall list the sessions heard and, when the user picks one, repeat a join request until welcomed. |
+| REQ-ALS-003 | C | Unreleased | When the host receives a join request, the system shall answer with the group key and member list encrypted with the key derived by ECDH P-256 and HKDF between host and joiner. |
+| REQ-ALS-004 | C | Unreleased | The system shall show on every member the same 4-digit verification code, computed from the group key, the host public key and the member list. |
+| REQ-ALS-005 | C | Unreleased | If a welcome lists a key for this device that is not its own, then the system shall refuse it and warn of a possible interception. |
+| REQ-ALS-006 | C | Unreleased | When membership changes, the system shall broadcast the member list and update the verification code. |
+| REQ-ALS-007 | C | Unreleased | The system shall ignore packets of other sessions and its own packets. |
+| REQ-ALS-010 | C | Unreleased | The system shall encrypt every audio session packet after joining with AES-256-GCM under the group key, with a unique nonce and the clear header as associated data. |
+| REQ-ALS-011 | C | Unreleased | The system shall send audio session chat messages of up to 180 UTF-8 bytes in one packet. |
+| REQ-ALS-012 | C | Unreleased | The system shall number reliable session messages per sender and drop duplicates. |
+| REQ-ALS-013 | C | Unreleased | The system shall acknowledge session messages with presence packets listing, per member, the highest contiguous message number received. |
+| REQ-ALS-014 | C | Unreleased | If a session message is not acknowledged by every member, then the system shall resend it up to 6 times, then mark it as not delivered. |
+| REQ-ALS-015 | C | Unreleased | The system shall show, per session message, how many members received it. |
+| REQ-ALS-016 | C | Unreleased | When a session member has been silent for 75 seconds, the system shall show it as away. |
+| REQ-ALS-017 | C | Unreleased | When the user leaves an audio session, the system shall send a leave message. |
+| REQ-ALS-020 | C | Unreleased | The system shall transmit in an audio session only after the channel has been quiet for a guard time and a random back-off, giving up its turn when a signal appears. |
+| REQ-ALS-030 | C | Unreleased | The system shall send a file in an audio session as a sealed transfer whose password derives from the group key. |
+| REQ-ALS-031 | C | Unreleased | While sending a session file, the system shall pause after each metadata packet and stop once every member reported the file as received. |
+| REQ-ALS-032 | C | Unreleased | When a member completes a session file, the system shall report it and show the file in the conversation. |
+| REQ-ALS-040 | C | Unreleased | The system shall offer an experimental audio session screen with create and join, verification code, members, conversation with delivery marks, message input, file sending and leave. |
+| REQ-ALS-041 | C | Unreleased | The system shall provide the audio session texts in English and French, Arabic showing them in English for now. |
+
 ## 14. Text sharing (TEXT)
 
 | ID | Pri | Since | Requirement |

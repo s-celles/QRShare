@@ -490,8 +490,11 @@ En bref, le fonctionnement :
 - Un membre silencieux depuis plus de 75 secondes est affiché *absent* ;
   **Quitter la session** prévient les autres.
 
-Comptez environ 2 à 3 secondes par message court en profil Rapide, environ 20
-secondes en Ultrasonique. Gardez les deux écrans ouverts, les appareils à
+L'écran estime la durée : sous chaque profil à la création d'une session, à côté
+du nombre d'octets pendant la saisie, et dans la conversation à l'envoi d'un
+fichier. Comptez, jusqu'au ✓✓ d'un message court, environ 5 secondes en Rapide,
+7 secondes en Robuste et 17 secondes en Ultrasonique ; un fichier de 1 Ko prend
+environ 1 minute en Rapide. Gardez les deux écrans ouverts, les appareils à
 quelques mètres (moins de 1 à 2 m en Ultrasonique) et le volume multimédia élevé.
 Si un bouton **Touchez pour activer le son** apparaît, touchez-le : le navigateur
 garde le son coupé jusque-là. Pendant la connexion, l'écran indique le nombre de

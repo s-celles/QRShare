@@ -472,8 +472,10 @@ How it works, in short:
 - A member silent for more than 75 seconds is shown as *away*; **Leave the
   session** tells the others.
 
-Expect about 2–3 seconds per short message with the Fast profile, and about 20
-seconds with Ultrasonic. Keep both screens open, the devices within a few metres
+The screen estimates the time: under each profile when creating a session, next to
+the byte count while typing, and in the conversation when a file is sent. Expect,
+until a short message shows ✓✓, about 5 seconds with Fast, 7 seconds with Robust
+and 17 seconds with Ultrasonic; a 1 KB file takes about 1 minute with Fast. Keep both screens open, the devices within a few metres
 (less than 1–2 m for Ultrasonic), and the media volume high. If a **Tap to enable
 the sound** button appears, tap it: the browser keeps the sound muted until then.
 While joining, the screen shows how many requests were sent; if the count grows

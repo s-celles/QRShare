@@ -27,6 +27,16 @@ export function EncryptedUnlockCard({ onUnlock }: EncryptedUnlockCardProps) {
     }
   };
 
+  const inputProps = {
+    id: "unlock-password",
+    class: "creator-input-field",
+    value: password,
+    onInput: (e: Event) => setPassword((e.target as HTMLInputElement).value),
+    placeholder: t("encryption.passwordPlaceholder"),
+    disabled: loading,
+    autoFocus: true,
+  };
+
   return (
     <div class="structured-card encrypted-card">
       <div class="card-header">
@@ -40,16 +50,13 @@ export function EncryptedUnlockCard({ onUnlock }: EncryptedUnlockCardProps) {
           <div class="creator-param">
             <label htmlFor="unlock-password">{t("encryption.password")}</label>
             <div class="password-input-wrapper">
-              <input
-                id="unlock-password"
-                type={showPassword ? "text" : "password"}
-                class="creator-input-field"
-                value={password}
-                onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-                placeholder={t("encryption.passwordPlaceholder")}
-                disabled={loading}
-                autoFocus
-              />
+              {/* Preact 11 types `type` as a discriminated union: one literal per branch.
+                  Both branches render the same <input>, which Preact reuses (focus kept). */}
+              {showPassword ? (
+                <input type="text" {...inputProps} />
+              ) : (
+                <input type="password" {...inputProps} />
+              )}
               <button
                 type="button"
                 class="icon-btn toggle-pass-btn"

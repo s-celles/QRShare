@@ -3,18 +3,30 @@ import { navigate } from "../router";
 import { pendingFile, pendingText } from "../shared-file";
 import { ContentTypeToggle } from "./ContentTypeToggle";
 import { TextInputArea } from "./TextInputArea";
-import { bundleFiles, makeBundleName } from "@/zip/bundle";
+import { bundleFiles, bundleSizeUpperBound, makeBundleName } from "@/zip/bundle";
 import { renderQRCustomToDataURL } from "@/qr/renderer";
 import {
   buildReceiverUrl,
+  describeAudioOption,
+  detectCamera,
+  formatDuration,
   payloadSize,
+  pickInvitationMode,
   recommendSendModeForSize,
   type SendMode,
   type SendPolicy,
 } from "../send-policy";
+import { AUDIO_MAX_BYTES } from "@/audio/profiles";
 import { t } from "../i18n";
 
 type InvitationMode = Exclude<SendMode, "share">;
+const SEND_ROUTES: Record<InvitationMode, string> = {
+  "static-qr": "/create",
+  "animated-qr": "/send/qr",
+  cimbar: "/send/cimbar",
+  audio: "/send/audio",
+  webrtc: "/send/webrtc",
+};
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const MAX_CIMBAR_SIZE = 33 * 1024 * 1024;
 
@@ -25,24 +37,41 @@ export function UrlCreatorView() {
   const [policy, setPolicy] = useState<SendPolicy>("prefer-airgap");
   const [mode, setMode] = useState<InvitationMode>("animated-qr");
   const [error, setError] = useState("");
+  const [cameraAvailable, setCameraAvailable] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    void detectCamera().then(setCameraAvailable);
+  }, []);
 
+  // Several files travel as one ZIP archive: count its (upper-bound) size against the limits.
   const size = contentType === "text"
     ? payloadSize(data)
-    : files.reduce((total, file) => total + file.size, 0);
+    : files.length > 1
+      ? bundleSizeUpperBound(files.map((file) => ({ name: file.name, size: file.size })))
+      : files.reduce((total, file) => total + file.size, 0);
   const hasContent = contentType === "text" ? data.trim().length > 0 : files.length > 0;
-  const recommended = recommendSendModeForSize(size, policy, contentType === "text");
-  const cimbarModes: InvitationMode[] = size <= MAX_CIMBAR_SIZE ? ["cimbar"] : [];
+  const recommended = recommendSendModeForSize(size, policy, contentType === "text", cameraAvailable);
+  const optionalModes: InvitationMode[] = [
+    ...(size <= MAX_CIMBAR_SIZE ? ["cimbar" as const] : []),
+    ...(size <= AUDIO_MAX_BYTES ? ["audio" as const] : []),
+  ];
+  const audio = describeAudioOption(size);
   const allowedModes: InvitationMode[] = policy === "airgap"
     ? (contentType === "text"
-      ? ["static-qr", "animated-qr", ...cimbarModes]
-      : ["animated-qr", ...cimbarModes])
+      ? ["static-qr", "animated-qr", ...optionalModes]
+      : ["animated-qr", ...optionalModes])
     : (contentType === "text"
-      ? ["static-qr", "animated-qr", ...cimbarModes, "webrtc"]
-      : ["animated-qr", ...cimbarModes, "webrtc"]);
+      ? ["static-qr", "animated-qr", ...optionalModes, "webrtc"]
+      : ["animated-qr", ...optionalModes, "webrtc"]);
 
   useEffect(() => {
     setMode(recommended === "share" ? "animated-qr" : recommended);
   }, [recommended, contentType, policy]);
+
+  // A mode that no longer fits the content (e.g. audio after adding files) is replaced.
+  const allowedKey = allowedModes.join(",");
+  useEffect(() => {
+    setMode((current) => pickInvitationMode(current, recommended, allowedModes));
+  }, [allowedKey, recommended]);
 
   const receiverUrl = hasContent ? buildReceiverUrl(window.location.href, mode, policy) : "";
   const invitationQr = useMemo(() => {
@@ -93,13 +122,7 @@ export function UrlCreatorView() {
           mimeType: "application/zip",
         };
       }
-      navigate(
-        mode === "static-qr"
-          ? "/create"
-          : mode === "animated-qr"
-            ? "/send/qr"
-            : mode === "cimbar" ? "/send/cimbar" : "/send/webrtc",
-      );
+      navigate(SEND_ROUTES[mode]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
@@ -157,6 +180,13 @@ export function UrlCreatorView() {
             </select>
           </div>
           {hasContent && <div class="creator-capacity">{t("urlCreator.payloadSize", { size })}</div>}
+          {hasContent && mode === "audio" && (
+            <p class="settings-hint">
+              {t(audio.suitable ? "sendChooser.audioSuitable" : "sendChooser.audioSlow", {
+                duration: formatDuration(audio.estimatedSec),
+              })}
+            </p>
+          )}
         </div>
 
         {error && <div class="error-msg" role="alert">{error}</div>}

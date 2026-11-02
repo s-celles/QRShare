@@ -9,6 +9,7 @@ QRShare is a web application that lets you:
 3. **Share a file or text** to any app via the native share dialog
 4. **Send a file or text** to another device via animated QR codes (no internet required)
 5. **Send a file or text** peer-to-peer via WebRTC (internet required)
+6. **Send a short text or small file** as sound, from speaker to microphone (Audio — Experimental, no internet or camera required)
 
 The application runs directly in your browser with nothing to install. It is available at:
 **https://s-celles.github.io/QRShare/**
@@ -55,6 +56,10 @@ Five buttons for transferring files between devices:
 - **Receive (QR)** — Receive a file by scanning animated QR codes
 - **Send (WebRTC)** — Send a file peer-to-peer over the network
 - **Receive (WebRTC)** — Receive a file peer-to-peer over the network
+
+Two experimental groups follow the QR Code group: **CIMBAR (Experimental)**, a
+high-speed color barcode, and **Audio (Experimental)**, which transfers small
+payloads as sound (see *Experimental Audio Transfer* below).
 
 ---
 
@@ -121,14 +126,14 @@ This workflow lets the sender prepare the content and open QRShare on the correc
 1. On the home screen, tap **Prepare a transfer**.
 2. Choose **File** or **Text**, then select one or more files or enter the text.
 3. Choose the transfer policy:
-   - **Air-gapped only** — only optical modes (static QR, animated QR, or experimental CIMBAR) are offered. WebRTC and system sharing are excluded regardless of payload size.
+   - **Air-gapped only** — only air-gapped modes (static QR, animated QR, experimental CIMBAR, or experimental audio) are offered. WebRTC and system sharing are excluded regardless of payload size.
    - **Prefer air-gapped** — an optical mode is recommended, while network modes remain available.
    - **Any mode** — QRShare may recommend WebRTC when the content does not fit in a static QR code.
 4. Keep the recommended mode or choose another mode allowed by the policy. Size is only one criterion; the selected policy is always respected.
 5. First show the invitation QR code to the receiver. It contains only a link to QRShare and opens the matching receive screen; it does not contain the file.
 6. When the receiver is ready, tap **The receiver is ready — start sending**.
 
-When several files are selected, QRShare automatically bundles them into a transfer ZIP archive and extracts them on the receiver. The selection is limited to 50 MB total; CIMBAR is offered up to approximately 33 MB.
+When several files are selected, QRShare automatically bundles them into a transfer ZIP archive and extracts them on the receiver. The selection is limited to 50 MB total; CIMBAR is offered up to approximately 33 MB and audio up to 8 KB; for several files, these limits apply to the size of the ZIP archive. If the content grows beyond the selected mode's limit, the mode switches back to the recommended one. Audio is recommended only when the device has no camera and the content is at most 1 KB.
 
 ### Passing Text Through a URL
 
@@ -332,6 +337,86 @@ the same actions as other receivers: copy, download as `.txt`, and share.
 
 ---
 
+## Experimental Audio Transfer
+
+Audio sends a short text or a small file **as sound**: the sender plays tones
+through its loudspeaker and the receiver decodes them from its microphone. No
+network, camera or line of sight is needed, only two devices within hearing
+range. It is useful when cameras are unusable (no camera, a broken lens, a
+screen that cannot be shown) for things like Wi-Fi passwords, keys, short notes
+or small configuration files.
+
+### Usage
+
+1. On the receiver, tap **Receive (Audio — Experimental)**, then **Start
+   listening**, and allow the microphone. The receiver detects the sender's
+   profile automatically.
+2. On the sender, tap **Send (Audio — Experimental)**, choose **File** or
+   **Text**, and press **Play**. Audio can also be picked in the transfer chooser
+   and in **Prepare a transfer**, whose invitation QR code opens the audio
+   receive screen on the receiver. A link with `autostart=1` starts listening
+   right away; if the browser needs a tap first, a large **Tap to start
+   listening** button appears.
+3. The sender plays packets continuously. Each packet carries a different piece
+   of a fountain code, so missed or damaged packets do not matter: the receiver
+   finishes as soon as it has heard enough of them. Press **Stop** once the
+   receiver shows the result. If you change the profile or codec on the sender
+   while the receiver is listening, the receiver follows the new transmission of
+   the same content automatically.
+
+The receiver shows the input level, a **Signal detected** badge, the packets
+decoded and rejected, the unique symbols received against those needed, and the
+effective rate. When the transfer completes, the microphone is released and the
+result appears as for the other receivers: the SHA-256 check, text displayed
+directly, or a file with preview, **Download**, **Share** and **Open in …**;
+password-encrypted content shows the unlock card.
+
+### Profiles and speeds
+
+| Profile | Band | Approx. net rate | When to use |
+|---|---|---|---|
+| **Robust** (default) | 1.5–6.3 kHz, audible | about 22 bytes/s | Normal use, phones and laptops |
+| **Fast** | 1.5–6.3 kHz, audible | about 53 bytes/s | Quiet room, devices close together |
+| **Ultrasonic** (Advanced, less reliable) | 17–19.5 kHz, barely audible | about 10 bytes/s | When audible tones are a problem; many speakers and microphones attenuate it |
+
+For example, a 1 KB text compressed to about 600 bytes takes about half a
+minute with Robust and about 13 seconds with Fast. The sender shows the
+estimated minimum duration before you press Play. Under **Advanced**, the
+sender can also choose the fountain codec: **Auto (Wirehair)**, the default
+and most efficient, or **LT (compatibility)** if the receiver reports that
+Wirehair cannot be loaded.
+
+### Size limits
+
+Audio is suitable for content up to **1 KB**. Up to the hard maximum of **8 KB**
+it remains available but is slow (several minutes); above 8 KB the sender
+refuses and suggests animated QR codes or CIMBAR.
+
+### Tips
+
+- Set the sender's media volume to 70–100%.
+- Keep the devices 10–50 cm apart in a quiet room.
+- Do not use a Bluetooth speaker or headset (their codecs distort the tones).
+- On iPhone, QRShare asks the system to play audio even with the silent switch
+  on, where Safari supports it.
+- If the receiver shows **Too quiet**, move closer or raise the volume; if it
+  shows **Clipping**, lower the volume.
+
+### Limitations and privacy
+
+- It is a one-way broadcast: the sender cannot know when the receiver is done.
+- Some browsers (notably on iOS) may still apply voice processing to the
+  microphone, which lowers reliability.
+- Sound is a broadcast: anyone within hearing range, or any recording device,
+  can capture the transfer. For sensitive content, tick **Encrypt with
+  password** on the audio sender and give the password to the receiver by
+  another means; the receiver will ask for it to unlock the content. Encryption
+  adds 49 bytes and encrypted data no longer compresses, so the transfer takes a
+  little longer. The microphone
+  is used only while the receive screen is listening, and no audio is stored.
+
+---
+
 ## Sharing Text Messages
 
 All three transfer methods (Share, QR, WebRTC) support sending text messages in addition to files. When entering a sender view, a **File / Text** toggle at the top lets you choose what to send.
@@ -363,7 +448,7 @@ If QRShare is installed as a PWA, you can share text from other apps directly to
 ## Frequently Asked Questions
 
 **Does the application need internet?**
-No for QR code and CIMBAR modes (optical transfer). Yes for WebRTC mode. The Scanner and Creator tools work offline after the first load.
+No for QR code, CIMBAR (optical transfer) and audio (sound) modes. Yes for WebRTC mode. The Scanner and Creator tools work offline after the first load.
 
 **Which browsers are supported?**
 Any modern browser (Chrome, Firefox, Safari, Edge) on desktop or mobile.

@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-02
+
 ### Added
 
+- **Audio transfer (Experimental)**: a fourth air-gapped transport that sends a short text or a small file as sound, from the sender's loudspeaker to the receiver's microphone, with no network, camera or line of sight. It reuses the compression, fountain codes, transfer metadata and SHA-256 verification of the QR transport on top of a new pure-TypeScript modem (multi-tone FSK with a chirp preamble per packet, Reed-Solomon with erasures and CRC32 per packet, one fountain symbol per packet); no new dependency
+- Three audio profiles: **Robust** (default, about 22 bytes/s), **Fast** (about 53 bytes/s) and, under **Advanced**, **Ultrasonic** (17–19.5 kHz, about 10 bytes/s, flagged as less reliable); the receiver detects the profile automatically. Audio uses the Wirehair fountain codec by default, with **LT (compatibility)** available under Advanced
+- New **Send (Audio — Experimental)** and **Receive (Audio — Experimental)** screens (`#/send/audio`, `#/receive/audio`) and an **Audio (Experimental)** group on the home screen; the receiver shows the input level, a signal indicator, decoded and rejected packets and the effective rate, and honours `autostart=1` with a **Tap to start listening** fallback when the browser needs a gesture
+- Audio is offered in the transfer chooser and in **Prepare a transfer** for content up to 8 KB (described as suitable up to 1 KB, with an estimated duration, and as slow above), under every policy since it is air-gapped; it is recommended only when the device has no camera and the content is at most 1 KB
+- The audio transport works offline in the PWA and in the single-file `qrshare.html` (its capture worklet is loaded from an inline Blob URL, so no new asset is needed)
+- The audio sender can encrypt the content with a password (AES-256-GCM, as in the other senders); the receiver offers the unlock card. Changing the profile or codec on the sender mid-transfer is followed by the receiver, which switches to the new transmission of the same content
+- The CIMBAR receiver now also offers **Open in …** for files and unlocks password- or contact-encrypted payloads, through a result view shared with the audio receiver
 - The About window shows the author, Sébastien Celles, linked to their GitHub profile; the author is also named in `package.json` and the README
 - Documentation page **Apps Built on QRShare**: Progressive Web Office and CAScad, what each uses from QRShare (sending, receiving, offline sync), and how any web app can build on it; linked from the README
 - App handoff protocol version 2: `mode=` on `#/send?handoff=1` goes straight to the asked transfer mode, and `reply=opener` sends a received file back to the window that opened QRShare (strict origin, after the user's click). The manifest announces `"versions": [1, 2]` and `"features": ["mode", "reply-opener"]`
@@ -20,18 +29,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded to Preact 11; the password field of the unlock card follows its stricter input types
+- Transfer frames gain a `FLAG_WIREHAIR` (`0x02`) flag that tells the receiver which fountain codec produced the symbols; only the audio transport sets it, so QR frames are unchanged on the wire
 - The README's documentation links open the pages in the app (`https://s-celles.github.io/QRShare/#/docs?page=…`); a page address can force a language (`&lang=fr`) and jump to a section (`&section=…`, GitHub-style heading anchors)
 - The README is now short: what QRShare is, a link to the app, highlights, links to the documentation and a quick start
 - Documentation is rendered with marked (already used for file previews) instead of a minimal home-made converter
 
 ### Fixed
 
+- **Prepare a transfer**: with several files, the CIMBAR (and audio) size limits now apply to the ZIP archive that is actually sent, and a selected mode that no longer fits the content falls back to the recommended mode
 - **Encryption for a trusted contact did not work.** Identity QR codes carried no encryption key, so a contact added by scanning could never be chosen, and the receiver looked the sender up with a padded fingerprint, so decryption always failed. Identity codes now carry the encryption key and the fingerprint is read correctly; contacts added before must be scanned again
 - QR transfers ignored the frame rate chosen before pressing Start, and the 16-bit block count of their frames wrapped around for large files (it now saturates; receivers were not affected)
 - A file handed to the WebRTC sender from another screen was always announced as a PNG image; files now keep their type
 - Some labels showed raw identifiers (`receiver.downloaded`, `receiver.instantSpeed`, the contact encryption options); 70 texts were missing in Arabic; the vCard preview had French labels and the file preview English ones. A test now checks that every language has every text the code uses
 - The single-file package was described as self-contained although its workers and WebAssembly runtimes stay separate files; the script, the documentation and the requirements now say so
 - Placeholders such as `<app>` or `<host>` in the documentation were hidden as unknown HTML tags; they are shown as text
+
 
 ## [0.5.0] - 2026-10-01
 

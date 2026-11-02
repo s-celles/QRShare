@@ -110,6 +110,20 @@ export function Landing() {
         </button>
       </div>
 
+      <h3 class="mode-group-title">{t("landing.audioGroup")}</h3>
+      <div class="mode-grid" role="group" aria-label={t("landing.audioGroup")}>
+        <button class="mode-btn mode-btn--send" onClick={() => navigate("/send/audio")} aria-label={t("landing.sendAudioAria")}>
+          <span class="mode-icon" aria-hidden="true">&#x1F50A;</span>
+          <span class="mode-label">{t("landing.sendAudioTitle")}</span>
+          <span class="mode-desc">{t("landing.sendAudioDesc")}</span>
+        </button>
+        <button class="mode-btn mode-btn--receive" onClick={() => navigate("/receive/audio")} aria-label={t("landing.receiveAudioAria")}>
+          <span class="mode-icon" aria-hidden="true">&#x1F3A4;</span>
+          <span class="mode-label">{t("landing.receiveAudioTitle")}</span>
+          <span class="mode-desc">{t("landing.receiveAudioDesc")}</span>
+        </button>
+      </div>
+
       <h3 class="mode-group-title">{t("landing.webrtcGroup")}</h3>
       <div class="mode-grid" role="group" aria-label={t("landing.webrtcGroup")}>
         <button

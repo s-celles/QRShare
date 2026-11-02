@@ -13,6 +13,7 @@ step by step. For day-to-day use, see the [User Guide](en-user-guide.md).
 - **Native Share** — Send one or more files via the native share dialog (Web Share API). Works with any app that supports receiving shared files (messaging apps, email, cloud storage, etc.).
 - **QR Code Transfer** — Send files between devices using animated QR codes. No internet connection required — works completely air-gapped.
 - **CIMBAR Transfer (Experimental)** — High-speed air-gapped color-barcode transfer using libcimbar WASM. The browser decoder is beta, so standard animated QR remains the compatibility fallback.
+- **Audio Transfer (Experimental)** — Air-gapped transfer of short texts and small files (up to 8 KB, best under 1 KB) as sound, from loudspeaker to microphone, with no network, camera or line of sight. Three profiles: Robust (about 22 B/s), Fast (about 53 B/s) and Ultrasonic (under Advanced, less reliable).
 - **WebRTC Transfer** — Direct peer-to-peer file transfer over WebRTC DataChannel with a 4-digit confirmation code for security verification. See [Connectivity and TURN](en-connectivity-and-turn.md) when a direct connection fails.
 - **Live Collaborative Editing** — Turn a WebRTC connection into a shared text editor with named versions. See [Collaborative Editing](en-collaborative-editing.md).
 - **Fountain Codes** — Rateless erasure coding (Wirehair WASM with pure-JS LT fallback) ensures reliable transfer even with missed frames.
@@ -23,7 +24,7 @@ step by step. For day-to-day use, see the [User Guide](en-user-guide.md).
 - **Progressive Web App** — Install on any device, works offline after first load, and offers to reload when a new version is available.
 - **Web Share Integration** — Share received files, created QR codes, and scanned content directly to other apps using the Web Share API.
 - **Dark/Light Theme** — Automatic theme detection with manual override.
-- **Single-File Packaging** — Package the main script, styles and icon into one HTML file (`qrshare.html`). The Web Workers and WebAssembly runtimes stay separate files, so the page must be served next to the files of `dist/` for QR and CIMBAR transfers.
+- **Single-File Packaging** — Package the main script, styles and icon into one HTML file (`qrshare.html`). The Web Workers and WebAssembly runtimes stay separate files, so the page must be served next to the files of `dist/` for QR and CIMBAR transfers. Audio transfer needs no separate file: its code runs in the main script and its capture worklet comes from an inline Blob URL.
 
 ## QR Utilities
 
@@ -80,3 +81,13 @@ Text can also enter the chooser through `#/send?data=...&policy=...`, where `pol
 
 The bundled runtime is libcimbar v0.6.7c under MPL-2.0. Files are limited to
 approximately 33 MB after compression by the upstream protocol.
+
+## Audio Mode (Experimental, Air-Gapped)
+
+1. The sender selects a short text or a small file (up to 8 KB), optionally encrypted with a password
+2. The content is hashed (SHA-256), compressed and fountain-encoded (Wirehair by default, LT for compatibility)
+3. Each fountain symbol becomes one packet: a chirp preamble, a Reed-Solomon protected header, and a body protected by Reed-Solomon and CRC32, sent as multi-tone FSK through the loudspeaker; a metadata packet (the v3 frame header) is repeated every 8 data packets
+4. The receiver listens with the microphone, detects the profile from the preamble, rejects damaged packets and rebuilds the content once it has enough symbols, then verifies the SHA-256
+
+The modem is pure TypeScript with no dependency, and works at any sample rate
+from 22.05 to 96 kHz. See the user guide for profiles, speeds and tips.

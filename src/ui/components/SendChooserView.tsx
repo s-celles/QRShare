@@ -1,9 +1,12 @@
 import { signal } from "@preact/signals";
-import { useEffect, useMemo } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { hashParams, navigate } from "../router";
 import { pendingFile, pendingText } from "../shared-file";
 import {
   allowedSendModes,
+  describeAudioOption,
+  detectCamera,
+  formatDuration,
   parseSendPolicy,
   payloadSize,
   recommendSendMode,
@@ -14,10 +17,11 @@ import { HANDOFF_MODES, receiveFromOpener, type WindowLike } from "@/share/hando
 import { takeSharedFile } from "@/share/shared-target";
 import { t } from "../i18n";
 
-const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/cimbar" | "/send/webrtc" | "/send/share"> = {
+const MODE_ROUTES: Record<SendMode, "/create" | "/send/qr" | "/send/cimbar" | "/send/audio" | "/send/webrtc" | "/send/share"> = {
   "static-qr": "/create",
   "animated-qr": "/send/qr",
   cimbar: "/send/cimbar",
+  audio: "/send/audio",
   webrtc: "/send/webrtc",
   share: "/send/share",
 };
@@ -39,6 +43,11 @@ export function SendChooserView() {
   const askedMode = HANDOFF_MODES.find((m) => m === params.get("mode"));
   const shared = params.get("shared") === "1";
   const file = incomingFile.value;
+  // Audio is recommended only when this device has no camera (REQ-AUD-003).
+  const [cameraAvailable, setCameraAvailable] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    void detectCamera().then(setCameraAvailable);
+  }, []);
 
   useEffect(() => {
     if (shared) {
@@ -60,12 +69,24 @@ export function SendChooserView() {
   }, [shared, handoff]);
 
   const size = file ? file.size : payloadSize(data);
-  const recommended = file ? recommendSendModeForSize(size, policy, false) : recommendSendMode(data, policy);
-  // A single static QR code carries text only.
+  const recommended = file
+    ? recommendSendModeForSize(size, policy, false, cameraAvailable)
+    : recommendSendMode(data, policy, cameraAvailable);
+  // A single static QR code carries text only; audio only up to its size limit.
   const modes = useMemo(
-    () => allowedSendModes(policy).filter((mode) => !file || mode !== "static-qr"),
-    [policy, file],
+    () => allowedSendModes(policy, size).filter((mode) => !file || mode !== "static-qr"),
+    [policy, file, size],
   );
+  const audio = describeAudioOption(size);
+  const describe = (mode: SendMode): string => {
+    if (mode === recommended) return t("sendChooser.recommended");
+    if (mode === "audio") {
+      return t(audio.suitable ? "sendChooser.audioSuitable" : "sendChooser.audioSlow", {
+        duration: formatDuration(audio.estimatedSec),
+      });
+    }
+    return t(`sendChooser.${mode}Desc`);
+  };
 
   const choose = async (mode: SendMode) => {
     if (file) {
@@ -130,11 +151,7 @@ export function SendChooserView() {
                 aria-label={t(`sendChooser.${mode}`)}
               >
                 <span class="mode-label">{t(`sendChooser.${mode}`)}</span>
-                <span class="mode-desc">
-                  {mode === recommended
-                    ? t("sendChooser.recommended")
-                    : t(`sendChooser.${mode}Desc`)}
-                </span>
+                <span class="mode-desc">{describe(mode)}</span>
               </button>
             ))}
           </div>

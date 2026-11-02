@@ -1,0 +1,447 @@
+/**
+ * Audio transfer sessions: fountain coding + compression + hashing around the
+ * packet layer and modem (REQ-AUD-012, 015, 016, 036..039, 075..077).
+ *
+ * Sender:   payload → SHA-256 / 4-byte metadataHash → deflate → fountain encoder
+ *           → packets M, D×8, M, D×8, … (rateless, until stopped).
+ * Receiver: samples → StreamingDemodulator → packets → lock to the first session,
+ *           buffer data until metadata, dedupe, decode → inflate → verify SHA-256.
+ *
+ * Pure TypeScript: no DOM or Web Audio dependency (REQ-AUD-110).
+ */
+
+import { hashSha256 } from "@/crypto/hash";
+import { compress, decompress } from "@/compression/compression";
+import { getCodecFactory } from "@/codec/factory";
+import { LTCodecFactory } from "@/codec/lt-adapter";
+import { WirehairCodecFactory } from "@/codec/wirehair-adapter";
+import type { FountainCodecFactory, FountainDecoder, FountainEncoder } from "@/codec/types";
+import { decodeFlags, encodeFlags, type Frame, type FrameCodec } from "@/protocol/frame";
+import { StreamingDemodulator, type DemodEvent } from "./demodulator";
+import { modulate } from "./modem";
+import { encodeDataBody, encodeMetadataBody, encodeOnAir, truncateFilename, maxFilenameBytes, type PacketDecodeResult } from "./packet";
+import {
+  AUDIO_MAX_BYTES,
+  META_INTERVAL,
+  effectiveBlockSize,
+  estimateDurationSec,
+  type AudioProfile,
+  type AudioProfileId,
+} from "./profiles";
+
+/** On-air symbolIds are uint16 ≥ 1: fountain index i → (i mod 65535) + 1. */
+export function onAirSymbolId(index: number): number {
+  return (index % 0xffff) + 1;
+}
+
+const MAX_PENDING = 4096;
+
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Audio session id (the frame's 4-byte `metadataHash`): the first 4 bytes of
+ * SHA-256(sha256 ‖ blockSize ‖ flags ‖ compressedSize ‖ compressionId). Unlike QR,
+ * it depends on the transfer parameters too, so a sender re-prepared with another
+ * profile or codec starts a new session whose symbols never reach the old decoder.
+ */
+export async function audioSessionId(
+  sha256: Uint8Array,
+  blockSize: number,
+  flags: number,
+  compressedSize: number,
+  compressionId: number,
+): Promise<Uint8Array> {
+  const buf = new Uint8Array(32 + 2 + 1 + 4 + 1);
+  buf.set(sha256);
+  const view = new DataView(buf.buffer);
+  view.setUint16(32, blockSize, true);
+  buf[34] = flags;
+  view.setUint32(35, compressedSize, true);
+  buf[39] = compressionId;
+  return (await hashSha256(buf)).slice(0, 4);
+}
+
+function equalBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+export class AudioPayloadTooLargeError extends Error {
+  constructor(readonly size: number, readonly limit: number = AUDIO_MAX_BYTES) {
+    super(`Payload of ${size} bytes exceeds the audio limit of ${limit} bytes`);
+    this.name = "AudioPayloadTooLargeError";
+  }
+}
+
+// ----------------------------------------------------------------------- sender
+
+export type AudioCodecChoice = "auto" | "lt";
+
+export interface AudioSendOptions {
+  readonly isText: boolean;
+  readonly profile: AudioProfile;
+  /** "auto" prefers Wirehair (default); "lt" forces the LT compatibility codec. */
+  readonly codec?: AudioCodecChoice;
+  /** Factory used for "auto" (defaults to `getCodecFactory()`); injectable for tests. */
+  readonly autoFactory?: () => Promise<FountainCodecFactory>;
+  /** First fountain symbol index (tests / resume). */
+  readonly startIndex?: number;
+}
+
+export interface AudioSendInfo {
+  readonly k: number;
+  readonly blockSize: number;
+  readonly compressedSize: number;
+  readonly fileSize: number;
+  readonly sha256Hex: string;
+  readonly codec: FrameCodec;
+  readonly filename: string;
+  readonly estimatedMinSec: number;
+  /** Hex of the 4-byte session id carried by every packet. */
+  readonly sessionId: string;
+}
+
+export interface AudioOutgoingPacket {
+  readonly bytes: Uint8Array;
+  readonly kind: "data" | "metadata";
+  /** On-air symbolId (0 for metadata). */
+  readonly symbolId: number;
+}
+
+export class AudioSendSession {
+  private sent = 0;
+
+  private constructor(
+    readonly profile: AudioProfile,
+    readonly info: AudioSendInfo,
+    private readonly encoder: FountainEncoder,
+    private readonly metadataBody: Uint8Array,
+    private readonly metadataHash: Uint8Array,
+    private index: number,
+  ) {}
+
+  static async create(data: Uint8Array, filename: string, opts: AudioSendOptions): Promise<AudioSendSession> {
+    if (data.length > AUDIO_MAX_BYTES) throw new AudioPayloadTooLargeError(data.length);
+    if (data.length === 0) throw new Error("Nothing to send");
+    const { profile } = opts;
+
+    const sha256 = await hashSha256(data);
+    const compressed = compress(data);
+    const blockSize = effectiveBlockSize(profile.blockSize, compressed.data.length);
+    const k = Math.ceil(compressed.data.length / blockSize);
+
+    // Wirehair needs K ≥ 2; a 1-byte payload falls back to LT.
+    let factory: FountainCodecFactory = new LTCodecFactory();
+    let codec: FrameCodec = "lt";
+    if ((opts.codec ?? "auto") === "auto" && k >= 2) {
+      const auto = await (opts.autoFactory ?? getCodecFactory)();
+      if (auto.isWasmAvailable()) {
+        factory = auto;
+        codec = "wirehair";
+      }
+    }
+    const encoder = await factory.createEncoder();
+    encoder.init(compressed.data, blockSize);
+
+    const safeName = truncateFilename(filename, maxFilenameBytes(profile));
+    const flags = encodeFlags({ isText: opts.isText, codec });
+    const metadataHash = await audioSessionId(sha256, blockSize, flags, compressed.data.length, compressed.algorithm);
+    const metadataBody = encodeMetadataBody(
+      {
+        flags,
+        metadataHash,
+        sourceBlockCount: k,
+        blockSize,
+        compressedSize: compressed.data.length,
+        compressionId: compressed.algorithm,
+        filename: safeName,
+        fileSize: data.length,
+        sha256,
+      },
+      profile,
+    );
+
+    const info: AudioSendInfo = {
+      k,
+      blockSize,
+      compressedSize: compressed.data.length,
+      fileSize: data.length,
+      sha256Hex: toHex(sha256),
+      codec,
+      filename: safeName,
+      sessionId: toHex(metadataHash),
+      estimatedMinSec: estimateDurationSec(compressed.data.length, profile, {
+        codec,
+        filenameBytes: new TextEncoder().encode(safeName).length,
+      }),
+    };
+    return new AudioSendSession(profile, info, encoder, metadataBody, metadataHash, opts.startIndex ?? 0);
+  }
+
+  /** Packets emitted so far (metadata included). */
+  get packetsSent(): number {
+    return this.sent;
+  }
+
+  /** Distinct fountain symbols emitted so far, counted from index 0 (at most 65535 on air). */
+  get uniqueSymbolsSent(): number {
+    return Math.min(this.index, 0xffff);
+  }
+
+  /** Next packet: metadata first and after every META_INTERVAL data packets. */
+  nextPacket(): AudioOutgoingPacket {
+    const slot = this.sent % (META_INTERVAL + 1);
+    this.sent++;
+    if (slot === 0) {
+      return { bytes: encodeOnAir(this.metadataBody, this.profile), kind: "metadata", symbolId: 0 };
+    }
+    const index = this.index++;
+    const symbolId = onAirSymbolId(index);
+    const symbol = this.encoder.encode(symbolId - 1);
+    return {
+      bytes: encodeOnAir(encodeDataBody(this.metadataHash, symbolId, symbol), this.profile),
+      kind: "data",
+      symbolId,
+    };
+  }
+
+  /** Modulated samples of the next packet. */
+  nextSamples(sampleRate: number): Float32Array {
+    return modulate(this.nextPacket().bytes, this.profile, sampleRate);
+  }
+
+  free(): void {
+    this.encoder.free();
+  }
+}
+
+// --------------------------------------------------------------------- receiver
+
+export interface ReceiveProgress {
+  readonly kind: "progress";
+  /** Distinct fountain symbols heard for the locked session. */
+  readonly received: number;
+  /** Source blocks K (0 until the metadata packet is heard). */
+  readonly needed: number;
+  readonly accepted: number;
+  readonly rejected: number;
+  readonly duplicates: number;
+  readonly profile: AudioProfileId | null;
+  readonly filename?: string;
+  readonly fileSize?: number;
+  /** Fountain symbol size (0 until the metadata packet is heard). */
+  readonly blockSize: number;
+}
+
+export interface ReceiveComplete {
+  readonly kind: "complete";
+  readonly file: Uint8Array;
+  readonly filename: string;
+  readonly sha256Hex: string;
+  readonly verified: boolean;
+  readonly isText: boolean;
+}
+
+export interface ReceiveError {
+  readonly kind: "error";
+  readonly code: "wirehair_unavailable" | "decode_failed";
+  readonly message: string;
+}
+
+export type ReceiveEvent = DemodEvent | ReceiveProgress | ReceiveComplete | ReceiveError;
+
+export interface AudioReceiveOptions {
+  readonly wirehairFactory?: FountainCodecFactory;
+  readonly ltFactory?: FountainCodecFactory;
+  readonly profiles?: readonly AudioProfile[];
+}
+
+function sameParameters(a: Frame, b: Frame): boolean {
+  return a.blockSize === b.blockSize && a.sourceBlockCount === b.sourceBlockCount && a.flags === b.flags
+    && a.compressedSize === b.compressedSize && a.compressionId === b.compressionId;
+}
+
+export class AudioReceiveSession {
+  private readonly demod: StreamingDemodulator;
+  private readonly wirehairFactory: FountainCodecFactory;
+  private readonly ltFactory: FountainCodecFactory;
+  private lockedHash: Uint8Array | null = null;
+  private frame: Frame | null = null;
+  private decoder: FountainDecoder | null = null;
+  private readonly pending = new Map<number, Uint8Array>();
+  private readonly seen = new Set<number>();
+  private accepted = 0;
+  private rejected = 0;
+  private duplicates = 0;
+  private profile: AudioProfileId | null = null;
+  private done = false;
+  private failed = false;
+
+  constructor(sampleRate: number, opts: AudioReceiveOptions = {}) {
+    this.demod = new StreamingDemodulator(sampleRate, opts.profiles);
+    this.wirehairFactory = opts.wirehairFactory ?? new WirehairCodecFactory();
+    this.ltFactory = opts.ltFactory ?? new LTCodecFactory();
+  }
+
+  get sampleRate(): number {
+    return this.demod.sampleRate;
+  }
+
+  get isDone(): boolean {
+    return this.done || this.failed;
+  }
+
+  /** Feeds microphone samples; returns demodulator and transfer events in order. */
+  async push(samples: Float32Array): Promise<ReceiveEvent[]> {
+    const out: ReceiveEvent[] = [];
+    for (const ev of this.demod.push(samples)) {
+      if (ev.kind === "packet") out.push(ev, ...(await this.ingest(ev.result, ev.profile)));
+      else out.push(ev);
+    }
+    return out;
+  }
+
+  /** Feeds one decoded (or rejected) packet. */
+  async ingest(result: PacketDecodeResult, profile: AudioProfileId): Promise<ReceiveEvent[]> {
+    if (this.isDone) return [];
+    if (result.kind === "rejected") {
+      this.rejected++;
+      return [this.progress()];
+    }
+    const packet = result.packet;
+    const hash = packet.kind === "data" ? packet.metadataHash : packet.frame.metadataHash;
+    if (!this.lockedHash) this.lockedHash = hash;
+    else if (!equalBytes(this.lockedHash, hash)) {
+      // Same content re-sent with other parameters (profile / codec): follow it.
+      if (packet.kind === "metadata" && this.frame && equalBytes(packet.frame.sha256, this.frame.sha256)) {
+        this.resetSession(hash);
+      } else {
+        return []; // another session (REQ-AUD-036)
+      }
+    } else if (packet.kind === "metadata" && this.frame && !sameParameters(this.frame, packet.frame)) {
+      this.resetSession(hash);
+    }
+    this.accepted++;
+    this.profile = profile;
+
+    const events: ReceiveEvent[] = [];
+    if (packet.kind === "metadata") {
+      if (!this.frame) {
+        const error = await this.startDecoder(packet.frame);
+        if (error) {
+          this.failed = true;
+          return [error];
+        }
+        for (const [id, symbol] of this.pending) {
+          if (symbol.length !== packet.frame.blockSize) {
+            this.seen.delete(id); // unusable: let a valid copy of this id in later
+            continue;
+          }
+          const done = await this.addSymbol(id, symbol);
+          if (done) {
+            this.pending.clear();
+            return [done];
+          }
+        }
+        this.pending.clear();
+      }
+      events.push(this.progress());
+      return events;
+    }
+
+    // A symbol of the wrong size can never be used: do not let it shadow a valid one.
+    if (this.frame && packet.symbol.length !== this.frame.blockSize) return [this.progress()];
+    if (this.seen.has(packet.symbolId)) {
+      this.duplicates++;
+      return [this.progress()];
+    }
+    if (!this.decoder) {
+      if (this.pending.size < MAX_PENDING) {
+        this.seen.add(packet.symbolId);
+        this.pending.set(packet.symbolId, packet.symbol);
+      }
+      return [this.progress()];
+    }
+    this.seen.add(packet.symbolId);
+    const done = await this.addSymbol(packet.symbolId, packet.symbol);
+    if (done) return [done];
+    return [this.progress()];
+  }
+
+  /** Drops the decoder state and locks onto session `hash` (sender re-prepared). */
+  private resetSession(hash: Uint8Array): void {
+    this.decoder?.free();
+    this.decoder = null;
+    this.frame = null;
+    this.pending.clear();
+    this.seen.clear();
+    this.duplicates = 0;
+    this.lockedHash = hash;
+  }
+
+  private async startDecoder(frame: Frame): Promise<ReceiveError | null> {
+    const { codec } = decodeFlags(frame.flags);
+    try {
+      this.decoder = await (codec === "wirehair" ? this.wirehairFactory : this.ltFactory).createDecoder();
+      this.decoder.init(frame.compressedSize, frame.blockSize);
+      this.frame = frame;
+      return null;
+    } catch (err) {
+      return {
+        kind: "error",
+        code: codec === "wirehair" ? "wirehair_unavailable" : "decode_failed",
+        message: err instanceof Error ? err.message : String(err),
+      };
+    }
+  }
+
+  private async addSymbol(symbolId: number, symbol: Uint8Array): Promise<ReceiveComplete | ReceiveError | null> {
+    const frame = this.frame!;
+    if (symbol.length !== frame.blockSize) return null;
+    const status = this.decoder!.addSymbol(symbolId - 1, symbol);
+    if (status.kind !== "complete") return null;
+    try {
+      const compressed = this.decoder!.recover();
+      const file = decompress(compressed, frame.compressionId);
+      const sha = await hashSha256(file);
+      this.done = true;
+      this.decoder!.free();
+      this.decoder = null;
+      return {
+        kind: "complete",
+        file,
+        filename: frame.filename,
+        sha256Hex: toHex(sha),
+        verified: equalBytes(sha, frame.sha256),
+        isText: decodeFlags(frame.flags).isText,
+      };
+    } catch (err) {
+      this.failed = true;
+      return { kind: "error", code: "decode_failed", message: err instanceof Error ? err.message : String(err) };
+    }
+  }
+
+  private progress(): ReceiveProgress {
+    return {
+      kind: "progress",
+      received: this.seen.size,
+      needed: this.frame?.sourceBlockCount ?? 0,
+      accepted: this.accepted,
+      rejected: this.rejected,
+      duplicates: this.duplicates,
+      profile: this.profile,
+      filename: this.frame?.filename,
+      fileSize: this.frame?.fileSize,
+      blockSize: this.frame?.blockSize ?? 0,
+    };
+  }
+
+  free(): void {
+    this.decoder?.free();
+    this.decoder = null;
+    this.pending.clear();
+  }
+}

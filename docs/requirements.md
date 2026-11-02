@@ -94,10 +94,10 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-DOC-003 | S | 0.4.0 | When the user selects Copy details in the About window, the system shall copy the version, build, address, browser, language, installed and offline states for a bug report. |
 | REQ-DOC-004 | S | 0.4.0 | The system shall link from the About window to the documentation, the requirements, the source code, the changelog and the issue tracker, and shall show a privacy note, credits and a disclaimer. |
 | REQ-DOC-005 | S | 0.1.1 | The system shall show the user guide in the app, in English or French according to the interface language. |
-| REQ-DOC-006 | S | Unreleased | The system shall show every page of the `docs/` folder in the app (`#/docs`), with an index, a page menu, tables, code and Mermaid diagrams. |
-| REQ-DOC-007 | S | Unreleased | When the user follows a link between documentation pages, the system shall stay in the app; external links shall open in a new tab. |
-| REQ-DOC-008 | S | Unreleased | Where a documentation address names a language (`&lang=`) or a section (`&section=`), the system shall show that translation and scroll to that heading, headings having GitHub-compatible anchors. |
-| REQ-DOC-009 | S | Unreleased | If a documentation page has no translation in the interface language, then the system shall show the English page with a note. |
+| REQ-DOC-006 | S | 0.6.0 | The system shall show every page of the `docs/` folder in the app (`#/docs`), with an index, a page menu, tables, code and Mermaid diagrams. |
+| REQ-DOC-007 | S | 0.6.0 | When the user follows a link between documentation pages, the system shall stay in the app; external links shall open in a new tab. |
+| REQ-DOC-008 | S | 0.6.0 | Where a documentation address names a language (`&lang=`) or a section (`&section=`), the system shall show that translation and scroll to that heading, headings having GitHub-compatible anchors. |
+| REQ-DOC-009 | S | 0.6.0 | If a documentation page has no translation in the interface language, then the system shall show the English page with a note. |
 | REQ-DOC-010 | C | 0.1.1 | If the Mermaid library cannot be loaded, then the system shall leave the diagram source as text. |
 
 ## 7. QR scanning (SCAN)
@@ -137,11 +137,11 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-STRUCT-004 | S | 0.4.0 | When scanned or received text is a contact card, the system shall show a contact card with call, e-mail and web links and a Save contact action that downloads a `.vcf` file. |
 | REQ-STRUCT-005 | S | 0.4.0 | When scanned text is a QRShare identity, the system shall show its name and fingerprint and offer to add it as a trusted contact. |
 | REQ-STRUCT-006 | S | 0.4.0 | The system shall let the user switch between the structured card and the raw text. |
-| REQ-STRUCT-007 | S | Unreleased | When scanned or received text is a FIDO hybrid sign-in code (`FIDO:/` followed by digits encoding the CTAP 2.2 hybrid data), the system shall show a passkey card with the request (sign in or create a passkey) and the code's creation time, explaining that the code must be scanned by the phone holding the passkey, near the computer. |
-| REQ-STRUCT-008 | S | Unreleased | If a passkey code was created more than five minutes earlier, then the system shall warn that it has most likely expired. |
-| REQ-STRUCT-009 | S | Unreleased | The system shall not offer to copy, share, save or send on a passkey code, and shall warn the user never to forward it to another person or device. |
-| REQ-STRUCT-010 | C | Unreleased | Where the operating system handles passkey codes, the system shall offer to hand the scanned code to it. |
-| REQ-STRUCT-011 | S | Unreleased | If a code starting with `FIDO:/` is not a well-formed hybrid code, then the system shall show it as plain text. |
+| REQ-STRUCT-007 | S | 0.6.0 | When scanned or received text is a FIDO hybrid sign-in code (`FIDO:/` followed by digits encoding the CTAP 2.2 hybrid data), the system shall show a passkey card with the request (sign in or create a passkey) and the code's creation time, explaining that the code must be scanned by the phone holding the passkey, near the computer. |
+| REQ-STRUCT-008 | S | 0.6.0 | If a passkey code was created more than five minutes earlier, then the system shall warn that it has most likely expired. |
+| REQ-STRUCT-009 | S | 0.6.0 | The system shall not offer to copy, share, save or send on a passkey code, and shall warn the user never to forward it to another person or device. |
+| REQ-STRUCT-010 | C | 0.6.0 | Where the operating system handles passkey codes, the system shall offer to hand the scanned code to it. |
+| REQ-STRUCT-011 | S | 0.6.0 | If a code starting with `FIDO:/` is not a well-formed hybrid code, then the system shall show it as plain text. |
 
 ## 10. Encryption, identity and integrity (SEC)
 
@@ -196,6 +196,69 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-CIMBAR-004 | C | 0.4.0 | While receiving CIMBAR, the system shall show progress, received bytes, speed, elapsed time and detected frames. |
 | REQ-CIMBAR-005 | C | 0.4.0 | The system shall carry the SHA-256 of the content with a CIMBAR transfer and report on reception whether it matches. |
 | REQ-CIMBAR-006 | C | 0.4.0 | If the browser lacks OffscreenCanvas, then the system shall report that CIMBAR sending is unavailable. |
+
+## 13a. Audio transfer (AUD)
+
+| ID | Pri | Since | Requirement |
+|----|-----|-------|-------------|
+| REQ-AUD-001 | C | 0.6.0 | The system shall offer an experimental audio send mode, treated as an air-gapped mode. |
+| REQ-AUD-002 | C | 0.6.0 | Where the content is at most 8 KiB, the system shall offer audio under every transfer policy; above 8 KiB it shall not offer it. |
+| REQ-AUD-003 | C | 0.6.0 | The system shall recommend audio only when no camera is detected and the content is at most 1 KiB. |
+| REQ-AUD-004 | C | 0.6.0 | Where audio is offered in the transfer chooser or the transfer preparation, the system shall describe it as suitable up to 1 KiB, or as slow above, with the estimated duration for the Robust profile. |
+| REQ-AUD-005 | C | 0.6.0 | The system shall provide the routes `#/send/audio` and `#/receive/audio`. |
+| REQ-AUD-006 | C | 0.6.0 | The system shall build the audio receiver invitation as `#/receive/audio?policy=<policy>`. |
+| REQ-AUD-007 | C | 0.6.0 | When the user picks audio in the transfer chooser or the transfer preparation, the system shall hand the selected text or file to the audio sender. |
+| REQ-AUD-008 | C | 0.6.0 | The system shall show an Audio (Experimental) group with send and receive actions on the home screen, after the CIMBAR group. |
+| REQ-AUD-009 | C | 0.6.0 | The system shall label every audio screen and option as experimental. |
+| REQ-AUD-010 | C | 0.6.0 | When the audio sender opens with handed-over content, the system shall preload it; otherwise it shall offer a file or text input. |
+| REQ-AUD-011 | C | 0.6.0 | If the content to send by audio exceeds 8 KiB, then the system shall refuse it and suggest animated QR codes or CIMBAR. |
+| REQ-AUD-012 | C | 0.6.0 | When content is loaded in the audio sender, the system shall hash, compress and fountain-encode it and show the compressed size, the number of blocks and the estimated minimum duration. |
+| REQ-AUD-013 | C | 0.6.0 | The system shall let the sender choose the Robust (default) or Fast profile, and Ultrasonic under Advanced. |
+| REQ-AUD-014 | C | 0.6.0 | When the user presses Play, the system shall start audio output, and not before. |
+| REQ-AUD-015 | C | 0.6.0 | While playing, the system shall emit packets back to back, each with a new fountain symbol, until the user stops. |
+| REQ-AUD-016 | C | 0.6.0 | While playing, the system shall send a metadata packet first and then after every 8 data packets. |
+| REQ-AUD-017 | C | 0.6.0 | While playing, the system shall show the packets sent, the unique symbols sent against those needed, the elapsed time and the net bit rate. |
+| REQ-AUD-018 | C | 0.6.0 | The system shall advise a media volume of 70–100%, devices 10–50 cm apart, a quiet room and no Bluetooth speaker. |
+| REQ-AUD-019 | C | 0.6.0 | While playing, the system shall keep the screen awake where supported and ask for playback audio that ignores the silent switch where supported. |
+| REQ-AUD-020 | C | 0.6.0 | When the user stops or leaves the audio sender, the system shall stop every scheduled sound and close the audio context. |
+| REQ-AUD-021 | C | 0.6.0 | Where the user enables password encryption on the audio sender, the system shall encrypt the content with AES-256-GCM before sending it. |
+| REQ-AUD-030 | C | 0.6.0 | When the user starts listening, the system shall open the microphone mono without echo cancellation, noise suppression or automatic gain control. |
+| REQ-AUD-031 | C | 0.6.0 | If microphone access is denied or unavailable, then the system shall explain how to grant it. |
+| REQ-AUD-032 | C | 0.6.0 | When the audio receiver is opened with `autostart=1`, the system shall start listening, or show a prominent tap-to-start button if the browser requires a gesture. |
+| REQ-AUD-033 | C | 0.6.0 | While listening, the system shall show the input level and indicate too-quiet input, clipping and a detected signal. |
+| REQ-AUD-034 | C | 0.6.0 | While listening, the system shall show the detected profile, decoded and rejected packets, unique symbols against those needed, the elapsed time and the effective rate. |
+| REQ-AUD-035 | C | 0.6.0 | The system shall detect the sender's audio profile from the packet preamble. |
+| REQ-AUD-036 | C | 0.6.0 | When the audio receiver hears its first valid packet, the system shall lock onto that transfer and ignore other transfers, but follow the same content re-sent with another profile or codec. |
+| REQ-AUD-037 | C | 0.6.0 | When data packets arrive before the metadata, the system shall buffer up to 4096 of them and decode them once the metadata arrives. |
+| REQ-AUD-038 | C | 0.6.0 | The system shall ignore duplicate and wrong-size audio symbols. |
+| REQ-AUD-039 | C | 0.6.0 | When enough audio packets are received, the system shall rebuild, decompress and verify the content with SHA-256, then release the microphone. |
+| REQ-AUD-040 | C | 0.6.0 | When an audio transfer completes, the system shall show the result like the other receivers: summary, text or file with preview, download, share, open in the calling app, unlock of encrypted content, and the hash warning. |
+| REQ-AUD-050 | C | 0.6.0 | The system shall modulate audio as multi-tone FSK, each tone carrying 4 bits in its channel's band. |
+| REQ-AUD-051 | C | 0.6.0 | The system shall define the Robust (1.5–6.3 kHz, 60 ms symbols), Fast (1.5–6.3 kHz, 30 ms symbols) and Ultrasonic (17–19.56 kHz, 75 ms symbols, less reliable) profiles. |
+| REQ-AUD-052 | C | 0.6.0 | The system shall shape every symbol with a guard interval and raised-cosine edge ramps of at least 2 ms. |
+| REQ-AUD-053 | C | 0.6.0 | The system shall start every audio packet with a tapered linear chirp unique to its profile. |
+| REQ-AUD-054 | C | 0.6.0 | The system shall modulate packets deterministically with a peak amplitude of at most 0.9. |
+| REQ-AUD-055 | C | 0.6.0 | The system shall detect preambles by gain-independent normalised correlation and decode tones with the Goertzel algorithm. |
+| REQ-AUD-056 | C | 0.6.0 | The system shall work at sample rates from 22.05 to 96 kHz, between devices with different rates, Ultrasonic requiring at least 44.1 kHz. |
+| REQ-AUD-057 | C | 0.6.0 | The system shall mark unreliable demodulated bytes as erasures for the error-correcting code. |
+| REQ-AUD-070 | C | 0.6.0 | The system shall protect each audio packet with a Reed-Solomon coded header and a Reed-Solomon coded body ending with a CRC32. |
+| REQ-AUD-071 | C | 0.6.0 | The system shall carry in each audio data packet the transfer id, a 16-bit symbol id and one fountain symbol. |
+| REQ-AUD-072 | C | 0.6.0 | The system shall carry the transfer metadata in audio metadata packets as a protocol v3 frame header. |
+| REQ-AUD-073 | C | 0.6.0 | If a file name is too long for an audio metadata packet, then the system shall shorten its stem on a character boundary and keep its extension. |
+| REQ-AUD-074 | C | 0.6.0 | If an audio packet fails Reed-Solomon decoding or its CRC32, then the system shall count it as rejected and drop it. |
+| REQ-AUD-075 | C | 0.6.0 | The system shall encode audio transfers with Wirehair by default and flag the codec in the metadata so the receiver uses the same one. |
+| REQ-AUD-076 | C | 0.6.0 | If the receiver cannot load the codec flagged by the sender, then the system shall suggest choosing LT (compatibility) on the sender. |
+| REQ-AUD-077 | C | 0.6.0 | The system shall keep at least two source blocks for small audio payloads by shrinking the block size. |
+| REQ-AUD-078 | C | 0.6.0 | If an audio packet has an unknown version, then the system shall ignore it and log a warning. |
+| REQ-AUD-090 | C | 0.6.0 | The system shall load the audio capture worklet from an inline source, adding no static file. |
+| REQ-AUD-091 | C | 0.6.0 | If the audio worklet is unavailable, then the system shall capture with a ScriptProcessor instead. |
+| REQ-AUD-092 | C | 0.6.0 | The system shall implement audio transfer with no new runtime dependency. |
+| REQ-AUD-093 | C | 0.6.0 | The system shall demodulate one second of audio in less than 100 ms on the test machine. |
+| REQ-AUD-110 | C | 0.6.0 | The system shall keep the audio modem, packet layer and sessions free of DOM and Web Audio dependencies. |
+| REQ-AUD-111 | C | 0.6.0 | The system shall decode its own modulated packets exactly for every profile at 44.1 and 48 kHz. |
+| REQ-AUD-112 | C | 0.6.0 | The system shall decode audio packets through noise, gain changes, offsets, reverberation and resampling in its loopback tests. |
+| REQ-AUD-113 | C | 0.6.0 | The system shall rebuild a file sent through audio with 30% of the packets lost, with both codecs. |
+| REQ-AUD-120 | C | 0.6.0 | The system shall provide the audio texts in English and French, Arabic showing them in English for now. |
 
 ## 14. Text sharing (TEXT)
 
@@ -290,11 +353,11 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-COLLAB-063 | S | 0.2.0 | If IndexedDB is unavailable, then the system shall keep working without persistence. |
 | REQ-COLLAB-070 | M | 0.2.0 | The system shall carry collaboration only over the encrypted peer-to-peer channel, with no additional server or secret. |
 | REQ-COLLAB-080 | C | 0.4.0 | The system shall provide the collaboration engine as an interface-independent package (`@scelles/collab`) that other applications can use with the same protocol. |
-| REQ-COLLAB-090 | C | Unreleased | The system shall let applications sync a shared document between devices without a network, by exchanging binary frames (hello, state vector, update) over any channel such as animated QR codes, as specified in the [offline sync protocol](collab-sync-protocol.md). |
-| REQ-COLLAB-091 | C | Unreleased | Where a peer has been trusted through a signed hello frame, the system shall require its Ed25519 signature on every later frame and reject the frame otherwise. |
-| REQ-COLLAB-092 | C | Unreleased | If a received sync frame is oversized, malformed, of an unknown version or type, or carries an invalid signature, then the system shall reject it before decoding its content and log the reason. |
-| REQ-COLLAB-093 | C | Unreleased | When a sync update is received, the system shall apply it to an isolated copy first and change the document only after the application has validated that copy and the user has accepted it. |
-| REQ-COLLAB-094 | C | Unreleased | The system shall log every received sync frame with its sender, trust, size and result (applied, unchanged, refused, rejected). |
+| REQ-COLLAB-090 | C | 0.6.0 | The system shall let applications sync a shared document between devices without a network, by exchanging binary frames (hello, state vector, update) over any channel such as animated QR codes, as specified in the [offline sync protocol](collab-sync-protocol.md). |
+| REQ-COLLAB-091 | C | 0.6.0 | Where a peer has been trusted through a signed hello frame, the system shall require its Ed25519 signature on every later frame and reject the frame otherwise. |
+| REQ-COLLAB-092 | C | 0.6.0 | If a received sync frame is oversized, malformed, of an unknown version or type, or carries an invalid signature, then the system shall reject it before decoding its content and log the reason. |
+| REQ-COLLAB-093 | C | 0.6.0 | When a sync update is received, the system shall apply it to an isolated copy first and change the document only after the application has validated that copy and the user has accepted it. |
+| REQ-COLLAB-094 | C | 0.6.0 | The system shall log every received sync frame with its sender, trust, size and result (applied, unchanged, refused, rejected). |
 
 ## 18. System sharing and app handoff (SHARE)
 
@@ -309,8 +372,8 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-HANDOFF-003 | S | 0.4.0 | If a handoff message is malformed, comes from a window other than the opener, or carries more than 200 MB, then the system shall ignore it. |
 | REQ-HANDOFF-004 | S | 0.4.0 | Where the receive screen was opened with a `return` web address, the system shall offer an Open in &lt;host&gt; button that delivers the received file to that address's origin only. |
 | REQ-HANDOFF-005 | S | 0.4.0 | The system shall advertise the handoff protocol versions and optional features it supports in its web app manifest (`qrshare_handoff.versions`, `qrshare_handoff.features`). |
-| REQ-HANDOFF-006 | S | Unreleased | Where an application hands a file over with a send mode (`mode=animated-qr`, `cimbar`, `webrtc` or `share`, protocol version 2), the system shall go straight to that mode once the file is received, when the policy allows it, instead of showing the chooser. |
-| REQ-HANDOFF-007 | S | Unreleased | Where the receive screen was opened with `reply=opener` (protocol version 2), when the user selects Open in &lt;host&gt;, the system shall post the received file back to the window that opened QRShare, to the origin of the `return` address only, and fall back to opening a new window if that window is gone. |
+| REQ-HANDOFF-006 | S | 0.6.0 | Where an application hands a file over with a send mode (`mode=animated-qr`, `cimbar`, `webrtc` or `share`, protocol version 2), the system shall go straight to that mode once the file is received, when the policy allows it, instead of showing the chooser. |
+| REQ-HANDOFF-007 | S | 0.6.0 | Where the receive screen was opened with `reply=opener` (protocol version 2), when the user selects Open in &lt;host&gt;, the system shall post the received file back to the window that opened QRShare, to the origin of the `return` address only, and fall back to opening a new window if that window is gone. |
 | REQ-HANDOFF-008 | S | 0.4.0 | If no file arrives within 30 seconds of the handoff, or no answer within 60 seconds of an Open in &lt;host&gt; delivery, then the system shall report a timeout. |
 
 ## 19. Not planned for now (W)
@@ -329,7 +392,7 @@ See the [roadmap](https://github.com/s-celles/QRShare/blob/main/ROADMAP.md) for 
 ## 20. Known deviations
 
 None known. The deviations found while rebuilding this specification were fixed
-in the next release (*Unreleased*):
+in release 0.6.0:
 
 - **REQ-SEC-008** — contact encryption failed end to end: identity QR codes
   carried no encryption key, and the receiver read the sender fingerprint with

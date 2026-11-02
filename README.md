@@ -12,6 +12,7 @@ browser, installs as a Progressive Web App and works offline.
 - Scan and create QR codes (text, URLs, Wi-Fi, contacts), optionally password-protected
 - Send text and files between devices with **animated QR codes** — no network needed
 - Experimental high-speed **CIMBAR** color barcodes, also air-gapped
+- Experimental **audio** transfer of short texts and small files as sound, from speaker to microphone — no network, camera or line of sight
 - Direct **WebRTC** peer-to-peer transfers, nearby-device discovery and live collaborative editing
 - Native share, SHA-256 integrity checks, English / French / Arabic interface, light and dark themes
 

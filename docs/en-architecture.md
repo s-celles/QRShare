@@ -27,6 +27,7 @@ build output can be served from any static host (GitHub Pages in production). Se
 - **QR Scanning**: [@undecaf/zbar-wasm](https://www.npmjs.com/package/@undecaf/zbar-wasm)
 - **Fountain Codes**: [wirehair-wasm](https://www.npmjs.com/package/wirehair-wasm) + pure-JS LT fallback
 - **Experimental CIMBAR**: [libcimbar](https://github.com/sz3/libcimbar) v0.6.7c (MPL-2.0)
+- **Experimental audio**: in-house pure-TypeScript modem (`src/audio/`: MFSK, chirp sync, Reed-Solomon, CRC32) on the Web Audio API
 - **Compression**: [fflate](https://github.com/101arrowz/fflate)
 - **WebRTC**: [Trystero](https://github.com/dmotz/trystero) (Nostr strategy)
 - **Collaboration**: [Yjs](https://github.com/yjs/yjs) + y-protocols + y-indexeddb

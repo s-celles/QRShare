@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   bundleFiles,
+  bundleSizeUpperBound,
   unbundleFiles,
   isZipBundle,
   makeBundleName,
@@ -84,5 +85,29 @@ describe("zip bundle utility", () => {
     expect(makeBundleName(3)).toBe("qrshare-3-files.qrshare-bundle.zip");
     expect(makeBundleName(1)).toBe("qrshare-1-files.qrshare-bundle.zip");
     expect(isZipBundle(makeBundleName(5))).toBe(true);
+  });
+});
+
+
+describe("bundleSizeUpperBound (review item 9)", () => {
+  it("is never below the real archive size, even for incompressible data", () => {
+    let seed = 1;
+    const rand = () => {
+      seed = (seed * 1103515245 + 12345) >>> 0;
+      return seed / 4294967296;
+    };
+    for (let trial = 0; trial < 40; trial++) {
+      const count = 1 + Math.floor(rand() * 5);
+      const entries = Array.from({ length: count }, (_, i) => {
+        const size = Math.floor(rand() * (trial < 30 ? 9000 : 150000));
+        const data = new Uint8Array(size);
+        for (let j = 0; j < size; j += 65536) crypto.getRandomValues(data.subarray(j, Math.min(size, j + 65536)));
+        return { name: `fichier-é-${trial}-${i}.bin`, data };
+      });
+      const real = bundleFiles(entries).length;
+      const bound = bundleSizeUpperBound(entries.map((e) => ({ name: e.name, size: e.data.length })));
+      expect(bound).toBeGreaterThanOrEqual(real);
+      expect(bound - real).toBeLessThan(200 * count);
+    }
   });
 });

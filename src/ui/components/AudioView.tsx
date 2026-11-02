@@ -8,7 +8,6 @@ import { TextInputArea } from "./TextInputArea";
 import { SpeedGraph } from "./SpeedGraph";
 import { ReceivedResultView, type ReceivedPayload } from "./ReceivedResultView";
 import {
-  AUDIO_MAX_BYTES,
   DEFAULT_PROFILE_ID,
   estimateNetBytesPerSecond,
   getProfile,
@@ -24,7 +23,6 @@ import {
 import { AudioPlayer, SampleRateTooLowError, type PlayerProgress } from "@/audio/web/playback";
 import { MicrophoneError, startCapture, type CaptureHandle } from "@/audio/web/capture";
 import { StartGuard, runGuarded } from "@/audio/web/start-guard";
-import { encryptPayload } from "@/crypto/encryption";
 
 /** Below this RMS the input is considered too quiet (REQ-AUD-033). */
 const TOO_QUIET_DBFS = -50;
@@ -137,13 +135,14 @@ function AudioSender() {
     }
     setPreparing(true);
     const timer = setTimeout(() => {
-      // Optional password encryption (AES-256-GCM, as in the other senders); the
-      // receiver offers the unlock card. Ciphertext does not compress.
-      (usePassword ? encryptPayload(payload.data, password) : Promise.resolve(payload.data))
-        .then((bytes) => {
-          if (bytes.length > AUDIO_MAX_BYTES) throw new AudioPayloadTooLargeError(bytes.length);
-          return AudioSendSession.create(bytes, payload.filename, { isText: payload.isText, profile, codec });
-        })
+      // With a password the transfer is sealed: metadata and content encrypted,
+      // size rounded up to 256-byte steps, random session id (src/audio/sealed.ts).
+      AudioSendSession.create(payload.data, payload.filename, {
+        isText: payload.isText,
+        profile,
+        codec,
+        password: usePassword ? password : undefined,
+      })
         .then((created) => {
           if (cancelled) {
             created.free();
@@ -305,6 +304,7 @@ function AudioSender() {
               codec: info.codec === "wirehair" ? "Wirehair" : "LT",
             })}</p>
             <p>{t("audio.estimate", { duration: formatDuration(info.estimatedMinSec) })}</p>
+            {info.sealed && <p>🔒 {t("audio.sealedSummary", { size: info.compressedSize })}</p>}
           </div>
         )}
         {error && <div class="error-msg" role="alert">{error}</div>}
@@ -365,6 +365,10 @@ function AudioReceiver() {
   const [listening, setListening] = useState(false);
   const [suspended, setSuspended] = useState(false);
   const [error, setError] = useState("");
+  // Password for sealed transfers: typed before listening, or when one is detected.
+  const [rxPassword, setRxPassword] = useState("");
+  const [needPassword, setNeedPassword] = useState(false);
+  const [wrongPassword, setWrongPassword] = useState(false);
   const [level, setLevel] = useState<{ rmsDbfs: number; peak: number } | null>(null);
   const [stats, setStats] = useState<ReceiverStats>(emptyStats);
   const [now, setNow] = useState(Date.now());
@@ -396,10 +400,18 @@ function AudioReceiver() {
           filename: ev.filename,
           fileSize: ev.fileSize,
         });
+      } else if (ev.kind === "password_required") {
+        setNeedPassword(true);
+      } else if (ev.kind === "error" && ev.code === "wrong_password") {
+        // Not final: keep listening and let the user correct the password.
+        setNeedPassword(true);
+        setWrongPassword(true);
       } else if (ev.kind === "error") {
         setError(ev.code === "wirehair_unavailable" ? t("audio.wirehairUnavailable") : t("audio.decodeFailed", { message: ev.message }));
         void stopListening();
       } else if (ev.kind === "complete") {
+        setNeedPassword(false);
+        setWrongPassword(false);
         setDurationSec((Date.now() - startRef.current) / 1000);
         setResult({ file: ev.file, filename: ev.filename, isText: ev.isText, verified: ev.verified });
         // Stop the microphone and close the AudioContext (REQ-AUD-039).
@@ -434,7 +446,7 @@ function AudioReceiver() {
       }), (c) => c.stop());
       if (!capture) return;
       sessionRef.current?.free();
-      session = new AudioReceiveSession(capture.sampleRate);
+      session = new AudioReceiveSession(capture.sampleRate, { password: rxPassword });
       sessionRef.current = session;
       captureRef.current = capture;
       startRef.current = Date.now();
@@ -444,6 +456,18 @@ function AudioReceiver() {
       if (err instanceof MicrophoneError) setError(err.code === "denied" ? t("audio.micDenied") : t("audio.micUnavailable"));
       else setError(err instanceof Error ? err.message : String(err));
     }
+  };
+
+  /** Gives the (corrected) password to the running session; it keeps listening meanwhile. */
+  const submitPassword = () => {
+    const s = sessionRef.current;
+    setWrongPassword(false);
+    if (!s) return;
+    chainRef.current = chainRef.current.then(async () => {
+      const events = await s.setPassword(rxPassword);
+      if (!events.some((e) => e.kind === "error" && e.code === "wrong_password")) setNeedPassword(false);
+      handleEvents(events);
+    });
   };
 
   // Invitation links open with autostart=1 (REQ-AUD-032).
@@ -495,6 +519,31 @@ function AudioReceiver() {
         </button>
       )}
       {error && <div class="error-msg" role="alert">{error}</div>}
+
+      {!result && (
+        <form
+          class={`audio-controls audio-password${needPassword ? " required" : ""}`}
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitPassword();
+          }}
+        >
+          {needPassword && <p class="audio-password-title" role="status">🔒 {t("audio.passwordRequired")}</p>}
+          <label>{t("audio.receivePassword")}
+            <input
+              type="password"
+              class="creator-input-field"
+              value={rxPassword}
+              autoFocus={needPassword}
+              placeholder={t("encryption.passwordPlaceholder")}
+              onInput={(e) => setRxPassword((e.target as HTMLInputElement).value)}
+            />
+          </label>
+          {listening && <button type="submit" class="start-btn">{t("audio.unlock")}</button>}
+          {wrongPassword && <p class="error-msg" role="alert">{t("audio.wrongPassword")}</p>}
+          {!needPassword && !listening && <p class="settings-hint">{t("audio.receivePasswordHint")}</p>}
+        </form>
+      )}
 
       {listening && !result && (
         <>

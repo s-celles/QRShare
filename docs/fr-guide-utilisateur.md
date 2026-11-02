@@ -377,8 +377,8 @@ décodés et rejetés, les symboles uniques reçus par rapport aux symboles
 nécessaires, et le débit effectif. À la fin du transfert, le microphone est
 libéré et le résultat s'affiche comme pour les autres receveurs : vérification
 SHA-256, texte affiché directement, ou fichier avec aperçu, **Télécharger**,
-**Partager** et **Ouvrir dans …** ; un contenu chiffré par mot de passe affiche
-la carte de déverrouillage.
+**Partager** et **Ouvrir dans …** ; un contenu reçu d'une version antérieure de
+QRShare et chiffré par mot de passe affiche la carte de déverrouillage.
 
 ### Profils et débits
 
@@ -419,12 +419,34 @@ donneur refuse et suggère les QR codes animés ou CIMBAR.
 - Certains navigateurs (notamment sur iOS) peuvent encore appliquer un
   traitement de la voix au microphone, ce qui réduit la fiabilité.
 - Le son se diffuse : toute personne à portée d'oreille, ou tout appareil
-  d'enregistrement, peut capter le transfert. Pour un contenu sensible, cochez
-  **Chiffrer avec un mot de passe** sur le donneur audio et transmettez le mot
-  de passe au receveur par un autre moyen ; le receveur le demandera pour
-  déverrouiller le contenu. Le chiffrement ajoute 49 octets et les données
-  chiffrées ne se compressent plus, le transfert est donc un peu plus long. Le microphone n'est utilisé que pendant l'écoute, et
-  aucun son n'est enregistré.
+  d'enregistrement, peut capter le transfert. Pour un contenu sensible, voir
+  *Transferts chiffrés (scellés)* ci-dessous. Le microphone n'est utilisé que
+  pendant l'écoute, et aucun son n'est enregistré.
+
+### Transferts chiffrés (scellés)
+
+Cochez **Chiffrer avec un mot de passe** sur le donneur audio et transmettez le
+mot de passe au receveur par un autre moyen (à voix haute, par écrit, jamais par
+le même canal sonore). Le transfert est alors **scellé** : rien de lisible ne
+passe sur les ondes.
+
+- Le contenu, le nom du fichier, sa taille exacte et sa nature (texte ou
+  fichier) sont tous chiffrés (AES-256-GCM, clé dérivée du mot de passe par
+  PBKDF2-SHA256).
+- La taille transmise est arrondie au multiple de 256 octets supérieur : une
+  personne qui écoute n'apprend qu'un ordre de grandeur ; les petits transferts
+  durent quelques secondes de plus.
+- Chaque transfert utilise un identifiant aléatoire, sans lien avec son contenu.
+
+Sur le receveur, saisissez le mot de passe dans le champ **Mot de passe** avant
+d'appuyer sur **Commencer l'écoute**, ou plus tard : quand un transfert scellé
+est détecté, le receveur demande le mot de passe et **continue d'écouter**
+pendant ce temps, rien n'est donc perdu. Un mot de passe incorrect est signalé
+dès le premier paquet de métadonnées entendu ; corrigez-le et appuyez sur
+**Déverrouiller**. À la fin du transfert, le contenu s'affiche déjà déchiffré.
+
+Ce qui reste visible : la durée d'émission, et donc l'ordre de grandeur de la
+taille.
 
 ---
 

@@ -763,6 +763,7 @@ export const en: Record<string, string> = {
   "audioSession.listening": "Listening",
   "audioSession.placeholder": "Message",
   "audioSession.send": "Send",
+  "audioSession.bytesLeft": "{used}/{max} bytes · Enter to send, Shift+Enter for a new line",
   "audioSession.notDelivered": "not delivered",
   "audioSession.memberLeft": "{name} left the session.",
   "audioSession.sendFile": "Send a file:",

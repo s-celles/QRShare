@@ -3,7 +3,7 @@ import { navigate } from "../router";
 import { t } from "../i18n";
 import { AudioRoom, type MemberView, type RoomEvent } from "@/audio/link/room";
 import { MAX_CHAT_BYTES } from "@/audio/link/protocol";
-import { AudioLinkRuntime } from "@/audio/web/link-runtime";
+import { AudioLinkRuntime, createOutputContext } from "@/audio/web/link-runtime";
 import { MicrophoneError } from "@/audio/web/capture";
 import { StartGuard, runGuarded } from "@/audio/web/start-guard";
 import { AUDIO_PROFILES, profileIndex, type AudioProfileId } from "@/audio/profiles";
@@ -42,6 +42,8 @@ export function AudioSessionView() {
   const [error, setError] = useState("");
   const [warning, setWarning] = useState(false);
   const [transmitting, setTransmitting] = useState(false);
+  const [soundSuspended, setSoundSuspended] = useState(false);
+  const [joinAttempts, setJoinAttempts] = useState(0);
   const [level, setLevel] = useState(-120);
   const [fileState, setFileState] = useState<{ packets: number; done: number; total: number; active: boolean } | null>(null);
   const roomRef = useRef<AudioRoom | null>(null);
@@ -95,6 +97,15 @@ export function AudioSessionView() {
   const start = async (role: "host" | "guest") => {
     setError("");
     setWarning(false);
+    // Created first, synchronously inside the click: after the microphone prompt the
+    // browser would no longer count it as a user gesture and keep the sound muted.
+    let out: AudioContext | null = null;
+    try {
+      out = createOutputContext();
+    } catch {
+      setError(t("audio.notSupported"));
+      return;
+    }
     try {
       const room = role === "host"
         ? await AudioRoom.host({ name, profileIndex: profileIndex(profileId) })
@@ -103,6 +114,7 @@ export function AudioSessionView() {
         onRoomEvents,
         onLevel: (db) => setLevel(db),
         onTransmitting: setTransmitting,
+        onAudioState: setSoundSuspended,
         onFileSendProgress: (s) => {
           setFileState(s.active ? s : null);
           if (!s.active && s.total > 0 && s.done >= s.total) addEntry({ kind: "system", key: nextKey(), text: t("audioSession.fileDelivered") });
@@ -114,8 +126,11 @@ export function AudioSessionView() {
           payload: { file: f.file, filename: f.filename, isText: f.isText, verified: f.verified },
         }),
         onError: (m) => setError(m),
-      }), (r) => r.stop());
-      if (!runtime) return;
+      }, { out }), (r) => r.stop());
+      if (!runtime) {
+        await out.close().catch(() => {});
+        return;
+      }
       roomRef.current = room;
       runtimeRef.current = runtime;
       if (role === "host") {
@@ -126,6 +141,7 @@ export function AudioSessionView() {
         setPhase("searching");
       }
     } catch (err) {
+      await out.close().catch(() => {});
       if (err instanceof MicrophoneError) setError(err.code === "denied" ? t("audio.micDenied") : t("audio.micUnavailable"));
       else setError(err instanceof Error ? err.message : String(err));
     }
@@ -145,6 +161,12 @@ export function AudioSessionView() {
     setFileState(null);
   };
 
+  useEffect(() => {
+    if (phase !== "joining") return;
+    const id = setInterval(() => setJoinAttempts(roomRef.current?.joinAttempts ?? 0), 500);
+    return () => clearInterval(id);
+  }, [phase]);
+
   useEffect(() => () => {
     guard.dispose();
     void runtimeRef.current?.stop();
@@ -154,6 +176,7 @@ export function AudioSessionView() {
     const room = roomRef.current;
     const text = draft.trim();
     if (!room || !text || utf8Len(text) > MAX_CHAT_BYTES) return;
+    void runtimeRef.current?.resume(); // a click: let the browser start the sound if needed
     const rseq = room.sendChat(text);
     const me = room.memberViews().find((m) => m.self);
     addEntry({ kind: "message", key: nextKey(), mine: true, name: room.name, color: me?.color ?? "#555", text, rseq, receivedBy: 0, total: members.length - 1, status: "pending" });
@@ -182,6 +205,11 @@ export function AudioSessionView() {
       </div>
       <p class="settings-hint">{t("audioSession.hint")}</p>
       {error && <div class="error-msg" role="alert">{error}</div>}
+      {soundSuspended && phase !== "start" && (
+        <button class="start-btn audio-tap-start" onClick={() => void runtimeRef.current?.resume()}>
+          🔊 {t("audioSession.enableSound")}
+        </button>
+      )}
       {warning && <div class="error-msg" role="alert">{t("audioSession.securityWarning")}</div>}
 
       {phase === "start" && (
@@ -219,7 +247,7 @@ export function AudioSessionView() {
               {found.map((r) => (
                 <li key={r.roomId}>
                   <span>{t("audioSession.roomOf", { name: r.hostName })}</span>
-                  <button class="start-btn" onClick={() => { roomRef.current?.join(r.roomId); setPhase("joining"); }}>
+                  <button class="start-btn" onClick={() => { void runtimeRef.current?.resume(); roomRef.current?.join(r.roomId); setPhase("joining"); }}>
                     {t("audioSession.joinButton")}
                   </button>
                 </li>
@@ -233,6 +261,7 @@ export function AudioSessionView() {
       {phase === "joining" && (
         <div class="creator-content">
           <p role="status">{t("audioSession.joining")}</p>
+          <p class="settings-hint">{t("audioSession.joinAttempts", { n: joinAttempts })}</p>
           <button class="stop-btn" onClick={() => void leave()}>{t("common.cancel")}</button>
         </div>
       )}

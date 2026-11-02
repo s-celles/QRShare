@@ -474,7 +474,10 @@ How it works, in short:
 
 Expect about 2–3 seconds per short message with the Fast profile, and about 10
 seconds with Ultrasonic. Keep both screens open, the devices within a few metres
-(less than 1–2 m for Ultrasonic), and the media volume high. On iPhone, recording
+(less than 1–2 m for Ultrasonic), and the media volume high. If a **Tap to enable
+the sound** button appears, tap it: the browser keeps the sound muted until then.
+While joining, the screen shows how many requests were sent; if the count grows
+without a connection, raise the volume and bring the devices closer. On iPhone, recording
 and playing at the same time may route the sound to the earpiece at a lower volume.
 
 ---

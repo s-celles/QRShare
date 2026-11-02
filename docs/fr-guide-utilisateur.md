@@ -493,6 +493,10 @@ En bref, le fonctionnement :
 Comptez environ 2 à 3 secondes par message court en profil Rapide, environ 10
 secondes en Ultrasonique. Gardez les deux écrans ouverts, les appareils à
 quelques mètres (moins de 1 à 2 m en Ultrasonique) et le volume multimédia élevé.
+Si un bouton **Touchez pour activer le son** apparaît, touchez-le : le navigateur
+garde le son coupé jusque-là. Pendant la connexion, l'écran indique le nombre de
+demandes envoyées ; s'il augmente sans connexion, montez le volume et rapprochez
+les appareils.
 Sur iPhone, enregistrer et jouer en même temps peut faire passer le son par
 l'écouteur, à volume réduit.
 

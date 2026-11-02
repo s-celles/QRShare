@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Audio sessions (Experimental)**: connect devices over sound, like a WebRTC connection but with no network, then chat and send files. Joining exchanges P-256 keys over sound and shows a 4-digit verification code on every device; all traffic is encrypted with AES-256-GCM. Messages are acknowledged (✓ / ✓✓) and resent when lost, devices take turns (listen before talking), up to 6 participants share a session, and files are sent as sealed transfers that members decrypt automatically
 - **Sealed audio transfers**: with a password, nothing readable goes on the air any more. The file name, exact size, content type and SHA-256 are encrypted along with the content (AES-256-GCM, PBKDF2-SHA256), the size sent is rounded up to 256-byte steps and each transfer uses a random identifier. The receiver can take the password before listening, or asks for it when it detects an encrypted transfer while it keeps listening; a wrong password is reported at once and can be corrected without restarting, and the content is shown already decrypted
 
+### Fixed
+
+- Audio sessions: joining could hang on "Joining…" because the joining device's sound output was created after the microphone prompt, so browsers (notably Safari on iOS) kept it muted and the host never heard the request. The output now starts within the tap, every tap (Join, Send) re-enables it, a **Tap to enable the sound** button appears when it is still muted, and the joining screen shows how many requests were sent
+
 ## [0.6.0] - 2026-11-02
 
 ### Added

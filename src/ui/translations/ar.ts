@@ -693,7 +693,7 @@ export const ar: Record<string, string> = {
   "audio.profileRobust": "Robust (about {rate} B/s)",
   "audio.profileFast": "Fast (about {rate} B/s)",
   "audio.profileUltrasonic": "Ultrasonic (less reliable, about {rate} B/s)",
-  "audio.ultrasonicWarning": "Near-ultrasonic (17–19.5 kHz) is barely audible but many speakers and microphones attenuate it; it needs a 44.1 kHz or higher sample rate. Use it only when Robust is too disturbing.",
+  "audio.ultrasonicWarning": "Near-ultrasonic (18.5–19.8 kHz, played at half level) is hard to hear for most adults, though some people, children especially, still hear it, and loudspeakers at high volume add audible distortion: keep the volume around 50–70%. Many speakers and microphones attenuate this band and it needs a 44.1 kHz or higher sample rate, so it is slower (about 5 bytes/s) and less reliable than Robust.",
   "audio.advanced": "Advanced",
   "audio.codec": "Fountain codec:",
   "audio.codecAuto": "Auto (Wirehair)",

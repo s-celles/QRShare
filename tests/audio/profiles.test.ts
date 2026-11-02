@@ -31,7 +31,10 @@ describe("audio profiles (REQ-AUD-051)", () => {
     expect(fast.toneSpacingHz).toBeCloseTo(1 / fast.windowSec, 6);
 
     const ultra = getProfile("ultrasonic");
-    expect(ultra.baseHz).toBe(17000);
+    expect(ultra.baseHz).toBe(18500);
+    expect(ultra.channels).toBe(2);
+    expect(ultra.peak).toBeLessThanOrEqual(0.45);
+    expect(getProfile("robust").peak).toBe(0.9);
     expect(ultra.windowSec + ultra.guardSec).toBeCloseTo(0.075, 10);
     expect(ultra.lessReliable).toBe(true);
     expect(ultra.minSampleRate).toBe(44100);
@@ -51,7 +54,7 @@ describe("audio profiles (REQ-AUD-051)", () => {
       expect(Math.max(p.chirp.f0, p.chirp.f1)).toBeLessThan(nyquist);
     }
     expect(topToneHz(getProfile("robust"))).toBe(6250);
-    expect(topToneHz(getProfile("ultrasonic"))).toBe(19520);
+    expect(topToneHz(getProfile("ultrasonic"))).toBe(19740);
   });
 
   it("indexes profiles for the packet header", () => {
@@ -67,6 +70,8 @@ describe("audio profiles (REQ-AUD-051)", () => {
   });
 });
 
+const ULTRA_RATE = 5.28;
+
 describe("throughput estimates (REQ-AUD-004)", () => {
   it("pins the net byte rates of each profile", () => {
     const robust = estimateNetBytesPerSecond(getProfile("robust"));
@@ -76,12 +81,12 @@ describe("throughput estimates (REQ-AUD-004)", () => {
     expect(robust).toBeLessThanOrEqual(25);
     expect(fast).toBeGreaterThanOrEqual(50);
     expect(fast).toBeLessThanOrEqual(60);
-    expect(ultra).toBeGreaterThanOrEqual(9);
-    expect(ultra).toBeLessThanOrEqual(12);
+    expect(ultra).toBeGreaterThanOrEqual(4);
+    expect(ultra).toBeLessThanOrEqual(7);
     // Exact pinned values (documentation quotes these, rounded).
     expect(robust).toBeCloseTo(22.4, 1);
     expect(fast).toBeCloseTo(53.2, 1);
-    expect(ultra).toBeCloseTo(9.93, 1);
+    expect(ultra).toBeCloseTo(ULTRA_RATE, 1);
   });
 
   it("computes packet airtime from the profile", () => {

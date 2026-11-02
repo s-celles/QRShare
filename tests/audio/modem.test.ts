@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { makeChirp, CHIRP_AMPLITUDE } from "@/audio/chirp";
+import { makeChirp } from "@/audio/chirp";
 import {
   bytesToNibbles,
   nibblesToBytes,
@@ -11,6 +11,7 @@ import {
 import { AUDIO_PROFILES, getProfile, HEADER_CODEWORD_BYTES, symbolsForBytes, toneHz } from "@/audio/profiles";
 import { encodeDataBody, encodeOnAir } from "@/audio/packet";
 import { goertzelPower } from "@/audio/goertzel";
+import { fft } from "@/audio/fft";
 import { randomBytes } from "./helpers";
 
 function maxNormXcorr(a: Float32Array, b: Float32Array): number {
@@ -42,8 +43,8 @@ describe("chirp preambles (REQ-AUD-053)", () => {
         expect(Math.abs(c[c.length - 1])).toBeLessThan(0.01);
         let peak = 0;
         for (const v of c) peak = Math.max(peak, Math.abs(v));
-        expect(peak).toBeLessThanOrEqual(CHIRP_AMPLITUDE + 1e-6);
-        expect(peak).toBeGreaterThan(0.8 * CHIRP_AMPLITUDE);
+        expect(peak).toBeLessThanOrEqual(p.peak + 1e-6);
+        expect(peak).toBeGreaterThan(0.8 * p.peak);
       }
     }
   });
@@ -144,5 +145,46 @@ describe("modulate (REQ-AUD-050, 052, 054, 056)", () => {
       }
       expect(best).toBe(nibbles[c]);
     }
+  });
+});
+
+describe("quieter ultrasonic profile (heard on devices)", () => {
+  const body = encodeDataBody(new Uint8Array([9, 9, 9, 9]), 3, randomBytes(32, 8));
+  /** Energy below 15 kHz (dB re total) after a mild speaker nonlinearity, simulated at 192 kHz. */
+  function audibleDistortion(x: Float32Array, sr: number): number {
+    const y = Float64Array.from(x, (v) => v + 0.05 * v * v + 0.05 * v * v * v);
+    let n = 1;
+    while (n < y.length) n <<= 1;
+    const re = new Float64Array(n);
+    re.set(y);
+    const im = new Float64Array(n);
+    fft(re, im);
+    let low = 0;
+    let total = 0;
+    for (let k = 1; k < n / 2; k++) {
+      const pw = re[k] * re[k] + im[k] * im[k];
+      total += pw;
+      const f = (k * sr) / n;
+      if (f > 20 && f < 15000) low += pw;
+    }
+    return 10 * Math.log10(low / total);
+  }
+
+  it("plays at half level and leaks much less into the audible band through a speaker", () => {
+    const p = getProfile("ultrasonic");
+    const sr = 192000;
+    const x = modulate(encodeOnAir(body, p), p, sr);
+    let peak = 0;
+    for (const v of x) peak = Math.max(peak, Math.abs(v));
+    expect(peak).toBeLessThanOrEqual(0.45);
+    const leak = audibleDistortion(x, sr);
+    console.log(`[measure] ultrasonic audible distortion: ${leak.toFixed(1)} dB (previous profile: -37 dB)`);
+    expect(leak).toBeLessThan(-40); // at least 3 dB less audible distortion than the previous profile
+  });
+
+  it("stays above 18 kHz, where fewer adults hear", () => {
+    const p = getProfile("ultrasonic");
+    expect(p.baseHz).toBeGreaterThanOrEqual(18000);
+    expect(Math.min(p.chirp.f0, p.chirp.f1)).toBeGreaterThanOrEqual(18000);
   });
 });

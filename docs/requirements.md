@@ -238,7 +238,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-AUD-039 | C | 0.6.0 | When enough audio packets are received, the system shall rebuild, decompress and verify the content with SHA-256, then release the microphone. |
 | REQ-AUD-040 | C | 0.6.0 | When an audio transfer completes, the system shall show the result like the other receivers: summary, text or file with preview, download, share, open in the calling app, unlock of encrypted content, and the hash warning. |
 | REQ-AUD-050 | C | 0.6.0 | The system shall modulate audio as multi-tone FSK, each tone carrying 4 bits in its channel's band. |
-| REQ-AUD-051 | C | 0.6.0 | The system shall define the Robust (1.5–6.3 kHz, 60 ms symbols), Fast (1.5–6.3 kHz, 30 ms symbols) and Ultrasonic (17–19.56 kHz, 75 ms symbols, less reliable) profiles. |
+| REQ-AUD-051 | C | 0.6.0 | The system shall define the Robust (1.5–6.3 kHz, 60 ms symbols), Fast (1.5–6.3 kHz, 30 ms symbols) and Ultrasonic (18.5–19.74 kHz, 2 tones at a time at half level since Unreleased, 75 ms symbols, less reliable) profiles. |
 | REQ-AUD-052 | C | 0.6.0 | The system shall shape every symbol with a guard interval and raised-cosine edge ramps of at least 2 ms. |
 | REQ-AUD-053 | C | 0.6.0 | The system shall start every audio packet with a tapered linear chirp unique to its profile. |
 | REQ-AUD-054 | C | 0.6.0 | The system shall modulate packets deterministically with a peak amplitude of at most 0.9. |

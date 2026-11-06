@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { marked } from "marked";
 import { ShareService } from "@/share/service";
+import { renderReceivedMarkdown } from "../markdown-preview";
 import { t } from "../i18n";
 
 interface FilePreviewProps {
@@ -69,10 +69,11 @@ function VCardPreview({ url, filename, text }: { url: string; filename: string; 
   </div>;
 }
 
-function renderMarkdown(markdown: string): string {
-  const renderer = new marked.Renderer();
-  renderer.html = () => "";
-  return marked.parse(markdown, { gfm: true, breaks: true, renderer }) as string;
+/** Received Markdown is untrusted: rendered by the strict renderer, or null (show the source). */
+function renderMarkdown(markdown: string): string | null {
+  return renderReceivedMarkdown(markdown, {
+    labels: { remoteImage: (host) => t("paste.remoteImage", { host }), missing: t("paste.missingAttachment") },
+  });
 }
 
 type FrontmatterEntry = { key: string; value: string };
@@ -136,9 +137,17 @@ export function FilePreview({ url, filename, mimeType }: FilePreviewProps) {
     const markdown = /\.(md|markdown)$/i.test(filename);
     if (markdown) {
       const { entries, body } = parseFrontmatter(text);
+      const html = renderMarkdown(body);
       return <div class="file-preview file-preview-markdown">
         <FrontmatterView entries={entries} />
-        <div dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
+        {html === null ? (
+          <>
+            <p class="paste-warning">{t("preview.markdownFallback")}</p>
+            <pre>{body}</pre>
+          </>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        )}
       </div>;
     }
     return <div class="file-preview file-preview-text"><pre>{text}</pre></div>;

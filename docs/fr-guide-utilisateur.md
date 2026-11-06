@@ -691,3 +691,6 @@ Non. En mode QR, le transfert est purement optique. En mode WebRTC, le fichier v
 
 **Puis-je installer l'application ?**
 Oui. QRShare est une Progressive Web App (PWA) : votre navigateur peut vous proposer de l'installer sur votre écran d'accueil pour un accès hors-ligne.
+
+**Pourquoi un fichier Markdown reçu diffère-t-il de sa source ?**
+Un fichier `.md` reçu vient de quelqu'un d'autre : son aperçu est donc affiché avec prudence, comme un collage du tableau de collage. Le HTML qu'il contient est affiché comme du texte, seuls les liens `http`, `https` et `mailto` sont cliquables (ils s'ouvrent dans un nouvel onglet), et les images venant de sites web ne sont jamais chargées : une puce indique le site et n'ouvre l'image que si vous cliquez dessus. **Télécharger** donne toujours le fichier exactement tel que reçu.

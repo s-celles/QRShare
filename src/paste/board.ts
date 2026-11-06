@@ -216,6 +216,8 @@ interface Entry {
   sharedUnion?: Uint8Array;
   /** This device's own stamp of someone else's paste: never broadcast. */
   localProof?: Uint8Array;
+  /** Tail of the chain serializing `attachProof` calls on this paste. */
+  proofUpdates?: Promise<unknown>;
 }
 
 interface BlobRequest {
@@ -395,6 +397,15 @@ export class PasteBoard extends Emitter<Events> {
   async attachProof(id: Uint8Array, ots: Uint8Array): Promise<"shared" | "replaced" | "local" | "invalid"> {
     const entry = this.entries.get(toHex(id));
     if (!entry) return "invalid";
+    // one update at a time per paste: each reads the proof and sequence left by the previous
+    // one, so overlapping calls lose nothing and never sign two proofs with the same sequence
+    const run = (entry.proofUpdates ?? Promise.resolve()).then(() => this.attachProofNow(entry, ots));
+    entry.proofUpdates = run.catch(() => undefined);
+    return run;
+  }
+
+  private async attachProofNow(entry: Entry, ots: Uint8Array): Promise<"shared" | "replaced" | "local" | "invalid"> {
+    if (this.destroyed) return "invalid";
     const incoming = await this.validProof(entry.paste, ots);
     if (!incoming) return "invalid";
     const held = entry.paste.own ? entry.sharedUnion : entry.localProof;

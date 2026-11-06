@@ -271,6 +271,54 @@ describe("REQ-PASTE-084 only the paste's author shares a proof with the room", (
     expect(await calendarsOf(a.pastes()[0].proof!)).toEqual([ALICE, carol]);
   });
 
+  it("serializes overlapping proof updates of one paste: nothing is lost and sequences strictly increase", async () => {
+    const net = new PasteMockNet();
+    const [ra, rb] = [net.room("a"), net.room("b")];
+    const a = await board(ra);
+    const b = await board(rb);
+    net.link(ra, rb);
+    clock += 3_000;
+    const p = await a.post({ format: "text", source: "mine", attachments: [] });
+    if ("error" in p) throw new Error(p.error);
+    await until(() => b.pastes().length === 1);
+    const seqs: number[] = [];
+    a.on("change", (list) => {
+      const seq = list[0]?.sharedProof?.seq;
+      if (seq !== undefined && seq !== seqs[seqs.length - 1]) seqs.push(seq);
+    });
+    // same clock millisecond, both started before either finishes
+    const results = await Promise.all([
+      a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [ALICE], 1))),
+      a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [FINNEY], 2))),
+    ]);
+    expect(results).toEqual(["shared", "shared"]);
+    expect(await calendarsOf(a.pastes()[0].proof!)).toEqual([ALICE, FINNEY]);
+    expect(seqs.length).toBe(2);
+    expect(seqs[1]).toBeGreaterThan(seqs[0]);
+    // the peer, which keeps only strictly newer proofs, ends with both too
+    await until(() => b.pastes()[0].sharedProof?.seq === seqs[1]);
+    expect(await calendarsOf(b.pastes()[0].proof!)).toEqual([ALICE, FINNEY]);
+  });
+
+  it("keeps sequence numbers increasing when the clock goes backwards, each update containing the previous proof", async () => {
+    let t = 5_000_000;
+    const author = await createAuthor();
+    const a = new PasteBoard(new PasteMockNet().room("a"), { keys: await roomKeys(), author: author.key, now: () => t, autoTick: false });
+    boards.push(a);
+    const p = await a.post({ format: "text", source: "mine", attachments: [] });
+    if ("error" in p) throw new Error(p.error);
+    const steps: { seq: number; calendars: string[] }[] = [];
+    for (const [i, [uri, at]] of ([[ALICE, 5_000_000], [BOB, 1_000], [FINNEY, 2_000]] as const).entries()) {
+      t = at; // the second update happens with the clock set far back
+      expect(await a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [uri], i + 1)))).toBe("shared");
+      const shared = a.pastes()[0].sharedProof!;
+      steps.push({ seq: shared.seq, calendars: await calendarsOf(shared.ots) });
+    }
+    expect(steps[1].seq).toBeGreaterThan(steps[0].seq);
+    expect(steps[2].seq).toBeGreaterThan(steps[1].seq);
+    expect(steps.map((s) => s.calendars)).toEqual([[ALICE], [ALICE, BOB], [ALICE, BOB, FINNEY]]);
+  });
+
   it("keeps a non-author's own stamp on its device, next to the author's shared proof", async () => {
     const net = new PasteMockNet();
     const [ra, rb] = [net.room("a"), net.room("b")];

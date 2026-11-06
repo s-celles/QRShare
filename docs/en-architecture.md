@@ -17,6 +17,7 @@ build output can be served from any static host (GitHub Pages in production). Se
 - **Collaboration** — Yjs documents synchronized over the WebRTC room; the engine lives in `src/collab/core` and is also published as the `@scelles/collab` package (see [Collaborative Editing](en-collaborative-editing.md))
 - **i18n** — Custom lightweight translation system with signal-based locale, flat key-value dictionaries, parameterized strings, auto-detection + localStorage persistence
 - **Service worker** — Precaches the app for offline use; its cache name changes with every build so installed copies notice new versions
+- **Web app manifest** — Stable install `id`, maskable icons, shortcuts to the main screens and store screenshots; launches open a new window (see [Development](en-development.md#web-app-manifest-and-store-assets))
 - **Documentation** — The Markdown files in `docs/` are bundled into the app and rendered in-app with marked; Mermaid diagrams are loaded on demand from a CDN (theme-aware)
 
 ## Technology Stack

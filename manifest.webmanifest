@@ -1,26 +1,111 @@
 {
+  "id": "/QRShare/",
   "name": "QRShare",
   "short_name": "QRShare",
   "description": "Air-gapped file transfer via animated QR codes with fountain codes",
+  "lang": "en",
+  "dir": "auto",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "theme_color": "#1f5fbf",
   "background_color": "#f4f6f9",
+  "categories": ["utilities", "productivity"],
+  "launch_handler": {
+    "client_mode": ["navigate-new"]
+  },
   "icons": [
     {
       "src": "assets/icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
       "src": "assets/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/home-wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Home screen: QR utilities and the transfer modes"
+    },
+    {
+      "src": "assets/screenshots/send-qr-wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Sending text as animated QR codes"
+    },
+    {
+      "src": "assets/screenshots/home-narrow.png",
+      "sizes": "540x1200",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home screen on a phone"
+    },
+    {
+      "src": "assets/screenshots/send-qr-narrow.png",
+      "sizes": "540x1200",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Sending text as animated QR codes on a phone"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan QR Code",
+      "short_name": "Scan",
+      "description": "Decode any QR code with the camera",
+      "url": "./#/scan",
+      "icons": [{ "src": "assets/shortcuts/scan-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Create QR Code",
+      "short_name": "Create",
+      "description": "Generate a QR code from text",
+      "url": "./#/create",
+      "icons": [{ "src": "assets/shortcuts/create-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Send (QR)",
+      "short_name": "Send",
+      "description": "Send a file or text as animated QR codes",
+      "url": "./#/send/qr",
+      "icons": [{ "src": "assets/shortcuts/send-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Receive (QR)",
+      "short_name": "Receive",
+      "description": "Receive a file by scanning animated QR codes",
+      "url": "./#/receive/qr",
+      "icons": [{ "src": "assets/shortcuts/receive-96.png", "sizes": "96x96", "type": "image/png" }]
     }
   ],
   "qrshare_handoff": {

@@ -53,13 +53,18 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/about",
 ]);
 
+/** True when `path` (the part of the hash before "?") is a known route. */
+export function isValidRoute(path: string): path is Route {
+  return VALID_ROUTES.has(path);
+}
+
 export const hashParams = signal<URLSearchParams>(new URLSearchParams());
 
 function getRouteFromHash(): Route {
   const raw = window.location.hash.slice(1) || "/";
   const [path, query] = raw.split("?", 2);
   hashParams.value = new URLSearchParams(query || "");
-  return VALID_ROUTES.has(path) ? (path as Route) : "/";
+  return isValidRoute(path) ? path : "/";
 }
 
 export const currentRoute = signal<Route>(

@@ -714,6 +714,7 @@ export const en: Record<string, string> = {
   "preview.metadata": "Metadata",
   "preview.metadataLabel": "Document metadata",
   "preview.pdfUnavailable": "PDF preview not available.",
+  "preview.markdownFallback": "This Markdown file could not be displayed safely: its source is shown instead.",
   "encryption.mode": "Encryption",
   "encryption.modePassword": "Password",
   "encryption.modeContact": "Trusted contact",

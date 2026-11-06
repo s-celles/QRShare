@@ -569,6 +569,7 @@ export const ar: Record<string, string> = {
   "preview.metadata": "البيانات الوصفية",
   "preview.metadataLabel": "البيانات الوصفية للمستند",
   "preview.pdfUnavailable": "معاينة PDF غير متاحة.",
+  "preview.markdownFallback": "تعذّر عرض ملف Markdown هذا بأمان: يُعرض مصدره بدلًا من ذلك.",
   "contacts.manage": "إدارة جهات الاتصال",
   "contacts.title": "جهات الاتصال الموثوقة",
   "contacts.myIdentity": "رمز QR للاقتران الخاص بي",

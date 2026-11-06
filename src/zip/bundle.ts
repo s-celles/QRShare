@@ -8,12 +8,16 @@ export interface FileEntry {
 
 const BUNDLE_SUFFIX = ".qrshare-bundle.zip";
 
-export function bundleFiles(files: FileEntry[]): Uint8Array {
+/**
+ * Zips `files`. `mtime` fixes the modification time of every entry (default: now),
+ * which makes the output deterministic.
+ */
+export function bundleFiles(files: FileEntry[], opts: { mtime?: Date | number } = {}): Uint8Array {
   const zippable: Zippable = {};
   for (const f of files) {
     zippable[f.name] = f.data;
   }
-  return zipSync(zippable);
+  return zipSync(zippable, opts.mtime !== undefined ? { mtime: opts.mtime } : {});
 }
 
 /**

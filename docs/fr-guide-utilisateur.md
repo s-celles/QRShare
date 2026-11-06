@@ -594,11 +594,26 @@ retiré de la barre d'adresse.
 - **Markdown seul** : `board.md`, où les pièces jointes sont remplacées par une
   mention donnant leur nom et leur SHA-256.
 
-Chaque collage commence par un en-tête (pseudonyme, empreinte, heure déclarée en
-UTC, format, identifiant, SHA-256 de la source, signature, statut OpenTimestamps,
-pièces jointes). Les collages Markdown sont cités et leur HTML brut échappé, les
-collages en texte brut sont dans un bloc de code : aucun collage ne peut modifier
-la structure de l'export. Le code du salon et les clés ne sont jamais exportés.
+Chaque collage commence par un en-tête court : le pseudonyme, l'heure déclarée en
+UTC (marquée *self-declared*, et *in the future* si elle était en avance sur votre
+horloge), le statut OpenTimestamps en quelques mots quand le collage a une preuve
+(*pending*, *Bitcoin claimed, not verified* ou *confirmed in Bitcoin (checked)*),
+et les liens vers ses pièces jointes (ou *not included*). Les collages Markdown
+sont cités et leur HTML brut échappé, les collages en texte brut sont dans un bloc
+de code : aucun collage ne peut modifier la structure de l'export. Le code du
+salon et les clés ne sont jamais exportés.
+
+Les détails techniques sont dans le **frontmatter YAML** en tête du fichier
+(entre les deux lignes `---`), lisible par des outils comme les générateurs de
+sites statiques ou toute bibliothèque YAML : `qrshare_export: 1`, l'heure de
+l'export et, pour chaque collage, son identifiant (le SHA-256 de sa déclaration),
+son pseudonyme, son empreinte et sa clé publique, l'heure déclarée
+(`declared_at_self_declared: true`), `future`, le format, le SHA-256 de la
+source, le statut de la signature, l'état OpenTimestamps (statut, calendriers en
+attente, hauteurs Bitcoin vérifiées ou seulement annoncées) et les pièces jointes
+(nom, type, taille, SHA-256, présence du fichier et son chemin dans le ZIP).
+Chaque valeur texte est une chaîne JSON : un nom ou un type de fichier ne peut pas
+casser le frontmatter.
 
 ### Prouver qu'un collage existait (OpenTimestamps)
 

@@ -173,8 +173,16 @@ downscaled to 2048 px at most, re-encoded through a canvas (WebP, else PNG or
 JPEG), and scrubbed of any remaining JPEG APP/COM segment, PNG ancillary chunk
 (other than `tRNS`, `gAMA`, `sRGB`) or WebP `EXIF`/`XMP `/`ICCP` chunk.
 
-**Export.** The Markdown export lists pastes by declared time with a generated
-header per paste; Markdown pastes are block quotes with raw HTML escaped, plain
+**Export.** The Markdown export opens with a YAML frontmatter
+(`qrshare_export: 1`) holding the technical details of every paste — id (the
+SHA-256 of its statement), fingerprint and public key, declared time, source
+SHA-256, signature and OpenTimestamps state, attachments with type, size,
+SHA-256 and ZIP path. Keys are fixed and every string is a JSON-encoded
+double-quoted scalar with line breaks, control, format (BOM) and bidirectional
+characters escaped, so a peer-chosen file name or type cannot end the
+frontmatter. The body lists pastes by declared time, each with a short generated
+header (pseudonym, declared time, a few words on the proof, attachment links);
+Markdown pastes are block quotes with raw HTML escaped, plain
 text sits in a fence longer than any backtick run, so a paste cannot alter the
 document's structure. The ZIP adds the attachments and, per paste, its
 statement, signature and proof; each attachment is stored once, under the first

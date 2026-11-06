@@ -1,6 +1,10 @@
 /**
- * Board export (REQ-PASTE-100 to 106): a deterministic Markdown document, and a
+ * Board export (REQ-PASTE-100 to 107): a deterministic Markdown document, and a
  * ZIP with the attachments, statements, signatures and proofs.
+ *
+ * The document opens with a YAML frontmatter holding the technical details of every
+ * paste (ids, fingerprints, hashes, proof state, attachments); each paste in the body
+ * keeps a short header (pseudonym, declared time, notable proof state, attachment links).
  *
  * Markdown pastes are embedded as block quotes (every line prefixed), so headings,
  * thematic breaks and unclosed fences stay inside the quote; raw HTML found by
@@ -140,17 +144,106 @@ function quote(text: string): string {
     .join("\n");
 }
 
-function proofLine(summary: ProofSummary | undefined, verified: number[]): string {
-  if (!summary || summary.status === "none") return "none";
+/** A few words in the paste header when the proof state is worth noting; details are in the frontmatter. */
+function proofNote(summary: ProofSummary | undefined, verified: number[]): string | null {
+  if (!summary || summary.status === "none") return null;
   if (summary.status === "bitcoin") {
-    const checked = summary.heights.filter((h) => verified.includes(h));
-    const claimed = summary.heights.filter((h) => !verified.includes(h));
-    const parts: string[] = [];
-    if (checked.length) parts.push(`confirmed, Bitcoin block ${checked.join(", ")} (checked against a block explorer)`);
-    if (claimed.length) parts.push(`Bitcoin block ${claimed.join(", ")} claimed, not verified by the exporting device`);
-    return parts.join("; ");
+    return summary.heights.some((h) => verified.includes(h)) ? "confirmed in Bitcoin (checked)" : "Bitcoin claimed, not verified";
   }
-  return `pending (${summary.calendars.length} calendar${summary.calendars.length === 1 ? "" : "s"})`;
+  return "pending";
+}
+
+/** Characters escaped in the frontmatter (and replaced in generated body lines). */
+const UNSAFE = /[\p{C}\p{Zl}\p{Zp}]/gu;
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+/**
+ * A YAML double-quoted scalar that is also a JSON string (REQ-PASTE-107): JSON escaping,
+ * plus `\uXXXX` for every other control, format (BOM, bidi), separator, private-use or
+ * unassigned BMP character, so the value stays on one line and can never close the
+ * frontmatter. Lone surrogates become U+FFFD (they cannot be encoded in UTF-8 anyway);
+ * astral characters are left as is (all printable in YAML).
+ */
+export function yamlString(text: string): string {
+  return JSON.stringify(text.replace(LONE_SURROGATE, "\uFFFD")).replace(UNSAFE, (c) => {
+    const code = c.codePointAt(0)!;
+    return code > 0xffff ? c : `\\u${code.toString(16).padStart(4, "0")}`;
+  });
+}
+
+type YamlScalar = string | number | boolean;
+const yamlValue = (v: YamlScalar | YamlScalar[]): string =>
+  Array.isArray(v) ? `[${v.map(yamlValue).join(", ")}]` : typeof v === "string" ? yamlString(v) : String(v);
+
+/** Line breaks, controls, BOM and bidi overrides/isolates: replaced in generated body text. */
+const BREAKING = /[\p{Cc}\p{Zl}\p{Zp}\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/gu;
+
+/** One line of generated Markdown text (names in headers): no line break or bidi control, Markdown escaped. */
+const inline = (text: string) => escapeMarkdown(text.replace(LONE_SURROGATE, "\uFFFD").replace(BREAKING, "\uFFFD"));
+
+interface ExportedAttachment {
+  ref: AttachmentRef;
+  hex: string;
+  /** ZIP path when the file is included. */
+  path?: string;
+}
+
+function attachmentsOf(paste: Paste, opts: ExportOptions, paths: Map<string, string>): ExportedAttachment[] {
+  return paste.attachments.map((ref) => {
+    const hex = toHex(ref.hash);
+    const included = opts.attachments === "links" && (opts.included?.(hex) ?? true);
+    return { ref, hex, path: included ? (paths.get(hex) ?? attachmentPath(ref)) : undefined };
+  });
+}
+
+/** YAML frontmatter with the technical details of every paste (REQ-PASTE-107). */
+function frontmatter(sorted: Paste[], opts: ExportOptions, paths: Map<string, string>, attachmentCount: number): string[] {
+  const out = [
+    "---",
+    "qrshare_export: 1",
+    `export_type: ${yamlValue("paste-board")}`,
+    `exported_at: ${yamlValue(new Date(opts.exportedAt).toISOString())}`,
+    `paste_count: ${sorted.length}`,
+    `attachment_count: ${attachmentCount}`,
+  ];
+  if (!sorted.length) out.push("pastes: []");
+  else out.push("pastes:");
+  for (const paste of sorted) {
+    const id = toHex(paste.id);
+    const summary = opts.proofs.get(id);
+    const verified = opts.verifiedHeights?.get(id) ?? [];
+    const heights = summary?.heights ?? [];
+    const field = (key: string, v: YamlScalar | YamlScalar[], indent = "    ") => out.push(`${indent}${key}: ${yamlValue(v)}`);
+    out.push(`  - id: ${yamlValue(id)}`);
+    field("author", paste.authorName);
+    field("fingerprint", paste.authorFp);
+    field("author_key", toHex(paste.author));
+    field("declared_at", new Date(paste.declaredAt).toISOString());
+    field("declared_at_self_declared", true);
+    field("future", paste.future);
+    field("format", paste.format === "markdown" ? "markdown" : "plain");
+    field("source_sha256", toHex(paste.sourceHash));
+    field("signature", "valid");
+    field("signature_algorithm", "Ed25519");
+    out.push("    proof:");
+    field("status", summary?.status ?? "none", "      ");
+    field("pending_calendars", summary?.calendars ?? [], "      ");
+    field("bitcoin_verified", heights.filter((h) => verified.includes(h)), "      ");
+    field("bitcoin_claimed", heights.filter((h) => !verified.includes(h)), "      ");
+    const atts = attachmentsOf(paste, opts, paths);
+    if (!atts.length) out.push("    attachments: []");
+    else out.push("    attachments:");
+    for (const a of atts) {
+      out.push(`      - name: ${yamlValue(a.ref.name)}`);
+      field("mime", a.ref.mime, "        ");
+      field("size", a.ref.size, "        ");
+      field("sha256", a.hex, "        ");
+      field("included", a.path !== undefined, "        ");
+      if (a.path !== undefined) field("path", a.path, "        ");
+    }
+  }
+  out.push("---");
+  return out;
 }
 
 export function exportBoardMarkdown(pastes: Paste[], opts: ExportOptions): string {
@@ -158,27 +251,28 @@ export function exportBoardMarkdown(pastes: Paste[], opts: ExportOptions): strin
   const paths = canonicalPaths(sorted);
   const attachmentCount = new Set(sorted.flatMap((p) => p.attachments.map((a) => toHex(a.hash)))).size;
   const out: string[] = [
+    ...frontmatter(sorted, opts, paths, attachmentCount),
+    "",
     "# QRShare paste board export",
     "",
     `- Exported: ${new Date(opts.exportedAt).toISOString()} (this device's clock)`,
     `- Pastes: ${sorted.length} · Attachments: ${attachmentCount}`,
     "- Timestamps are declared by each author's device and are not verified.",
     "- Signatures were verified by the exporting device. Room code and keys are not included.",
+    "- Paste ids, fingerprints, hashes and proof details are in the YAML frontmatter above.",
     "",
   ];
   sorted.forEach((paste, i) => {
     const id = toHex(paste.id);
-    out.push("---", "", `## Paste ${i + 1} · ${paste.authorName} (${paste.authorFp})`, "");
-    out.push(`- Declared: ${new Date(paste.declaredAt).toISOString()} (self-declared)`);
-    out.push(`- Format: ${paste.format === "markdown" ? "Markdown" : "Plain text"}`);
-    out.push(`- Paste id: \`${id}\``);
-    out.push(`- Source SHA-256: \`${toHex(paste.sourceHash)}\``);
-    out.push(`- Signature: valid (Ed25519, key \`${toHex(paste.author)}\`)`);
-    out.push(`- OpenTimestamps: ${proofLine(opts.proofs.get(id), opts.verifiedHeights?.get(id) ?? [])}`);
-    if (paste.attachments.length) {
-      out.push("- Attachments:");
-      for (const a of paste.attachments) out.push(`  - ${escapeMarkdown(a.name)} (${escapeMarkdown(a.mime)}, ${a.size} bytes, SHA-256 \`${toHex(a.hash)}\`)`);
-    } else out.push("- Attachments: none");
+    out.push("---", "", `## Paste ${i + 1} · ${inline(paste.authorName)}`, "");
+    out.push(`- Declared: ${new Date(paste.declaredAt).toISOString()} (self-declared${paste.future ? ", in the future" : ""})`);
+    const note = proofNote(opts.proofs.get(id), opts.verifiedHeights?.get(id) ?? []);
+    if (note) out.push(`- OpenTimestamps: ${note}`);
+    const atts = attachmentsOf(paste, opts, paths);
+    if (atts.length) {
+      const items = atts.map((a) => (a.path ? `[${inline(a.ref.name)}](${encodePath(a.path)})` : `${inline(a.ref.name)} (not included)`));
+      out.push(`- Attachments: ${items.join(", ")}`);
+    }
     out.push("");
     if (paste.format === "markdown") {
       out.push(quote(rewriteSource(paste.source, paste, opts, paths)));

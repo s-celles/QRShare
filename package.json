@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "package": "bun run scripts/package-single-html.ts",
     "serve": "bun run scripts/serve.ts",
-    "build:collab": "bun run scripts/build-collab.ts"
+    "build:collab": "bun run scripts/build-collab.ts",
+    "icons": "bun run scripts/generate-icons.ts",
+    "screenshots": "bun run scripts/generate-screenshots.ts"
   },
   "dependencies": {
     "@preact/signals": "^2.0.0",

@@ -37,7 +37,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-PLT-001 | M | 0.1.0 | The system shall run entirely in the browser as a static single-page application written in TypeScript with strict type checking. |
 | REQ-PLT-002 | M | 0.1.0 | The system shall not send the content being transferred to any server operated for QRShare; network transfers shall go directly between the peers. |
 | REQ-PLT-003 | M | 0.1.0 | The system shall be installable as a Progressive Web App, with a web app manifest (name QRShare, standalone display, SVG, 192 px and 512 px icons) and a service worker. |
-| REQ-PLT-004 | M | 0.1.0 | When the service worker installs, the system shall precache the application shell, the manifest, the icons and the CIMBAR runtime files. |
+| REQ-PLT-004 | M | 0.1.0 | When the service worker installs, the system shall precache the application shell, the manifest, the icons (including the maskable and shortcut icons) and the CIMBAR runtime files. |
 | REQ-PLT-005 | M | 0.1.0 | While the device is offline, the system shall start from the cache and serve hashed assets cache-first and other files network-first with a cache fallback. |
 | REQ-PLT-006 | S | 0.4.0 | The system shall give the service worker a cache name that changes with every build, so that browsers and installed apps detect each new version. |
 | REQ-PLT-007 | S | 0.4.0 | When a new version has been activated for a page that an older version was serving, the system shall show a banner that offers to reload now or later. |
@@ -50,6 +50,8 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-PLT-014 | M | 0.1.0 | When a commit reaches the `main` branch, the system shall be type-checked, tested, built and deployed to GitHub Pages. |
 | REQ-PLT-015 | M | 0.1.4 | The system shall show its version and build (git short commit) next to its name in the header. |
 | REQ-PLT-016 | M | 0.5.0 | The system shall be distributed under the BSD-3-Clause license, bundled third-party components keeping their own licences (libcimbar: MPL-2.0). |
+| REQ-PLT-017 | S | Unreleased | The system shall declare in its web app manifest a stable `id` equal to the deployed start URL path (`/QRShare/`), its scope, language and text direction, orientation `any`, categories, separate maskable 192 px and 512 px icons with the artwork inside the safe zone, wide and narrow labelled screenshots, and shortcuts to the scanner, the QR creator and the QR sender and receiver. |
+| REQ-PLT-018 | S | Unreleased | The system shall open each launch of the installed app (shortcut, shared content, start) in a new window (`launch_handler` `navigate-new`), so that a transfer running in another window is never replaced. |
 
 ## 3. User interface (UI)
 

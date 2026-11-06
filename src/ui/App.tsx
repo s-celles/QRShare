@@ -22,6 +22,8 @@ import { UrlCreatorView } from "./components/UrlCreatorView";
 import { CimbarView } from "./components/CimbarView";
 import { AudioView } from "./components/AudioView";
 import { AudioSessionView } from "./components/AudioSessionView";
+import { PasteBoardView } from "./components/PasteBoardView";
+import { PasteProofView } from "./components/PasteProofView";
 
 /** Header theme button: auto (system) → light → dark. */
 const THEME_ICONS: Record<Theme, string> = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
@@ -68,6 +70,10 @@ function RouteView() {
       return <WebRTCReceiverView />;
     case "/collab":
       return <CollabEditorView />;
+    case "/paste":
+      return <PasteBoardView />;
+    case "/paste/verify":
+      return <PasteProofView />;
     case "/send/share":
       return <WebShareSenderView />;
     case "/guide":

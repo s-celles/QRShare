@@ -2717,3 +2717,358 @@ a.start-btn {
   text-align: center;
   text-decoration: none;
 }
+
+/* Paste board (Experimental). Logical properties keep it right-to-left safe. */
+.paste-btn {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+}
+
+.paste-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.paste-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.paste-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.paste-code-input {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.paste-board-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.paste-board-header .stop-btn {
+  display: inline-block;
+  width: auto;
+  padding: 0.4rem 0.75rem;
+}
+
+.paste-code {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.paste-qr {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.paste-qr img {
+  width: min(280px, 80vw);
+  image-rendering: pixelated;
+  background: #fff;
+}
+
+.paste-export,
+.paste-consent {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.paste-ephemeral {
+  border-inline-start: 3px solid var(--warning);
+  padding-inline-start: 0.5rem;
+}
+
+.paste-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1rem 0;
+}
+
+.paste-textarea {
+  width: 100%;
+  min-height: 8rem;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.paste-attach {
+  margin-inline-start: auto;
+}
+
+.paste-pending-files {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.paste-pending-files li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.paste-warning {
+  margin: 0.25rem 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--warning-bg);
+  color: var(--text);
+  font-size: 0.9em;
+}
+
+.paste-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.paste-card {
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow-wrap: anywhere;
+}
+
+.paste-card.own {
+  border-inline-start: 4px solid var(--accent);
+}
+
+.paste-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+}
+
+.paste-author {
+  font-weight: 700;
+}
+
+.paste-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  margin-inline-end: 0.3rem;
+}
+
+.paste-fp {
+  color: var(--muted);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.paste-badge {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--sel);
+  font-size: 0.8em;
+}
+
+.paste-badge.warn {
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.paste-times {
+  color: var(--muted);
+  font-size: 0.85em;
+  flex-basis: 100%;
+}
+
+.paste-source {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+  max-height: 60vh;
+  overflow: auto;
+  padding: 0.5rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  unicode-bidi: plaintext;
+}
+
+.paste-rendered {
+  max-height: 70vh;
+  overflow: auto;
+  unicode-bidi: plaintext;
+}
+
+.paste-rendered h1 { font-size: 1.3rem; }
+.paste-rendered h2 { font-size: 1.15rem; }
+.paste-rendered h3,
+.paste-rendered h4,
+.paste-rendered h5,
+.paste-rendered h6 { font-size: 1rem; }
+
+.paste-rendered img {
+  max-width: 100%;
+  height: auto;
+}
+
+.paste-rendered pre {
+  overflow: auto;
+  padding: 0.5rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+
+.paste-rendered table {
+  border-collapse: collapse;
+}
+
+.paste-rendered th,
+.paste-rendered td {
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.4rem;
+}
+
+.paste-rendered blockquote {
+  margin-inline: 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.paste-rendered a.paste-att,
+.paste-rendered a.paste-remote,
+.paste-rendered .paste-missing {
+  display: inline-block;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.paste-rendered .paste-missing {
+  color: var(--muted);
+  cursor: default;
+  border-style: dashed;
+}
+
+.paste-preview {
+  min-height: 8rem;
+  padding: 0.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.paste-attachments,
+.paste-att-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.paste-chip {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.paste-chip.risky {
+  border-color: var(--warning);
+}
+
+.paste-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.paste-chip-name {
+  font-weight: 600;
+  unicode-bidi: isolate;
+}
+
+.paste-inline-img {
+  display: block;
+  max-width: 100%;
+  max-height: 50vh;
+  height: auto;
+  margin-bottom: 0.35rem;
+}
+
+.paste-video {
+  max-width: 100%;
+}
+
+.paste-proof {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9em;
+}
+
+.paste-proof-caption {
+  font-size: 0.85em;
+}
+
+.paste-downloads summary {
+  cursor: pointer;
+}
+
+.paste-downloads[open] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.paste-proof-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.paste-checks {
+  padding-inline-start: 1.2rem;
+}
+
+.paste-checks li {
+  margin: 0.25rem 0;
+}
+
+.paste-proof-status {
+  margin: 0.25rem 0;
+  padding-inline-start: 1.2rem;
+}

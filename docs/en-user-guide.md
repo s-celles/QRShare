@@ -61,6 +61,9 @@ Two experimental groups follow the QR Code group: **CIMBAR (Experimental)**, a
 high-speed color barcode, and **Audio (Experimental)**, which transfers small
 payloads as sound (see *Experimental Audio Transfer* below).
 
+The WebRTC group also offers the **Paste board (Experimental)**, an anonymous
+room of signed texts and files (see *Experimental Paste Board* below).
+
 ---
 
 ## Scanning a QR Code
@@ -481,6 +484,131 @@ the sound** button appears, tap it: the browser keeps the sound muted until then
 While joining, the screen shows how many requests were sent; if the count grows
 without a connection, raise the volume and bring the devices closer. On iPhone, recording
 and playing at the same time may route the sound to the earpiece at a lower volume.
+
+---
+
+## Experimental Paste Board (anonymous, with proofs of existence)
+
+The paste board is a room where people share short texts — plain text or
+Markdown — with images and files, under a **session pseudonym**. It needs a
+network (the same signaling relays as WebRTC). **Nothing is stored anywhere**: a
+paste lives only in the memory of the connected devices, and disappears once no
+connected device holds it.
+
+### Creating and joining a board
+
+1. Open **Paste board (Experimental)** in the WebRTC group of the home screen and
+   press **Create**. The board shows a 16-character **room code** (for example
+   `7KQ2-M9XD-4TPA-WZ3H`) and, on demand, a **QR code**.
+2. Others either scan the QR code (with **Scan** or any camera app opening
+   QRShare), or press **Join** and type the code. Case, dashes and spaces do not
+   matter, and `I`/`L` read as `1`, `O` as `0`.
+3. The header shows the number of connected peers. **Leave the board** (or
+   closing the page) drops the board, its attachments and keys from this device.
+
+Anyone who knows the room code can read and post: share it only with the
+intended participants. When the board is opened from a link, the code is removed
+from the address bar.
+
+### Posting
+
+- Choose **Markdown** (default) or **Plain text**, write, and use **Preview** to
+  see the Markdown as others will. A paste holds up to 16 KiB of text; you can
+  post at most once every 3 seconds.
+- **Attach files** (up to 4 per paste) with the button, by pasting from the
+  clipboard or by drag and drop. In Markdown, a reference such as
+  `![photo.webp](attachment:<sha256>)` is inserted where the cursor is.
+- Every paste is **signed** with a key created for this board only, unrelated to
+  your device identity and contacts. Others see you as a pseudonym and colour
+  (for example *Swift Crimson Falcon*) followed by 8 hex digits of the key
+  fingerprint; your own pastes are marked **you**.
+- The time shown is **declared by the author's device clock** and not verified;
+  the time this device received the paste is shown next to it, and a paste
+  declared more than 5 minutes ahead is flagged *dated in the future*.
+
+### What is protected, what is not
+
+- **Images** (PNG, JPEG, WebP, GIF) are re-encoded on your device before being
+  attached: orientation applied, downscaled to at most 2048 px, saved as WebP (or
+  PNG/JPEG), the first frame only for GIFs, and every remaining metadata chunk
+  removed. No EXIF, GPS position, camera model, ICC profile or text comment
+  leaves the device. Images can be up to 1.5 MiB after re-encoding.
+- **Other files** (up to 5 MiB) are sent **unchanged**: a PDF or office document
+  can name its author, a video can carry camera data. QRShare warns you and does
+  not remove it.
+- Received content comes from anonymous participants, so QRShare shows it
+  cautiously: Markdown is rendered without any HTML, script or style; links open
+  in a new tab only for `http`, `https` and `mailto` addresses; **remote images
+  are never loaded** (a chip names the site instead); only real raster images are
+  shown inline, and only up to 2048 × 2048 pixels; audio and video play only when you press **Play**; everything
+  else — SVG, HTML, PDF, archives, programs — is a **download chip** and is never
+  opened by QRShare. Executable and script files show a warning and ask for
+  confirmation before downloading.
+- A board holds at most 500 pastes, 4 MiB of text and 32 MiB of attachments, and
+  50 pastes or 8 MiB of attachments per author; attachments count only once
+  they have arrived. Devices sending invalid data are ignored after 5 errors.
+  Anyone with the room code can still flood the board under many pseudonyms: it
+  then refuses new pastes but keeps the existing ones.
+
+### Exporting
+
+**Export** saves a readable copy while you can see the board:
+
+- **ZIP** (default when there are attachments or proofs): `board.md`, the
+  attachments under `attachments/`, and for every paste its statement, signature
+  and proof under `proofs/`. The statements contain a one-way tag of the room:
+  anyone holding them can tell that the pastes come from the same board.
+- **Markdown only**: `board.md`, where attachments are replaced by a placeholder
+  giving their name and SHA-256.
+
+Each paste starts with a header (pseudonym, fingerprint, declared time in UTC,
+format, paste id, source SHA-256, signature, OpenTimestamps status, attachments).
+Markdown pastes are quoted and their raw HTML escaped, plain-text pastes are in a
+code block, so no paste can change the structure of the export. The room code and
+keys are never exported.
+
+### Proving that a paste existed (OpenTimestamps)
+
+Any participant can obtain a **proof of prior existence** of a paste with
+[OpenTimestamps](https://opentimestamps.org):
+
+1. Press **Timestamp (OpenTimestamps)** under a paste. The first time, QRShare
+   explains what is sent: a blinded 32-byte hash of the paste — never its
+   content — to public calendar servers, which also see your IP address and the
+   time of the request.
+2. The proof is **pending** at first. If you wrote the paste, it is signed with
+   your session key and shared with the board (*proof shared by the author*);
+   only the author can share a proof, so a proof sent by anyone else is
+   refused. If someone else wrote it, your proof stays on your device (*your
+   own proof*): you see it next to the author's, and can download and export
+   it, but it is never sent. A few hours
+   later, once a calendar has anchored it in Bitcoin, press **Upgrade the
+   proof**: the status becomes *Bitcoin attestation claimed (block N), not
+   verified*. **Check in Bitcoin** compares the proof with that block through a
+   block explorer; once it matches, the status becomes *anchored in Bitcoin*.
+   Until then, a Bitcoin attestation — received from a calendar or from another
+   participant — is only a claim, also in exports. Calendars still pending are
+   listed next to it, and **Upgrade the proof** stays available while one of
+   them is pending.
+3. Under **Downloads**, save the statement (`paste-<id>.statement`), its
+   signature (`.sig`), the proof (`.statement.ots`) and the source.
+
+The proof covers the **statement**: the source text exactly as written, the
+SHA-256 of every attachment, the author key and the declared time. It shows that
+the statement existed **no later than** the Bitcoin block; it says nothing about
+who wrote it nor whether the declared time is true.
+
+To check a proof later, without joining a board, open **Check a proof** from the
+paste board screen and pick the statement, its `.ots` and optionally its `.sig`
+and attachment files: QRShare checks the digest, the signature and the
+attachments, shows the paste, replays the proof, can upgrade it, and lets you
+download the upgraded `.ots`. With the reference client, the trust-minimised
+check uses your own Bitcoin node:
+
+```bash
+ots upgrade paste-<id>.statement.ots
+ots verify paste-<id>.statement.ots   # needs the statement file next to it
+```
 
 ---
 

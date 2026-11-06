@@ -62,6 +62,10 @@ un code-barres couleur à haut débit, et **Audio (Expérimental)**, qui transf�
 de petits contenus sous forme de son (voir *Transfert audio expérimental*
 plus bas).
 
+Le groupe WebRTC propose aussi le **Tableau de collage (expérimental)**, un
+salon anonyme de textes et fichiers signés (voir *Tableau de collage
+expérimental* plus bas).
+
 ---
 
 ## Scanner un QR code
@@ -502,6 +506,147 @@ demandes envoyées ; s'il augmente sans connexion, montez le volume et rapproche
 les appareils.
 Sur iPhone, enregistrer et jouer en même temps peut faire passer le son par
 l'écouteur, à volume réduit.
+
+---
+
+## Tableau de collage expérimental (anonyme, avec preuves d'existence)
+
+Le tableau de collage est un salon où l'on partage de courts textes — texte brut
+ou Markdown — avec des images et des fichiers, sous un **pseudonyme de session**.
+Il nécessite un réseau (les mêmes relais de signalisation que WebRTC). **Rien
+n'est stocké nulle part** : un collage ne vit que dans la mémoire des appareils
+connectés et disparaît dès qu'aucun appareil connecté ne le détient.
+
+### Créer et rejoindre un tableau
+
+1. Ouvrez **Tableau de collage (expérimental)** dans le groupe WebRTC de l'écran
+   d'accueil et appuyez sur **Créer**. Le tableau affiche un **code de salon** de
+   16 caractères (par exemple `7KQ2-M9XD-4TPA-WZ3H`) et, à la demande, un
+   **QR code**.
+2. Les autres scannent le QR code (avec **Scanner** ou toute application photo
+   qui ouvre QRShare), ou appuient sur **Rejoindre** et saisissent le code. La
+   casse, les tirets et les espaces sont ignorés, `I`/`L` valent `1` et `O`
+   vaut `0`.
+3. L'en-tête indique le nombre de pairs connectés. **Quitter le tableau** (ou
+   fermer la page) efface de l'appareil le tableau, ses pièces jointes et ses
+   clés.
+
+Quiconque connaît le code du salon peut lire et publier : ne le partagez qu'avec
+les participants prévus. Quand le tableau est ouvert depuis un lien, le code est
+retiré de la barre d'adresse.
+
+### Publier
+
+- Choisissez **Markdown** (par défaut) ou **Texte brut**, écrivez, et utilisez
+  **Aperçu** pour voir le Markdown tel que les autres le verront. Un collage
+  contient jusqu'à 16 Kio de texte ; vous pouvez publier au plus une fois toutes
+  les 3 secondes.
+- **Joignez des fichiers** (4 au plus par collage) avec le bouton, en collant
+  depuis le presse-papiers ou par glisser-déposer. En Markdown, une référence
+  comme `![photo.webp](attachment:<sha256>)` est insérée à la position du curseur.
+- Chaque collage est **signé** avec une clé créée pour ce seul tableau, sans lien
+  avec l'identité de votre appareil ni vos contacts. Les autres vous voient sous
+  un pseudonyme et une couleur (par exemple *Swift Crimson Falcon*) suivis de
+  8 chiffres hexadécimaux de l'empreinte de la clé ; vos propres collages sont
+  marqués **vous**.
+- L'heure affichée est **déclarée par l'horloge de l'appareil de l'auteur** et
+  n'est pas vérifiée ; l'heure de réception sur cet appareil est affichée à côté,
+  et un collage daté de plus de 5 minutes dans le futur est signalé *daté dans le
+  futur*.
+
+### Ce qui est protégé, ce qui ne l'est pas
+
+- Les **images** (PNG, JPEG, WebP, GIF) sont réencodées sur votre appareil avant
+  d'être jointes : orientation appliquée, réduites à 2048 px au plus, enregistrées
+  en WebP (ou PNG/JPEG), la première image seulement pour les GIF, et tout bloc de
+  métadonnées restant supprimé. Aucune donnée EXIF, position GPS, modèle
+  d'appareil, profil ICC ni commentaire ne quitte l'appareil. Une image fait au
+  plus 1,5 Mio après réencodage.
+- Les **autres fichiers** (jusqu'à 5 Mio) sont envoyés **tels quels** : un PDF ou
+  un document bureautique peut nommer son auteur, une vidéo peut contenir des
+  données d'appareil. QRShare vous prévient et ne les supprime pas.
+- Le contenu reçu vient de participants anonymes, donc QRShare l'affiche avec
+  prudence : le Markdown est rendu sans aucun HTML, script ni style ; les liens
+  s'ouvrent dans un nouvel onglet seulement pour les adresses `http`, `https` et
+  `mailto` ; **les images distantes ne sont jamais chargées** (une puce indique le
+  site) ; seules les vraies images matricielles sont affichées, jusqu'à
+  2048 × 2048 pixels ; l'audio et la
+  vidéo ne se lisent qu'en appuyant sur **Lire** ; tout le reste — SVG, HTML,
+  PDF, archives, programmes — est une **puce de téléchargement** et n'est jamais
+  ouvert par QRShare. Les fichiers exécutables et scripts affichent un
+  avertissement et demandent confirmation avant le téléchargement.
+- Un tableau contient au plus 500 collages, 4 Mio de texte et 32 Mio de pièces
+  jointes, et 50 collages ou 8 Mio de pièces jointes par auteur ; les pièces
+  jointes ne comptent qu'une fois arrivées. Les appareils qui envoient des
+  données invalides sont ignorés après 5 erreurs. Quiconque a le code du salon
+  peut encore saturer le tableau sous de nombreux pseudonymes : il refuse alors
+  les nouveaux collages mais garde les anciens.
+
+### Exporter
+
+**Exporter** enregistre une copie lisible tant que vous voyez le tableau :
+
+- **ZIP** (par défaut s'il y a des pièces jointes ou des preuves) : `board.md`,
+  les pièces jointes dans `attachments/`, et pour chaque collage sa déclaration,
+  sa signature et sa preuve dans `proofs/`. Les déclarations contiennent une
+  étiquette à sens unique du salon : qui les détient peut savoir que les collages
+  viennent du même tableau.
+- **Markdown seul** : `board.md`, où les pièces jointes sont remplacées par une
+  mention donnant leur nom et leur SHA-256.
+
+Chaque collage commence par un en-tête (pseudonyme, empreinte, heure déclarée en
+UTC, format, identifiant, SHA-256 de la source, signature, statut OpenTimestamps,
+pièces jointes). Les collages Markdown sont cités et leur HTML brut échappé, les
+collages en texte brut sont dans un bloc de code : aucun collage ne peut modifier
+la structure de l'export. Le code du salon et les clés ne sont jamais exportés.
+
+### Prouver qu'un collage existait (OpenTimestamps)
+
+Tout participant peut obtenir une **preuve d'existence antérieure** d'un collage
+avec [OpenTimestamps](https://opentimestamps.org) :
+
+1. Appuyez sur **Horodater (OpenTimestamps)** sous un collage. La première fois,
+   QRShare explique ce qui est envoyé : une empreinte masquée de 32 octets du
+   collage — jamais son contenu — à des serveurs calendriers publics, qui voient
+   aussi votre adresse IP et l'heure de la requête.
+2. La preuve est d'abord **en attente**. Si vous avez écrit le collage, elle est
+   signée avec votre clé de session et partagée avec le tableau (*preuve
+   partagée par l'auteur*) ; seul l'auteur peut partager une preuve, donc une
+   preuve envoyée par quelqu'un d'autre est refusée. Si quelqu'un d'autre l'a
+   écrit, votre preuve reste sur votre appareil (*votre propre preuve*) : vous
+   la voyez à côté de celle de l'auteur et pouvez la télécharger et l'exporter,
+   mais elle n'est jamais envoyée. Quelques
+   heures plus tard, une fois qu'un calendrier l'a ancrée dans Bitcoin, appuyez
+   sur **Mettre la preuve à niveau** : le statut devient *attestation Bitcoin
+   annoncée (bloc N), non vérifiée*. **Vérifier dans Bitcoin** compare la preuve
+   avec ce bloc via un explorateur de blocs ; si elle correspond, le statut
+   devient *ancrée dans Bitcoin*. Jusque-là, une attestation Bitcoin — reçue d'un
+   calendrier ou d'un autre participant — n'est qu'une annonce, y compris dans
+   les exports. Les calendriers encore en attente sont affichés à côté, et
+   **Mettre la preuve à niveau** reste disponible tant que l'un d'eux est en
+   attente.
+3. Dans **Téléchargements**, enregistrez la déclaration
+   (`paste-<id>.statement`), sa signature (`.sig`), la preuve
+   (`.statement.ots`) et la source.
+
+La preuve porte sur la **déclaration** : le texte source exactement tel
+qu'écrit, le SHA-256 de chaque pièce jointe, la clé de l'auteur et l'heure
+déclarée. Elle montre que la déclaration existait **au plus tard** au bloc
+Bitcoin ; elle ne dit rien de qui l'a écrite ni de la véracité de l'heure
+déclarée.
+
+Pour vérifier une preuve plus tard, sans rejoindre de tableau, ouvrez **Vérifier
+une preuve** depuis l'écran du tableau de collage et choisissez la déclaration,
+son `.ots` et éventuellement son `.sig` et les pièces jointes : QRShare vérifie
+l'empreinte, la signature et les pièces jointes, affiche le collage, rejoue la
+preuve, peut la mettre à niveau et permet de télécharger le `.ots` mis à niveau.
+Avec le client de référence, la vérification qui ne fait confiance qu'à votre
+propre nœud Bitcoin est :
+
+```bash
+ots upgrade paste-<id>.statement.ots
+ots verify paste-<id>.statement.ots   # le fichier de déclaration doit être à côté
+```
 
 ---
 

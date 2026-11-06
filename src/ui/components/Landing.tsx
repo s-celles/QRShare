@@ -154,6 +154,11 @@ export function Landing() {
           <span class="mode-label">{t("landing.sendWebRTCTitle")}</span>
           <span class="mode-desc">{t("landing.sendWebRTCDesc")}</span>
         </button>
+        <button class="mode-btn mode-btn--full mode-btn--tool" onClick={() => navigate("/paste")} aria-label={t("landing.pasteAria")}>
+          <span class="mode-icon" aria-hidden="true">&#x1F4CB;</span>
+          <span class="mode-label">{t("landing.pasteTitle")}</span>
+          <span class="mode-desc">{t("landing.pasteDesc")}</span>
+        </button>
       </div>
       <p class="settings-hint">{t("landing.collabNote")}</p>
     </section>

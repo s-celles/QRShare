@@ -17,6 +17,8 @@ export type Route =
   | "/send/webrtc"
   | "/receive/webrtc"
   | "/collab"
+  | "/paste"
+  | "/paste/verify"
   | "/send/share"
   | "/guide"
   | "/docs"
@@ -41,6 +43,8 @@ const VALID_ROUTES: ReadonlySet<string> = new Set([
   "/send/webrtc",
   "/receive/webrtc",
   "/collab",
+  "/paste",
+  "/paste/verify",
   "/send/share",
   "/guide",
   "/docs",

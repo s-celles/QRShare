@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { ShareService } from "@/share/service";
 import { renderReceivedMarkdown } from "../markdown-preview";
+import { pdfPreviewBlob } from "../pdf-preview";
 import { t } from "../i18n";
 
 interface FilePreviewProps {
@@ -115,6 +116,25 @@ function FrontmatterView({ entries }: { entries: FrontmatterEntry[] }) {
 export function FilePreview({ url, filename, mimeType }: FilePreviewProps) {
   const kind = kindOf(filename, mimeType);
   const [text, setText] = useState<string | null>(null);
+  /** A blob URL typed application/pdf, only for bytes with the %PDF- signature. */
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (kind !== "pdf") return;
+    let cancelled = false;
+    let created: string | null = null;
+    fetch(url).then((response) => response.arrayBuffer()).then((buffer) => {
+      const blob = pdfPreviewBlob(new Uint8Array(buffer));
+      if (cancelled || !blob) return;
+      created = URL.createObjectURL(blob);
+      setPdfUrl(created);
+    }).catch(() => undefined);
+    return () => {
+      cancelled = true;
+      if (created) URL.revokeObjectURL(created);
+      setPdfUrl(null);
+    };
+  }, [url, kind]);
 
   useEffect(() => {
     let cancelled = false;
@@ -131,7 +151,8 @@ export function FilePreview({ url, filename, mimeType }: FilePreviewProps) {
   if (kind === "image") return <div class="file-preview file-preview-media"><img src={url} alt={filename} loading="lazy" /></div>;
   if (kind === "video") return <div class="file-preview file-preview-media"><video src={url} controls aria-label={filename} /></div>;
   if (kind === "audio") return <div class="file-preview file-preview-audio"><audio src={url} controls aria-label={filename} /></div>;
-  if (kind === "pdf") return <div class="file-preview file-preview-pdf"><object data={url} type="application/pdf" aria-label={filename}><p>{t("preview.pdfUnavailable")}</p></object></div>;
+  // never the received (untyped, same-origin) URL itself: only a checked, typed copy
+  if (kind === "pdf") return pdfUrl ? <div class="file-preview file-preview-pdf"><object data={pdfUrl} type="application/pdf" aria-label={filename}><p>{t("preview.pdfUnavailable")}</p></object></div> : null;
   if (kind === "vcard" && text != null) return <VCardPreview url={url} filename={filename} text={text} />;
   if (kind === "text" && text != null) {
     const markdown = /\.(md|markdown)$/i.test(filename);

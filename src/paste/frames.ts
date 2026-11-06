@@ -102,18 +102,21 @@ export function decodeDigest(bytes: Uint8Array): { count: number; hash: Uint8Arr
   return { count: (bytes[0] << 8) | bytes[1], hash: bytes.slice(2) };
 }
 
-/** PROOF: paste id 32 · author signature 64 (see proof-share.ts) · .ots bytes (≤ 16 KiB). */
-export function encodeProof(id: Uint8Array, signature: Uint8Array, ots: Uint8Array): Uint8Array {
-  const out = new Uint8Array(96 + ots.length);
+/** PROOF: paste id 32 · sequence u64 BE · author signature 64 (see proof-share.ts) · .ots bytes (≤ 16 KiB). */
+export function encodeProof(id: Uint8Array, seq: number, signature: Uint8Array, ots: Uint8Array): Uint8Array {
+  const out = new Uint8Array(104 + ots.length);
   out.set(id);
-  out.set(signature, 32);
-  out.set(ots, 96);
+  new DataView(out.buffer).setBigUint64(32, BigInt(seq));
+  out.set(signature, 40);
+  out.set(ots, 104);
   return out;
 }
 
-export function decodeProof(bytes: Uint8Array): { id: Uint8Array; signature: Uint8Array; ots: Uint8Array } | null {
-  if (bytes.length <= 96 || bytes.length > 96 + MAX_PROOF_BYTES) return null;
-  return { id: bytes.slice(0, 32), signature: bytes.slice(32, 96), ots: bytes.slice(96) };
+export function decodeProof(bytes: Uint8Array): { id: Uint8Array; seq: number; signature: Uint8Array; ots: Uint8Array } | null {
+  if (bytes.length <= 104 || bytes.length > 104 + MAX_PROOF_BYTES) return null;
+  const seq = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(32);
+  if (seq > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  return { id: bytes.slice(0, 32), seq: Number(seq), signature: bytes.slice(40, 104), ots: bytes.slice(104) };
 }
 
 /** BLOB: hash 32 · bytes. */

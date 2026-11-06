@@ -6,6 +6,7 @@ import { createAuthor, type Author } from "@/paste/keys";
 import { newOtsFile, parseOtsFile, proofSummary, serializeOtsFile } from "@/paste/ots/file";
 import { addOp, allAttestations } from "@/paste/ots/timestamp";
 import { signSharedProof } from "@/paste/proof-share";
+import { isAllowedCalendar } from "@/paste/ots/calendar";
 import { encodeStatement, sealItem, type AttachmentRef } from "@/paste/statement";
 import { PasteMockNet, PasteMockRoom, settle, until } from "./mock";
 import { roomKeys, sha256 } from "./helpers";
@@ -33,10 +34,11 @@ async function itemFrame(source: string, attachments: AttachmentRef[] = []) {
   return { frame: await frame(FrameType.ITEM, await sealItem(statement, author.key.privateKey)), id: await sha256(statement), author };
 }
 
-/** A PROOF frame signed by `signer` (the paste author, or anyone else in attacks). */
-async function proofFrame(signer: Author, id: Uint8Array, ots: Uint8Array, sent = ots) {
-  const signature = await signSharedProof(signer.key.privateKey, (await roomKeys()).tag, id, ots);
-  return frame(FrameType.PROOF, encodeProof(id, signature, sent));
+/** A PROOF frame signed by `signer` (the paste author, or anyone else in attacks); `sent` replaces the bytes after signing. */
+async function proofFrame(signer: Author, id: Uint8Array, ots: Uint8Array, opts: { seq?: number; sent?: Uint8Array } = {}) {
+  const seq = opts.seq ?? 1;
+  const signature = await signSharedProof(signer.key.privateKey, (await roomKeys()).tag, id, seq, ots);
+  return frame(FrameType.PROOF, encodeProof(id, seq, signature, opts.sent ?? ots));
 }
 
 async function pendingProof(id: Uint8Array, uris: string[], nonce = 1) {
@@ -134,58 +136,139 @@ describe("REQ-PASTE-084 only the paste's author shares a proof with the room", (
     room.inject("paste", p.frame, "authorPeer");
     await until(() => b.pastes().length === 1);
     const honest = serializeOtsFile(await pendingProof(p.id, [ALICE]));
-    room.inject("paste", await proofFrame(p.author, p.id, honest, await poison(honest)), "relay");
+    room.inject("paste", await proofFrame(p.author, p.id, honest, { sent: await poison(honest) }), "relay");
     // the signature also binds the paste id
     const other = await itemFrame("other");
     room.inject("paste", other.frame, "authorPeer");
     await until(() => b.pastes().length === 2);
     const forOther = serializeOtsFile(await pendingProof(other.id, [ALICE]));
-    const sig = await signSharedProof(other.author.key.privateKey, (await roomKeys()).tag, other.id, forOther);
-    room.inject("paste", await frame(FrameType.PROOF, encodeProof(p.id, sig, forOther)), "relay");
+    const sig = await signSharedProof(other.author.key.privateKey, (await roomKeys()).tag, other.id, 1, forOther);
+    room.inject("paste", await frame(FrameType.PROOF, encodeProof(p.id, 1, sig, forOther)), "relay");
     await settle();
     expect(b.pastes().every((x) => !x.proof)).toBe(true);
     expect(b.strikes("relay")).toBe(2);
   });
 
-  it("keeps the held author proof, without a strike, when a union would be too large", async () => {
+  it("adopts the author's newer proof, without a strike, when it does not fit in a union with the held one", async () => {
     const room = new PasteMockNet().room("b");
     const b = await board(room);
     const p = await itemFrame("p");
     room.inject("paste", p.frame, "authorPeer");
     await until(() => b.pastes().length === 1);
-    room.inject("paste", await proofFrame(p.author, p.id, await bigProof(p.id)), "authorPeer");
+    room.inject("paste", await proofFrame(p.author, p.id, await bigProof(p.id), { seq: 1 }), "authorPeer");
     await until(() => !!b.pastes()[0].proof);
-    const held = b.pastes()[0].proof!;
-    room.inject("paste", await proofFrame(p.author, p.id, serializeOtsFile(await pendingProof(p.id, [ALICE], 2))), "relay");
-    await settle();
-    expect(b.pastes()[0].proof).toEqual(held);
+    const small = serializeOtsFile(await pendingProof(p.id, [ALICE], 2));
+    room.inject("paste", await proofFrame(p.author, p.id, small, { seq: 2 }), "relay");
+    await until(() => b.pastes()[0].sharedProof?.seq === 2);
+    expect(b.pastes()[0].proof).toEqual(small);
     expect(b.strikes("relay")).toBe(0);
   });
 
-  it("refuses author proofs naming calendars outside the allow-list, unknown attestations or too many attestations, without strikes", async () => {
+  it("refuses author proofs with unknown attestations or too many attestations, without strikes", async () => {
     const room = new PasteMockNet().room("b");
     const b = await board(room);
     const p = await itemFrame("p");
     room.inject("paste", p.frame, "x");
     await until(() => b.pastes().length === 1);
-    const outside = await pendingProof(p.id, [ALICE, "https://x0.calendar.opentimestamps.org"]);
     const unknown = await pendingProof(p.id, [ALICE], 4);
     unknown.timestamp.attestations.push({ kind: "unknown", tag: new Uint8Array(8).fill(1), payload: Uint8Array.of(1) });
     const many = await pendingProof(p.id, new Array(33).fill(ALICE), 5);
-    for (const f of [outside, unknown, many]) room.inject("paste", await proofFrame(p.author, p.id, serializeOtsFile(f)), "x");
+    for (const [i, f] of [unknown, many].entries()) room.inject("paste", await proofFrame(p.author, p.id, serializeOtsFile(f), { seq: i + 1 }), "x");
     await settle();
     expect(b.pastes()[0].proof).toBeUndefined();
     expect(b.strikes("x")).toBe(0); // signed by the author: a relaying peer is not at fault
   });
 
-  it("lets the author replace an oversized shared proof with a new stamp, and says so", async () => {
+  it("accepts author proofs naming calendars outside the allow-list, which are shown but never contacted", async () => {
+    const room = new PasteMockNet().room("b");
+    const b = await board(room);
+    const p = await itemFrame("p");
+    room.inject("paste", p.frame, "x");
+    await until(() => b.pastes().length === 1);
+    const carol = "https://carol.btc.calendar.opentimestamps.org";
+    room.inject("paste", await proofFrame(p.author, p.id, serializeOtsFile(await pendingProof(p.id, [ALICE, carol]))), "x");
+    await until(() => !!b.pastes()[0].proof);
+    expect(await calendarsOf(b.pastes()[0].proof!)).toEqual([ALICE, carol]);
+    expect(isAllowedCalendar(carol)).toBe(false); // Upgrade skips it (REQ-PASTE-091)
+  });
+
+  it("ignores a replayed older author proof, keeping the newer one", async () => {
+    const room = new PasteMockNet().room("b");
+    const b = await board(room);
+    const p = await itemFrame("p");
+    room.inject("paste", p.frame, "authorPeer");
+    await until(() => b.pastes().length === 1);
+    const first = serializeOtsFile(await pendingProof(p.id, [ALICE], 1));
+    const second = serializeOtsFile(await pendingProof(p.id, [ALICE, FINNEY], 1)); // the author's merged proof
+    const firstFrame = await proofFrame(p.author, p.id, first, { seq: 1 });
+    room.inject("paste", firstFrame, "authorPeer");
+    await until(() => b.pastes()[0].sharedProof?.seq === 1);
+    room.inject("paste", await proofFrame(p.author, p.id, second, { seq: 2 }), "authorPeer");
+    await until(() => b.pastes()[0].sharedProof?.seq === 2);
+    room.inject("paste", firstFrame.slice(0), "replayer"); // same bytes, other peer: not a duplicate frame
+    await settle();
+    expect(b.pastes()[0].sharedProof?.seq).toBe(2);
+    expect(b.pastes()[0].sharedProof?.ots).toEqual(second);
+    expect(b.pastes()[0].proof).toEqual(second);
+    expect(b.strikes("replayer")).toBe(0);
+    // also after a replacement: the old oversized proof cannot come back
+    room.inject("paste", await proofFrame(p.author, p.id, await bigProof(p.id), { seq: 3 }), "authorPeer");
+    await until(() => b.pastes()[0].sharedProof?.seq === 3 || b.pastes()[0].proof!.length > 15_000);
+    const small = serializeOtsFile(await pendingProof(p.id, [BOB], 9));
+    room.inject("paste", await proofFrame(p.author, p.id, small, { seq: 4 }), "authorPeer");
+    await until(() => b.pastes()[0].sharedProof?.seq === 4);
+    room.inject("paste", await proofFrame(p.author, p.id, await bigProof(p.id), { seq: 3 }), "replayer");
+    await settle();
+    expect(b.pastes()[0].proof).toEqual(small);
+  });
+
+  it("counts a peer as holding a paste only after its proof signature was verified", async () => {
+    const net = new PasteMockNet();
+    const [rb, ratk] = [net.room("b"), net.room("atk")];
+    const b = await board(rb);
+    const att = { hash: await sha256(Uint8Array.of(7)), size: 1, mime: "application/pdf", name: "a.pdf", width: 0, height: 0 };
+    const p = await itemFrame("with attachment", [att]);
+    rb.inject("paste", p.frame, "gone"); // the sender is not connected: the attachment is unavailable
+    await until(() => b.pastes().length === 1);
+    net.link(rb, ratk);
+    await settle();
+    const before = rb.sent.filter((s) => s.to === "atk").length;
+    rb.inject("paste", await proofFrame(await createAuthor(), p.id, serializeOtsFile(await pendingProof(p.id, [ALICE]))), "atk");
+    await settle();
+    b.tick(); // would ask a (wrongly recorded) holder for the attachment
+    await settle();
+    expect(b.strikes("atk")).toBe(1);
+    expect(rb.sent.filter((s) => s.to === "atk").length).toBe(before);
+    expect(b.attachment(att.hash)).toBe("unavailable");
+  });
+
+  it("lets the author replace an oversized shared proof with a new stamp, and peers adopt it", async () => {
+    const net = new PasteMockNet();
+    const [ra, rb] = [net.room("a"), net.room("b")];
+    const a = await board(ra);
+    const b = await board(rb);
+    net.link(ra, rb);
+    clock += 3_000;
+    const p = await a.post({ format: "text", source: "mine", attachments: [] });
+    if ("error" in p) throw new Error(p.error);
+    await until(() => b.pastes().length === 1);
+    expect(await a.attachProof(p.id, await bigProof(p.id))).toBe("shared");
+    await until(() => !!b.pastes()[0].proof);
+    expect(await a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [ALICE], 3)))).toBe("replaced");
+    expect(await calendarsOf(a.pastes()[0].proof!)).toEqual([ALICE]);
+    await until(() => b.pastes()[0].proof!.length < 1000);
+    expect(await calendarsOf(b.pastes()[0].proof!)).toEqual([ALICE]);
+    expect(b.pastes()[0].sharedProof!.seq).toBe(a.pastes()[0].sharedProof!.seq);
+  });
+
+  it("accepts this device's own stamp naming a calendar outside the allow-list", async () => {
     const a = await board(new PasteMockNet().room("a"));
     clock += 3_000;
     const p = await a.post({ format: "text", source: "mine", attachments: [] });
     if ("error" in p) throw new Error(p.error);
-    expect(await a.attachProof(p.id, await bigProof(p.id))).toBe("shared");
-    expect(await a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [ALICE], 3)))).toBe("replaced");
-    expect(await calendarsOf(a.pastes()[0].proof!)).toEqual([ALICE]);
+    const carol = "https://carol.btc.calendar.opentimestamps.org";
+    expect(await a.attachProof(p.id, serializeOtsFile(await pendingProof(p.id, [carol, ALICE], 3)))).toBe("shared");
+    expect(await calendarsOf(a.pastes()[0].proof!)).toEqual([ALICE, carol]);
   });
 
   it("keeps a non-author's own stamp on its device, next to the author's shared proof", async () => {

@@ -94,13 +94,14 @@ describe("frame payloads", () => {
     expect(d.count).toBe(7);
     expect(d.hash[0]).toBe(9);
     expect(decodeDigest(new Uint8Array(33))).toBeNull();
-    const p = decodeProof(encodeProof(ids[0], new Uint8Array(64).fill(8), new Uint8Array([1, 2])))!;
+    const p = decodeProof(encodeProof(ids[0], 2 ** 40 + 5, new Uint8Array(64).fill(8), new Uint8Array([1, 2])))!;
     expect(p.id[0]).toBe(3);
+    expect(p.seq).toBe(2 ** 40 + 5);
     expect(p.signature.length).toBe(64);
     expect(p.signature[0]).toBe(8);
     expect([...p.ots]).toEqual([1, 2]);
-    expect(decodeProof(new Uint8Array(32 + 64))).toBeNull();
-    expect(decodeProof(new Uint8Array(32 + 64 + 16 * 1024 + 1))).toBeNull();
+    expect(decodeProof(new Uint8Array(32 + 8 + 64))).toBeNull();
+    expect(decodeProof(new Uint8Array(32 + 8 + 64 + 16 * 1024 + 1))).toBeNull();
     const b = decodeBlob(encodeBlob(ids[1], new Uint8Array([5])))!;
     expect(b.hash[0]).toBe(1);
     expect([...b.bytes]).toEqual([5]);

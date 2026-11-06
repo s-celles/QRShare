@@ -433,7 +433,7 @@ describe("REQ-PASTE-084 / REQ-PASTE-085 proofs on the board", () => {
 
     // an unsigned proof (garbage signature) is refused with a strike
     const keys = await roomKeys();
-    const bad = await sealFrame(keys.contentKey, FrameType.PROOF, encodeProof(p.id, new Uint8Array(64), await pendingProof(p.id, "https://a.pool.opentimestamps.org")));
+    const bad = await sealFrame(keys.contentKey, FrameType.PROOF, encodeProof(p.id, 1, new Uint8Array(64), await pendingProof(p.id, "https://a.pool.opentimestamps.org")));
     rooms[1].inject("paste", bad.buffer as ArrayBuffer, "peer0");
     await settle();
     expect(b.strikes("peer0")).toBe(1);

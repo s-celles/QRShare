@@ -36,7 +36,6 @@ import {
 } from "./frames";
 import { describeAuthor, fromHex, toHex, type RoomKeys } from "./keys";
 import { attestationCounts, mergeOtsFiles, parseOtsFile, proofSummary, serializeOtsFile, type OtsFile } from "./ots/file";
-import { isAllowedCalendar } from "./ots/calendar";
 import { signSharedProof, verifySharedProof } from "./proof-share";
 import {
   MAX_ATTACHMENTS,
@@ -87,8 +86,12 @@ export interface Paste {
    * author merged with this device's own stamp (shown, downloaded, exported, upgraded).
    */
   proof?: Uint8Array;
-  /** The latest proof signed by the author: the only proof relayed to other peers (REQ-PASTE-084). */
-  sharedProof?: { ots: Uint8Array; signature: Uint8Array };
+  /**
+   * The newest proof signed by the author (highest sequence): the only proof relayed to
+   * other peers (REQ-PASTE-084). It is the author's merged proof, so it carries everything
+   * the author shared before (or replaced it when that grew too large).
+   */
+  sharedProof?: { ots: Uint8Array; signature: Uint8Array; seq: number };
   /** Where `proof` comes from: the author's shared proof, this device's own stamp, or both. */
   proofSource: "none" | "author" | "local" | "both";
   proofStatus: "none" | "pending" | "bitcoin";
@@ -404,11 +407,13 @@ export class PasteBoard extends Emitter<Events> {
       return "local";
     }
     if (held && sameBytes(held, union)) return "shared";
-    const signature = await signSharedProof(this.opts.author.privateKey, this.opts.keys.tag, entry.paste.id, union);
+    // every shared proof gets a higher sequence: receivers keep the newest, ignore replays
+    const seq = Math.max((entry.paste.sharedProof?.seq ?? 0) + 1, this.now());
+    const signature = await signSharedProof(this.opts.author.privateKey, this.opts.keys.tag, entry.paste.id, seq, union);
     entry.sharedUnion = union;
-    entry.paste.sharedProof = { ots: union, signature };
+    entry.paste.sharedProof = { ots: union, signature, seq };
     await this.recompute(entry);
-    await this.broadcast(FrameType.PROOF, encodeProof(entry.paste.id, signature, union));
+    await this.broadcast(FrameType.PROOF, encodeProof(entry.paste.id, seq, signature, union));
     return replaced ? "replaced" : "shared";
   }
 
@@ -572,15 +577,18 @@ export class PasteBoard extends Emitter<Events> {
 
   /**
    * The parsed proof when it is acceptable for `paste`: digest = paste id, within the
-   * size and attestation limits, at least one attestation, only allow-listed calendars,
-   * no unknown attestation or unsupported operation.
+   * size and attestation limits, at least one attestation, no unknown attestation or
+   * unsupported operation. Calendars outside the allow-list are accepted — a pool may
+   * name a new backend — but are never contacted (Upgrade skips them, REQ-PASTE-091).
+   * This does not reopen junk proofs: only this device or the paste's author (signed)
+   * can provide a proof.
    */
   private async validProof(paste: Paste, ots: Uint8Array): Promise<OtsFile | null> {
     try {
       const file = await parseOtsFile(ots, MAX_PROOF_BYTES);
       const summary = proofSummary(file);
       if (!sameBytes(file.digest, paste.id) || !withinProofLimits(file) || summary.status === "none") return null;
-      if (summary.unsupported || !summary.calendars.every(isAllowedCalendar)) return null;
+      if (summary.unsupported) return null;
       return file;
     } catch {
       return null;
@@ -733,7 +741,7 @@ export class PasteBoard extends Emitter<Events> {
           const { paste } = entry;
           const item = new Uint8Array([...paste.statement, ...paste.signature]);
           // only the author-signed proof travels, never this device's own stamp
-          const proof = paste.sharedProof ? encodeProof(paste.id, paste.sharedProof.signature, paste.sharedProof.ots) : null;
+          const proof = paste.sharedProof ? encodeProof(paste.id, paste.sharedProof.seq, paste.sharedProof.signature, paste.sharedProof.ots) : null;
           // replies are paced by an outbound budget; the rest is asked again later
           if (!s.reply.take(item.length + (proof?.length ?? 0), now)) break;
           s.sent.set(hex, now);
@@ -755,21 +763,22 @@ export class PasteBoard extends Emitter<Events> {
         if (!proof) return this.strike(peer);
         const entry = this.entries.get(toHex(proof.id));
         if (!entry) return;
-        entry.holders.add(peer);
         const { paste } = entry;
-        if (paste.sharedProof && sameBytes(paste.sharedProof.ots, proof.ots)) return; // relayed again
         // only the paste's author may share a proof: anything else is a forgery
-        if (!(await verifySharedProof(paste.author, this.opts.keys.tag, paste.id, proof.ots, proof.signature))) return this.strike(peer);
+        if (!(await verifySharedProof(paste.author, this.opts.keys.tag, paste.id, proof.seq, proof.ots, proof.signature))) return this.strike(peer);
+        entry.holders.add(peer); // only once the frame is known to be genuine
+        // not newer than the author's proof held: a relay of it, or a replay of an older one
+        if (paste.sharedProof && proof.seq <= paste.sharedProof.seq) return;
         // signed by the author but unusable: the relaying peer is not at fault
         if (!(await this.validProof(paste, proof.ots))) return;
-        const union = entry.sharedUnion ? await this.union(entry.sharedUnion, proof.ots) : proof.ots;
-        if (!union) return; // too large: keep the proof held, no strike
-        if (entry.sharedUnion && sameBytes(entry.sharedUnion, union)) return;
+        // the author's newer proof; when it does not fit in a union with the held one, it
+        // replaces it (the author's own merge replaced it too), no strike
+        const union = (entry.sharedUnion && (await this.union(entry.sharedUnion, proof.ots))) || proof.ots;
         entry.sharedUnion = union;
-        paste.sharedProof = { ots: proof.ots, signature: proof.signature };
+        paste.sharedProof = { ots: proof.ots, signature: proof.signature, seq: proof.seq };
         await this.recompute(entry);
         // relay the author's signed proof as received, for peers not connected to the author
-        await this.broadcast(FrameType.PROOF, encodeProof(paste.id, proof.signature, proof.ots));
+        await this.broadcast(FrameType.PROOF, encodeProof(paste.id, proof.seq, proof.signature, proof.ots));
         return;
       }
       case FrameType.DIGEST: {

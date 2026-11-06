@@ -200,14 +200,21 @@ dropped (as `ots prune` does).
 **Who shares proofs.** Only a paste's author shares a proof with the board. The
 author's device merges each new proof with the one already shared and signs the
 result with the author's session key — the key that signed the statement — over
-`"qrshare-paste-proof-v1" ‖ room tag ‖ paste id ‖ SHA-256(.ots)`. Peers accept a
-PROOF frame only with a valid signature of the paste's author (a strike otherwise),
-merge it with the author's proof they hold as a plain union, never pruned, and relay
-the signed frame unchanged, so it reaches peers not connected to the author. A
-signed proof must also name only allow-listed calendars, carry no unknown attestation
-or unsupported operation and stay within 16 KiB, 32 attestations, 8 calendars and 8
-Bitcoin attestations; otherwise it is ignored (no strike: the relaying peer is not at
-fault), and a union that would exceed the limits keeps the proof already held. Any
+`"qrshare-paste-proof-v1" ‖ room tag ‖ paste id ‖ sequence ‖ SHA-256(.ots)`, the
+sequence growing with every proof the author shares. Peers accept a PROOF frame only
+with a valid signature of the paste's author (a strike otherwise), count the sender
+as holding the paste only then, ignore it unless its sequence is higher than the one
+they hold (so replaying an older proof changes nothing), merge it with the author's
+proof they hold as a plain union, never pruned, and relay the signed frame unchanged,
+so it reaches peers not connected to the author. A signed proof must also carry no
+unknown attestation or unsupported operation and stay within 16 KiB, 32 attestations,
+8 calendars and 8 Bitcoin attestations; otherwise it is ignored (no strike: the
+relaying peer is not at fault). When the union with the held proof would exceed these
+limits, the author's newer proof replaces it — as it did on the author's device.
+Calendars outside the allow-list (a pool may name a new backend) are accepted in
+proofs made on this device or signed by the author, and shown, but never contacted:
+only the author can make others hold a proof, so this does not let others inject
+junk. Any
 other participant can still stamp or upgrade a paste: that proof stays on their
 device (shown as their own, merged with the author's for display, downloads and
 exports) and is never sent. A Bitcoin attestation is shown as

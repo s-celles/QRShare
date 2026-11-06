@@ -561,11 +561,23 @@ from the address bar.
 - **Markdown only**: `board.md`, where attachments are replaced by a placeholder
   giving their name and SHA-256.
 
-Each paste starts with a header (pseudonym, fingerprint, declared time in UTC,
-format, paste id, source SHA-256, signature, OpenTimestamps status, attachments).
-Markdown pastes are quoted and their raw HTML escaped, plain-text pastes are in a
-code block, so no paste can change the structure of the export. The room code and
-keys are never exported.
+Each paste starts with a short header: the pseudonym, the declared time in UTC
+(marked *self-declared*, and *in the future* when it was ahead of your clock), the
+OpenTimestamps status in a few words when the paste has a proof (*pending*,
+*Bitcoin claimed, not verified*, or *confirmed in Bitcoin (checked)*), and links to
+its attachments (or *not included*). Markdown pastes are quoted and their raw HTML
+escaped, plain-text pastes are in a code block, so no paste can change the
+structure of the export. The room code and keys are never exported.
+
+The technical details are in the **YAML frontmatter** at the top of the file
+(between the two `---` lines), readable by tools such as static site generators
+or any YAML library: `qrshare_export: 1`, the export time and, for every paste,
+its id (the SHA-256 of its statement), pseudonym, fingerprint and public key,
+declared time (`declared_at_self_declared: true`), `future`, format, source
+SHA-256, signature status, OpenTimestamps state (status, pending calendars,
+Bitcoin heights verified or only claimed) and attachments (name, type, size,
+SHA-256, whether the file is included and its path in the ZIP). Every text value
+is a JSON string, so a file name or type cannot break the frontmatter.
 
 ### Proving that a paste existed (OpenTimestamps)
 

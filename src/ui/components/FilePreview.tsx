@@ -3,6 +3,7 @@ import { ShareService } from "@/share/service";
 import { renderReceivedMarkdown } from "../markdown-preview";
 import { pdfPreviewBlob } from "../pdf-preview";
 import { t } from "../i18n";
+import { parseFrontmatter, type FrontmatterEntry } from "../frontmatter";
 
 interface FilePreviewProps {
   url: string;
@@ -77,36 +78,14 @@ function renderMarkdown(markdown: string): string | null {
   });
 }
 
-type FrontmatterEntry = { key: string; value: string };
-
-function parseFrontmatter(markdown: string): { entries: FrontmatterEntry[]; body: string } {
-  const match = markdown.match(/^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  if (!match) return { entries: [], body: markdown };
-
-  const entries: FrontmatterEntry[] = [];
-  let current: FrontmatterEntry | null = null;
-  for (const line of match[1].split(/\r?\n/)) {
-    if (!line.trim() || line.trimStart().startsWith("#")) continue;
-    const key = line.match(/^\s*([^:#][^:]*):\s*(.*)$/);
-    if (key) {
-      current = { key: key[1].trim(), value: key[2].trim() };
-      entries.push(current);
-      continue;
-    }
-    const item = line.match(/^\s*-\s+(.*)$/);
-    if (item && current) current.value = current.value ? `${current.value}, ${item[1].trim()}` : item[1].trim();
-  }
-  return { entries, body: markdown.slice(match[0].length) };
-}
-
 function FrontmatterView({ entries }: { entries: FrontmatterEntry[] }) {
   if (!entries.length) return null;
   return (
     <section class="file-frontmatter" aria-label={t("preview.metadataLabel")}>
       <div class="file-frontmatter-heading"><span aria-hidden="true">✦</span> {t("preview.metadata")}</div>
       <table>
-        <tbody>{entries.map(({ key, value }) => (
-          <tr key={key}><th scope="row">{key}</th><td>{value || <span class="file-frontmatter-empty">—</span>}</td></tr>
+        <tbody>{entries.map(({ key, value }, index) => (
+          <tr key={index}><th scope="row">{key}</th><td>{value || <span class="file-frontmatter-empty">—</span>}</td></tr>
         ))}</tbody>
       </table>
     </section>

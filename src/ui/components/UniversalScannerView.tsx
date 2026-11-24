@@ -100,6 +100,7 @@ export function UniversalScannerView() {
     <section aria-label={t("universal.section")}>
       <div class="view-header"><button onClick={() => { stop(); navigate("/"); }}>← {t("common.back")}</button><h2>{t("universal.heading")}</h2></div>
       {!consented && <div class="receiver-setup"><p>{t("universal.consent")}</p><button class="start-btn" onClick={start}>{t("universal.start")}</button></div>}
+      {!running && <p><a href="#/scan">{t("scanner.scanImage")}</a></p>}
       {running && <><p class="settings-hint">{t("universal.detecting")}</p><div class="viewfinder"><video ref={videoRef} playsInline muted /><canvas ref={canvasRef} class="sr-only" /></div></>}
       {status && <div class="error-msg" role="alert">{status}</div>}
     </section>

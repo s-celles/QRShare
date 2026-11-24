@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { useRef, useCallback, useEffect, useState } from "preact/hooks";
 import { navigate, hashParams } from "../router";
 import { ShareService } from "@/share/service";
+import { scanQRImage, readClipboardImage } from "@/qr/scan-image";
 import { parseStructuredQR } from "@/qr/structured";
 import { renderQRCustomToDataURL } from "@/qr/renderer";
 import { WifiResultCard } from "./WifiResultCard";
@@ -17,7 +18,7 @@ const shareService = new ShareService();
 const isScanning = signal(false);
 const scannedText = signal<string | null>(null);
 const scanType = signal<string | null>(null);
-const cameraError = signal<string | null>(null);
+const scanError = signal<string | null>(null);
 const devices = signal<MediaDeviceInfo[]>([]);
 const selectedDeviceId = signal("");
 const cameraResolution = signal<{ width: number; height: number } | null>(null);
@@ -48,12 +49,16 @@ export function ScannerView() {
   const [showRaw, setShowRaw] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
 
+  const [readingImage, setReadingImage] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const attemptRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
 
   const stopScanning = useCallback(() => {
+    attemptRef.current++;
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = 0;
@@ -64,6 +69,57 @@ export function ScannerView() {
     }
     isScanning.value = false;
   }, []);
+
+  const showResult = useCallback((text: string, type: string) => {
+    scannedText.value = text;
+    scanType.value = type;
+    setShowRaw(false);
+    setShowPrintModal(false);
+  }, []);
+
+  const readImage = useCallback(async (source: Blob | "clipboard") => {
+    stopScanning();
+    const attempt = attemptRef.current;
+    scanError.value = null;
+    setReadingImage(true);
+    let errorKey = "scanner.clipboardDenied";
+    try {
+      const image = source === "clipboard" ? await readClipboardImage() : source;
+      if (attempt !== attemptRef.current) return;
+      if (!image) {
+        scanError.value = t("scanner.noClipboardImage");
+        return;
+      }
+      errorKey = "scanner.imageFailed";
+      const text = await scanQRImage(image);
+      if (attempt !== attemptRef.current) return;
+      if (text) {
+        showResult(text, "QR-Code");
+      } else {
+        scanError.value = t("scanner.noCode");
+      }
+    } catch {
+      if (attempt === attemptRef.current) scanError.value = t(errorKey);
+    } finally {
+      if (attempt === attemptRef.current) setReadingImage(false);
+    }
+  }, [showResult, stopScanning]);
+
+  useEffect(() => {
+    const paste = (event: ClipboardEvent) => {
+      if (isScanning.value || scannedText.value || event.defaultPrevented) return;
+      const image = Array.from(event.clipboardData?.files ?? []).find((file) => file.type.startsWith("image/"));
+      if (event.target instanceof Element && event.target.closest("input, textarea, [contenteditable], [role=dialog]")) return;
+      if (!image) {
+        scanError.value = t("scanner.noClipboardImage");
+        return;
+      }
+      event.preventDefault();
+      void readImage(image);
+    };
+    document.addEventListener("paste", paste);
+    return () => document.removeEventListener("paste", paste);
+  }, [readImage]);
 
   const updateCameraInfo = useCallback(async (stream: MediaStream) => {
     const track = stream.getVideoTracks()[0];
@@ -87,6 +143,9 @@ export function ScannerView() {
 
   const startCamera = useCallback(
     async (deviceId?: string) => {
+      const attempt = ++attemptRef.current;
+      setReadingImage(false);
+      scanError.value = null;
       try {
         const constraints: MediaStreamConstraints = {
           video: deviceId
@@ -95,9 +154,12 @@ export function ScannerView() {
         };
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (attempt !== attemptRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
         streamRef.current = stream;
         isScanning.value = true;
-        cameraError.value = null;
 
         await new Promise((r) => requestAnimationFrame(r));
 
@@ -117,7 +179,7 @@ export function ScannerView() {
         if (!ctx) return;
 
         const tick = async () => {
-          if (!isScanning.value) return;
+          if (attempt !== attemptRef.current) return;
           if (video.videoWidth === 0 || video.videoHeight === 0) {
             animFrameRef.current = requestAnimationFrame(tick);
             return;
@@ -130,12 +192,12 @@ export function ScannerView() {
 
           try {
             const symbols = await zbar.scanImageData(imageData);
+            if (attempt !== attemptRef.current) return;
             if (symbols.length > 0) {
               const text = symbols[0].decode();
               if (text) {
-                scannedText.value = text;
-                scanType.value = symbols[0].typeName ?? "QR-Code";
                 stopScanning();
+                showResult(text, symbols[0].typeName ?? "QR-Code");
                 return;
               }
             }
@@ -148,11 +210,12 @@ export function ScannerView() {
 
         animFrameRef.current = requestAnimationFrame(tick);
       } catch {
-        cameraError.value =
-          t("common.cameraAccessDenied");
+        if (attempt !== attemptRef.current) return;
+        stopScanning();
+        scanError.value = t("common.cameraAccessDenied");
       }
     },
-    [stopScanning, updateCameraInfo],
+    [showResult, stopScanning, updateCameraInfo],
   );
 
   const handleDeviceChange = useCallback(
@@ -232,7 +295,7 @@ export function ScannerView() {
     stopScanning();
     scannedText.value = null;
     scanType.value = null;
-    cameraError.value = null;
+    scanError.value = null;
     devices.value = [];
     selectedDeviceId.value = "";
     cameraResolution.value = null;
@@ -260,18 +323,36 @@ export function ScannerView() {
         <h2>{t("scanner.heading")}</h2>
       </div>
 
-      {cameraError.value && (
+      {scanError.value && (
         <div class="error-msg" role="alert">
-          {cameraError.value}
+          {scanError.value}
         </div>
       )}
 
       {!isScanning.value && !scannedText.value && (
         <div class="scanner-setup">
           <p>{t("scanner.setupText")}</p>
-          <button class="start-btn" onClick={() => startCamera()}>
-            {t("scanner.startScanning")}
-          </button>
+          <div class="share-actions">
+            <button class="start-btn" disabled={readingImage} onClick={() => startCamera()}>
+              {t("scanner.startScanning")}
+            </button>
+            <button disabled={readingImage} onClick={() => fileRef.current?.click()}>
+              {t("scanner.chooseImage")}
+            </button>
+            {typeof navigator.clipboard?.read === "function" && (
+              <button disabled={readingImage} onClick={() => readImage("clipboard")}>
+                {t("scanner.pasteImage")}
+              </button>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(event) => {
+            const input = event.currentTarget;
+            const file = input.files?.[0];
+            input.value = "";
+            if (file) void readImage(file);
+          }} />
+          <p class="settings-hint">{t("scanner.pasteHint")}</p>
+          {readingImage && <p role="status">{t("scanner.readingImage")}</p>}
         </div>
       )}
 
@@ -432,6 +513,8 @@ export function ScannerView() {
                 </button>
               </div>
             )}
+
+            <button onClick={cleanup}>{t("scanner.scanAgain")}</button>
 
             {showPrintModal && structured.kind === "wifi" && (
               <WifiPrintModal

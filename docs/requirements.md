@@ -104,7 +104,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 
 | ID | Pri | Since | Requirement |
 |----|-----|-------|-------------|
-| REQ-SCAN-001 | M | 0.1.1 | When the user starts the scanner, the system shall open the rear camera and decode QR codes in real time with zbar-wasm, stopping the camera at the first decoded code. |
+| REQ-SCAN-001 | M | 0.1.1 | When the user starts the camera scanner, the system shall open the rear camera and decode QR codes in real time with zbar-wasm, stopping the camera at the first decoded code. |
 | REQ-SCAN-002 | S | 0.1.1 | Where the device has several cameras, the system shall let the user choose the camera and shall show the actual camera resolution. |
 | REQ-SCAN-003 | M | 0.1.1 | If camera access is refused, then the system shall show an explanatory message. |
 | REQ-SCAN-004 | M | 0.1.1 | When a decoded code is a web address, the system shall show it as a link opening in a new tab; other content shall be shown as text. |
@@ -113,6 +113,7 @@ ordinary QR codes (text, URLs, Wi-Fi, contacts).
 | REQ-SCAN-007 | S | 0.4.0 | When the user starts the smart scanner, the system shall ask for consent, then route to the animated QR receiver for a QRShare transfer frame, to the CIMBAR receiver for a CIMBAR frame, and to the QR scanner for any other code. |
 | REQ-SCAN-008 | S | 0.3.0 | Where a scanner address carries `autostart=1`, the system shall start the camera without a further action. |
 | REQ-SCAN-009 | M | 0.1.1 | When the user leaves a scanning view, the system shall stop the camera. |
+| REQ-SCAN-010 | M | Unreleased | When the user selects an image file or pastes an image into the QR scanner, the system shall decode it locally and show the same result as a camera scan. |
 
 ## 8. QR code creation (CREATE)
 

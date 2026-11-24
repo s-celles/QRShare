@@ -4,7 +4,7 @@
 
 QRShare est une application web qui permet de :
 
-1. **Scanner un QR code** avec la caméra de votre appareil
+1. **Scanner un QR code** avec la caméra, depuis un fichier ou depuis une image collée
 2. **Créer un QR code** à partir d'un texte ou d'une adresse web
 3. **Partager un fichier ou du texte** vers n'importe quelle application via le dialogue de partage natif
 4. **Envoyer un fichier ou du texte** à un autre appareil via des QR codes animés (sans connexion internet)
@@ -44,7 +44,7 @@ En ouvrant l'application, vous voyez deux sections :
 
 Deux boutons pour les outils QR du quotidien :
 
-- **Scanner un QR code** — Pour lire un QR code avec votre caméra
+- **Scanner un QR code** — Pour lire un QR code avec la caméra ou depuis une image
 - **Créer un QR code** — Pour fabriquer votre propre QR code
 
 ### Transfert de fichiers (en bas)
@@ -77,6 +77,8 @@ expérimental* plus bas).
    - Si c'est une adresse web, elle apparaît sous forme de lien cliquable
    - Sinon, le texte est affiché et vous pouvez le copier avec le bouton **Copier dans le presse-papiers**
 5. Dès qu'un contenu est reçu, le scan s'arrête et la zone caméra disparaît
+
+Pour lire une image enregistrée, appuyez sur **Choisir une image**. Pour une capture d’écran dans le presse-papiers, utilisez **Ctrl+V** (**⌘V** sur Mac) ou **Coller une image** si votre navigateur propose ce bouton. QRShare décode l’image sur votre appareil et affiche le même résultat qu’avec la caméra.
 
 **Informations affichées pendant le scan** : nom de la caméra utilisée et résolution. Si vous avez plusieurs caméras, un menu déroulant permet de choisir laquelle utiliser.
 
